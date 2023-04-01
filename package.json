@@ -1,0 +1,22 @@
+{
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node index.js",
+    "build": "rollup -c --bundleConfigAsCjs"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pome-ta/codeMirror6PlaySandBox.git"
+  },
+  "devDependencies": {
+    "express": "latest",
+    "rollup": "latest",
+    "@rollup/plugin-node-resolve": "latest"
+  },
+  "dependencies": {
+    "codemirror": "latest",
+    "@codemirror/lang-javascript": "latest"
+  }
+}

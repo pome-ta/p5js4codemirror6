@@ -1,0 +1,21 @@
+# 📝 2023/04/01
+
+## codemirror とp5js を連動させて良い感じにする
+
+とりま、リポジトリ作成
+
+## 先にcodemirror のリハビリ
+
+### get standard 的な
+
+[CodeMirror Bundling Example](https://codemirror.net/examples/bundle/)
+
+自分の環境としては、iOS のCodeSandbox を使う想定での設定。
+
+### モジュール位置関係
+
+```.json
+"build": "rollup -c --bundleConfigAsCjs"
+```
+
+`--bundleConfigAsCjs` これつけないとあかんくなったのかな？意味は理解していない
