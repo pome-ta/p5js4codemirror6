@@ -1,3 +1,3 @@
-import { view } from './modules/cmEditor.bundle.js';
+import { editor } from './modules/cmEditor.bundle.js';
 
 // view();

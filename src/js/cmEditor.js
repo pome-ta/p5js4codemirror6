@@ -1,4 +1,9 @@
-import { EditorView } from '@codemirror/view';
-let view = new EditorView({ parent: document.body });
+import { EditorView, basicSetup } from 'codemirror';
+import { javascript } from '@codemirror/lang-javascript';
 
-export { view };
+let editor = new EditorView({
+  extensions: [basicSetup, javascript()],
+  parent: document.body,
+});
+
+export { editor };
