@@ -3,23 +3,36 @@ import Editor from './editor.js';
 
 const fsPath = './js/sketchBook/mainSketch.js';
 let loadedSource;
+let isShowEditor = true;
+
 
 /* -- load Source */
 async function fetchSketchFile(path) {
-    const res = await fetch(path);
-    const sketchText = await res.text();
-    return sketchText;
+  const res = await fetch(path);
+  const sketchText = await res.text();
+  return sketchText;
 }
 
 const getBlobURL = (sourceCode) => {
-    const sourceBlob = new Blob([sourceCode], { type: 'text/html' });
-    const blobURL = URL.createObjectURL(sourceBlob);
-    return blobURL;
+  const sourceBlob = new Blob([sourceCode], { type: 'text/html' });
+  const blobURL = URL.createObjectURL(sourceBlob);
+  return blobURL;
 }
 
 const reloadSketch = (iframeElement, editorObject) => {
-    const sourceCode = createSourceHTML(editorObject.toString);
-    iframeElement.src = getBlobURL(sourceCode);
+  const sourceCode = createSourceHTML(editorObject.toString);
+  iframeElement.src = getBlobURL(sourceCode);
+}
+
+const hideCode = (divElement) => {
+  if (isShowEditor) {
+    divElement.style.display = 'none';
+    hideButton.textContent = 'showCode'
+  } else {
+    divElement.style.display = 'grid';
+    hideButton.textContent = 'hideCode';
+  }
+  isShowEditor = !isShowEditor;
 }
 
 
@@ -46,13 +59,6 @@ sandbox.style.backgroundColor = 'lightgray';
 sandbox.src = getBlobURL(createSourceHTML(loadedSource));
 
 
-const runButton = document.createElement('button');
-runButton.id = 'runButton'
-runButton.textContent = 'runCode'
-runButton.style.margin = '1rem';
-runButton.style.position = 'fixed';
-runButton.style.top = 0;
-runButton.style.right = 0;
 
 
 const editorDiv = document.createElement('div');
@@ -65,12 +71,35 @@ editorDiv.style.height = '100dvh';
 editorDiv.style.overflow = 'auto';
 // editorDiv.style.backgroundColor = 'dodgerblue'
 
+
 const editor = new Editor(editorDiv, loadedSource);
+
+
+const runButton = document.createElement('button');
+runButton.id = 'runButton'
+runButton.textContent = 'runCode'
+runButton.style.margin = '1rem';
+runButton.style.height = '2rem';
+runButton.style.position = 'fixed';
+runButton.style.top = 0;
+runButton.style.right = 0;
+
+const hideButton = document.createElement('button');
+hideButton.id = 'hideButton'
+hideButton.textContent = 'hideCode'
+hideButton.style.margin = '1rem';
+hideButton.style.height = '2rem';
+hideButton.style.position = 'fixed';
+hideButton.style.top = '4rem';
+hideButton.style.right = 0;
+
 
 
 document.body.appendChild(sandbox);
 document.body.appendChild(editorDiv);
 document.body.appendChild(runButton);
+document.body.appendChild(hideButton);
 // document.body.style.backgroundColor = 'teal'
 
 runButton.addEventListener('click', (e) => reloadSketch(sandbox, editor));
+hideButton.addEventListener('click', (e) => hideCode(editorDiv));
