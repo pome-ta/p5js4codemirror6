@@ -1,8 +1,8 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 export default {
-  input: './src/js/cmEditor.js',
+  input: './docs/js/modules/srcBundles/codemirror.setup.js',
   output: {
-    file: './src/js/modules/cmEditor.bundle.js',
+    file: './docs/js/modules/codemirror.bundle.js',
     format: 'es',
   },
   plugins: [nodeResolve()],
