@@ -36,8 +36,13 @@ sandbox.sandbox = `allow-same-origin allow-scripts`;
 sandbox.allow = `accelerometer; ambient-light-sensor; autoplay; bluetooth; camera; encrypted-media; geolocation; gyroscope; \ hid; microphone; magnetometer; midi; payment; usb; serial; vr; xr-spatial-tracking`;
 sandbox.loading = 'lazy';
 sandbox.style.width = '100%';
-sandbox.style.height = '32%';
-sandbox.style.backgroundColor = 'maroon';
+sandbox.style.height = '100dvh';
+sandbox.style.borderWidth = 0;
+sandbox.style.position = 'fixed';
+sandbox.style.top = 0;
+sandbox.style.left = 0;
+sandbox.style.zIndex = 0;
+sandbox.style.backgroundColor = 'lightgray';
 sandbox.src = getBlobURL(createSourceHTML(loadedSource));
 
 
@@ -45,19 +50,27 @@ const runButton = document.createElement('button');
 runButton.id = 'runButton'
 runButton.textContent = 'runCode'
 runButton.style.margin = '1rem';
+runButton.style.position = 'fixed';
+runButton.style.top = 0;
+runButton.style.right = 0;
 
 
 const editorDiv = document.createElement('div');
 editorDiv.id = 'editor-div';
 editorDiv.style.width = '100%';
-editorDiv.style.backgroundColor = 'dodgerblue'
+editorDiv.style.position = 'relative';
+editorDiv.style.display = 'grid';
+editorDiv.style.gridTemplateRows = '1fr auto';
+editorDiv.style.height = '100dvh';
+editorDiv.style.overflow = 'auto';
+// editorDiv.style.backgroundColor = 'dodgerblue'
 
 const editor = new Editor(editorDiv, loadedSource);
 
 
-document.body.appendChild(runButton);
 document.body.appendChild(sandbox);
 document.body.appendChild(editorDiv);
-document.body.style.backgroundColor = 'teal'
+document.body.appendChild(runButton);
+// document.body.style.backgroundColor = 'teal'
 
 runButton.addEventListener('click', (e) => reloadSketch(sandbox, editor));
