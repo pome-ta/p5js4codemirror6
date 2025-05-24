@@ -1,288 +1,333 @@
 import ctypes
 from pathlib import Path
+from typing import Union
 
-from objc_util import ObjCClass, ObjCInstance, create_objc_class, on_main_thread, class_getSuperclass, nsurl, c
-from objc_util import sel, CGRect
+from pyrubicon.objc.api import ObjCClass, ObjCInstance, Block
+from pyrubicon.objc.api import objc_method, objc_property, at
+from pyrubicon.objc.runtime import send_super, objc_id, SEL
 
-import pdbg
+from rbedge.enumerations import (
+  NSURLRequestCachePolicy,
+  UIControlEvents,
+  UIBarButtonSystemItem,
+  UIBarButtonItemStyle,
+  NSTextAlignment,
+  UILayoutConstraintAxis,
+  UIStackViewDistribution,
+  UIScrollViewKeyboardDismissMode,
+  NSKeyValueObservingOptions,
+)
+from rbedge.globalVariables import UIFontTextStyle
+from rbedge.makeZero import CGRectZero
+from rbedge.functions import NSStringFromClass
+from rbedge import pdbr
 
-
-# wip: 今後引数サイズを考慮する
-def objc_msgSendSuper(super, selector):
-  _objc_msgSendSuper = c.objc_msgSendSuper
-  _objc_msgSendSuper.argtypes = [
-    ctypes.c_void_p,  # super
-    ctypes.c_void_p,  # selector
-  ]
-  _objc_msgSendSuper.restype = ctypes.c_void_p
-  return _objc_msgSendSuper(super, selector)
-
-
-class objc_super(ctypes.Structure):
-  #ref: [id | Apple Developer Documentation](https://developer.apple.com/documentation/objectivec/id?language=objc)
-  # ref: [Class | Apple Developer Documentation](https://developer.apple.com/documentation/objectivec/class?language=objc)
-  _fields_ = [
-    ('receiver', ctypes.c_void_p),  # encoding(b"@")
-    ('super_class', ctypes.c_void_p),  # encoding(b"#")
-  ]
-
-
-# --- navigation
-UINavigationController = ObjCClass('UINavigationController')
-UINavigationBarAppearance = ObjCClass('UINavigationBarAppearance')
-UIBarButtonItem = ObjCClass('UIBarButtonItem')
-
-# --- viewController
 UIViewController = ObjCClass('UIViewController')
-
-# --- view
-UIView = ObjCClass('UIView')
 NSLayoutConstraint = ObjCClass('NSLayoutConstraint')
-
 UIColor = ObjCClass('UIColor')
-NSURL = ObjCClass('NSURL')
-NSURLRequest = ObjCClass('NSURLRequest')
-NSDate = ObjCClass('NSDate')
 
-# --- WKWebView
+NSURL = ObjCClass('NSURL')
 WKWebView = ObjCClass('WKWebView')
 WKWebViewConfiguration = ObjCClass('WKWebViewConfiguration')
 WKWebsiteDataStore = ObjCClass('WKWebsiteDataStore')
 
 UIRefreshControl = ObjCClass('UIRefreshControl')
+UIBarButtonItem = ObjCClass('UIBarButtonItem')
+UIImage = ObjCClass('UIImage')
+UILabel = ObjCClass('UILabel')
+UIFont = ObjCClass('UIFont')
+UIStackView = ObjCClass('UIStackView')
 
 
-class WebViewController:
+class WebViewController(UIViewController):
 
-  def __init__(self):
-    self._viewController: UIViewController
-    self.webView: WKWebView
-    self.targetURL: Path | str = 'https://yahoo.co.jp'
-    self.nav_title: str = 'nav_title'
+  wkWebView: WKWebView = objc_property()
+  titleLabel: UILabel = objc_property()
+  promptLabel: UILabel = objc_property()
 
-  def _override_viewController(self):
+  indexPathObject: Path = objc_property(ctypes.py_object)
+  savePathObject: Path = objc_property(ctypes.py_object)
 
-    # --- `UIViewController` Methods
-    def loadView(_self, _cmd):
-      this = ObjCInstance(_self)
-      # todo: loadView override
-      super_cls = class_getSuperclass(self._viewController)
-      super_struct = objc_super(_self, super_cls)
-      objc_msgSendSuper(ctypes.byref(super_struct), sel('loadView'))
+  @objc_method
+  def dealloc(self):
+    # xxx: 呼ばない-> `send_super(__class__, self, 'dealloc')`
+    #print(f'- {NSStringFromClass(__class__)}: dealloc')
+    self.wkWebView.removeObserver_forKeyPath_(self, at('title'))
 
-      webConfiguration = WKWebViewConfiguration.new()
-      websiteDataStore = WKWebsiteDataStore.nonPersistentDataStore()
-      webConfiguration.websiteDataStore = websiteDataStore
-      webConfiguration.preferences().setValue_forKey_(
-        True, 'allowFileAccessFromFileURLs')
+  @objc_method
+  def init(self):
+    send_super(__class__, self, 'init')
+    #print(f'\t{NSStringFromClass(__class__)}: init')
+    self.indexPathObject = None
+    self.savePathObject = None
+    return self
 
-      CGRectZero = CGRect((0.0, 0.0), (0.0, 0.0))
-      self.webView = WKWebView.alloc().initWithFrame_configuration_(
-        CGRectZero, webConfiguration)
+  @objc_method
+  def initWithIndexPath_(self, index_path: ctypes.py_object):
+    self.init()
+    #print(f'\t{NSStringFromClass(__class__)}: initWithTargetURL_')
+    if not (Path(index_path).exists()):
+      return self
 
-      self.webView.navigationDelegate = this
+    self.indexPathObject = index_path
 
-      self.webView.scrollView().bounces = True
-      refreshControl = UIRefreshControl.new()
-      valueChanged = 1 << 12
-      refreshControl.addTarget_action_forControlEvents_(
-        this, sel('refreshWebView:'), valueChanged)
+    return self
 
-      self.webView.scrollView().refreshControl = refreshControl
+  @objc_method
+  def loadView(self):
+    send_super(__class__, self, 'loadView')
+    #print(f'\t{NSStringFromClass(__class__)}: loadView')
+    # --- toolbar set up
+    self.navigationController.setNavigationBarHidden_animated_(True, True)
+    self.navigationController.setToolbarHidden_animated_(False, True)
 
-      this.view = self.webView
+    refreshButtonItem = UIBarButtonItem.alloc().initWithImage(
+      UIImage.systemImageNamed_('arrow.clockwise.circle'),
+      style=UIBarButtonItemStyle.plain,
+      target=self,
+      action=SEL('reLoadWebView:'))
 
-    def viewDidLoad(_self, _cmd):
-      this = ObjCInstance(_self)
-      view = this.view()
+    closeImage = UIImage.systemImageNamed_('multiply.circle')
+    closeButtonItem = UIBarButtonItem.alloc().initWithImage(
+      closeImage,
+      style=UIBarButtonItemStyle.plain,
+      target=self.navigationController,
+      action=SEL('doneButtonTapped:'))
 
-      #view.backgroundColor = UIColor.systemDarkRedColor()
-      navigationItem = this.navigationItem()
-      navigationItem.title = self.nav_title
-      self.refresh_load()
+    promptLabel = UILabel.new()
+    promptLabel.setTextAlignment_(NSTextAlignment.center)
+    promptLabel.setFont_(
+      UIFont.preferredFontForTextStyle_(UIFontTextStyle.callout))
 
-    def viewWillDisappear_(_self, _cmd, _animated):
-      pass
+    titleLabel = UILabel.new()
+    titleLabel.setTextAlignment_(NSTextAlignment.center)
+    titleLabel.setFont_(
+      UIFont.preferredFontForTextStyle_(UIFontTextStyle.caption1))
 
-    def viewDidDisappear_(_self, _cmd, _animated):
-      self.refresh_load()
+    stackView = UIStackView.alloc().initWithArrangedSubviews_([
+      promptLabel,
+      titleLabel,
+    ])
+    stackView.setDistribution_(UIStackViewDistribution.equalCentering)
 
-    def refreshWebView_(_self, _cmd, _sender):
-      sender = ObjCInstance(_sender)
-      self.webView.reload()
-      sender.endRefreshing()
+    stackTextItem = UIBarButtonItem.alloc().initWithCustomView_(stackView)
+    stackView.setAxis_(UILayoutConstraintAxis.vertical)
 
-    # --- `WKNavigationDelegate` Methods
-    def webView_didFinishNavigation_(_self, _cmd, _webView, _navigation):
-      this = ObjCInstance(_self)
-      webView = ObjCInstance(_webView)
+    flexibleSpace = UIBarButtonSystemItem.flexibleSpace
+    flexibleSpaceBarButtonItem = UIBarButtonItem.alloc(
+    ).initWithBarButtonSystemItem(flexibleSpace, target=None, action=None)
 
-      title = webView.title()
-      this.navigationItem().title = str(title)
-
-    # --- `UIViewController` set up
-    _methods = [
-      loadView,
-      viewDidLoad,
-      viewWillDisappear_,
-      viewDidDisappear_,
-      refreshWebView_,
-      webView_didFinishNavigation_,
+    toolbarButtonItems = [
+      refreshButtonItem,
+      flexibleSpaceBarButtonItem,
+      stackTextItem,
+      flexibleSpaceBarButtonItem,
+      closeButtonItem,
     ]
 
-    _protocols = [
-      'WKNavigationDelegate',
-    ]
+    self.setToolbarItems_animated_(toolbarButtonItems, True)
 
-    create_kwargs = {
-      'name': '_vc',
-      'superclass': UIViewController,
-      'methods': _methods,
-      'protocols': _protocols,
-    }
-    _vc = create_objc_class(**create_kwargs)
-    self._viewController = _vc
+    # --- WKWebView set up
+    webConfiguration = WKWebViewConfiguration.new()
+    websiteDataStore = WKWebsiteDataStore.nonPersistentDataStore()
 
-  def refresh_load(self):
-    # todo: 強制的に再度読み込み
-    if (Path(self.targetURL).exists()):
-      target_path = Path(self.targetURL)
-      fileURLWithPath = NSURL.fileURLWithPath_isDirectory_
-      folder_path = fileURLWithPath(str(target_path.parent), True)
-      index_path = fileURLWithPath(str(target_path), False)
-      self.webView.loadFileURL_allowingReadAccessToURL_(
-        index_path, folder_path)
-    else:
-      url = NSURL.URLWithString_(self.targetURL)
-      reloadIgnoringLocalCacheData = 1
-      timeoutInterval = 10
-      request = NSURLRequest.requestWithURL_cachePolicy_timeoutInterval_(
-        url, reloadIgnoringLocalCacheData, timeoutInterval)
-      self.webView.loadRequest_(request)
+    webConfiguration.websiteDataStore = websiteDataStore
+    webConfiguration.preferences.setValue_forKey_(
+      True, 'allowFileAccessFromFileURLs')
 
-  @on_main_thread
-  def _init(self):
-    self._override_viewController()
-    vc = self._viewController.new().autorelease()
-    return vc
+    wkWebView = WKWebView.alloc().initWithFrame_configuration_(
+      CGRectZero, webConfiguration)
 
-  @classmethod
-  def new(cls) -> ObjCInstance:
-    _cls = cls()
-    return _cls._init()
+    #wkWebView.uiDelegate = self
+    wkWebView.navigationDelegate = self
+    wkWebView.scrollView.delegate = self
+    wkWebView.scrollView.bounces = True
+    wkWebView.scrollView.keyboardDismissMode = UIScrollViewKeyboardDismissMode.interactive
 
-  @classmethod
-  def load_url(cls, targetURL: Path | str) -> ObjCInstance:
-    _cls = cls()
-    _cls.targetURL = targetURL
-    return _cls._init()
+    refreshControl = UIRefreshControl.new()
+    refreshControl.addTarget_action_forControlEvents_(
+      self, SEL('refreshWebView:'), UIControlEvents.valueChanged)
+    wkWebView.scrollView.refreshControl = refreshControl
 
+    # todo: (.js 等での) `title` 変化を監視
+    wkWebView.addObserver_forKeyPath_options_context_(
+      self, at('title'), NSKeyValueObservingOptions.new, None)
 
-class NavigationController:
+    self.titleLabel = titleLabel
+    self.promptLabel = promptLabel
 
-  def __init__(self):
-    self._navigationController: UINavigationController
+    self.wkWebView = wkWebView
 
-  def _override_navigationController(self):
-    # --- `UINavigationController` Methods
-    def doneButtonTapped_(_self, _cmd, _sender):
-      this = ObjCInstance(_self)
-      visibleViewController = this.visibleViewController()
-      visibleViewController.dismissViewControllerAnimated_completion_(
-        True, None)
+  @objc_method
+  def viewDidLoad(self):
+    send_super(__class__, self, 'viewDidLoad')
+    #print(f'\t{NSStringFromClass(__class__)}: viewDidLoad')
 
-    # --- `UINavigationController` set up
-    _methods = [
-      doneButtonTapped_,
-    ]
+    # --- Navigation
+    self.navigationItem.title = NSStringFromClass(__class__) if (
+      title := self.navigationItem.title) is None else title
+    self.view.backgroundColor = UIColor.systemFillColor()
 
-    create_kwargs = {
-      'name': '_nv',
-      'superclass': UINavigationController,
-      'methods': _methods,
-    }
-    _nv = create_objc_class(**create_kwargs)
-    self._navigationController = _nv
+    self.loadFileIndexPath()
 
-  def create_navigationControllerDelegate(self):
-    # --- `UINavigationControllerDelegate` Methods
-    def navigationController_willShowViewController_animated_(
-        _self, _cmd, _navigationController, _viewController, _animated):
+    # --- Layout
+    self.view.addSubview_(self.wkWebView)
+    self.wkWebView.translatesAutoresizingMaskIntoConstraints = False
 
-      navigationController = ObjCInstance(_navigationController)
-      viewController = ObjCInstance(_viewController)
+    layoutGuide = self.view.safeAreaLayoutGuide
 
-      # --- appearance
-      appearance = UINavigationBarAppearance.alloc()
-      appearance.configureWithDefaultBackground()
+    NSLayoutConstraint.activateConstraints_([
+      self.wkWebView.topAnchor.constraintEqualToAnchor_(layoutGuide.topAnchor),
+      self.wkWebView.bottomAnchor.constraintEqualToAnchor_(
+        layoutGuide.bottomAnchor),
+      self.wkWebView.leftAnchor.constraintEqualToAnchor_(
+        layoutGuide.leftAnchor),
+      self.wkWebView.rightAnchor.constraintEqualToAnchor_(
+        layoutGuide.rightAnchor),
+    ])
 
-      # --- navigationBar
-      navigationBar = navigationController.navigationBar()
+  @objc_method
+  def viewWillAppear_(self, animated: bool):
+    send_super(__class__,
+               self,
+               'viewWillAppear:',
+               animated,
+               argtypes=[
+                 ctypes.c_bool,
+               ])
+    #print(f'\t{NSStringFromClass(__class__)}: viewWillAppear_')
 
-      navigationBar.standardAppearance = appearance
-      navigationBar.scrollEdgeAppearance = appearance
-      navigationBar.compactAppearance = appearance
-      navigationBar.compactScrollEdgeAppearance = appearance
+  @objc_method
+  def viewDidAppear_(self, animated: bool):
+    send_super(__class__,
+               self,
+               'viewDidAppear:',
+               animated,
+               argtypes=[
+                 ctypes.c_bool,
+               ])
+    #print(f'\t{NSStringFromClass(__class__)}: viewDidAppear_')
 
-      viewController.setEdgesForExtendedLayout_(0)
+  @objc_method
+  def viewWillDisappear_(self, animated: bool):
+    send_super(__class__,
+               self,
+               'viewWillDisappear:',
+               animated,
+               argtypes=[
+                 ctypes.c_bool,
+               ])
+    #print(f'\t{NSStringFromClass(__class__)}: viewWillDisappear_')
+    self.wkWebView.reloadFromOrigin()
 
-      done_btn = UIBarButtonItem.alloc(
-      ).initWithBarButtonSystemItem_target_action_(0, navigationController,
-                                                   sel('doneButtonTapped:'))
+  @objc_method
+  def viewDidDisappear_(self, animated: bool):
+    send_super(__class__,
+               self,
+               'viewDidDisappear:',
+               animated,
+               argtypes=[
+                 ctypes.c_bool,
+               ])
+    #print(f'\t{NSStringFromClass(__class__)}: viewDidDisappear_')
 
-      visibleViewController = navigationController.visibleViewController()
+  @objc_method
+  def didReceiveMemoryWarning(self):
+    send_super(__class__, self, 'didReceiveMemoryWarning')
+    print(f'{__class__}: didReceiveMemoryWarning')
 
-      # --- navigationItem
-      navigationItem = visibleViewController.navigationItem()
-      navigationItem.rightBarButtonItem = done_btn
+  # --- WKUIDelegate
+  # --- WKNavigationDelegate
+  @objc_method
+  def webView_didCommitNavigation_(self, webView, navigation):
+    # 遷移開始時
+    pass
 
-    # --- `UINavigationControllerDelegate` set up
-    _methods = [
-      navigationController_willShowViewController_animated_,
-    ]
-    _protocols = [
-      'UINavigationControllerDelegate',
-    ]
+  @objc_method
+  def webView_didFailNavigation_withError_(self, webView, navigation, error):
+    # 遷移中にエラーが発生した時
+    # xxx: 未確認
+    print('didFailNavigation_withError')
+    print(error)
 
-    create_kwargs = {
-      'name': '_nvDelegate',
-      'methods': _methods,
-      'protocols': _protocols,
-    }
-    _nvDelegate = create_objc_class(**create_kwargs)
-    return _nvDelegate.new()
+  @objc_method
+  def webView_didFailProvisionalNavigation_withError_(self, webView,
+                                                      navigation, error):
+    # ページ読み込み時にエラーが発生した時
+    print('didFailProvisionalNavigation_withError')
+    print(error)
 
-  @on_main_thread
-  def _init(self, vc: UIViewController):
-    self._override_navigationController()
-    _delegate = self.create_navigationControllerDelegate()
-    nv = self._navigationController.alloc()
-    nv.initWithRootViewController_(vc).autorelease()
-    nv.setDelegate_(_delegate)
-    return nv
+  @objc_method
+  def webView_didFinishNavigation_(self, webView, navigation):
+    # ページ読み込みが完了した時
+    title = webView.title
+    self.titleLabel.setText_(str(title))
+    self.titleLabel.sizeToFit()
+    self.promptLabel.setHidden_(self.titleLabel.text == self.promptLabel.text)
 
-  @classmethod
-  def new(cls, vc: UIViewController) -> ObjCInstance:
-    _cls = cls()
-    return _cls._init(vc)
+  @objc_method
+  def webView_didReceiveServerRedirectForProvisionalNavigation_(
+      self, webView, navigation):
+    # リダイレクトされた時
+    # xxx: 未確認
+    print('didReceiveServerRedirectForProvisionalNavigation')
 
+  @objc_method
+  def webView_didStartProvisionalNavigation_(self, webView, navigation):
+    # ページ読み込みが開始された時
+    pass
 
-@on_main_thread
-def present_objc(vc):
-  app = ObjCClass('UIApplication').sharedApplication()
-  window = app.keyWindow() if app.keyWindow() else app.windows().firstObject()
+  # --- private
+  @objc_method
+  def loadFileIndexPath(self):
+    fileURLWithPath = NSURL.fileURLWithPath_isDirectory_
+    loadFileURL = fileURLWithPath(str(self.indexPathObject), False)
+    allowingReadAccessToURL = fileURLWithPath(str(self.indexPathObject.parent), True)
+    '''
+    loadFileURL = NSURL.fileURLWithPath_isDirectory_(str(self.indexPathObject),
+                                                     False)
+    allowingReadAccessToURL = NSURL.fileURLWithPath_isDirectory_(
+      str(self.indexPathObject.parent), True)
+    '''
 
-  root_vc = window.rootViewController()
+    self.wkWebView.loadFileURL_allowingReadAccessToURL_(
+      loadFileURL, allowingReadAccessToURL)
 
-  while root_vc.presentedViewController():
-    root_vc = root_vc.presentedViewController()
-  vc.setModalPresentationStyle(0)
-  root_vc.presentViewController_animated_completion_(vc, True, None)
+  @objc_method
+  def observeValueForKeyPath_ofObject_change_context_(self, keyPath, objct,
+                                                      change, context):
+    title = self.wkWebView.title
+    self.promptLabel.setText_(str(title))
+    self.promptLabel.sizeToFit()
+    self.promptLabel.setHidden_(self.titleLabel.text == self.promptLabel.text)
+
+  @objc_method
+  def doneButtonTapped_(self, sender):
+    #self.visibleViewController.dismissViewControllerAnimated_completion_(True, None)
+    self.navigationController.doneButtonTapped(sender)
+
+  @objc_method
+  def reLoadWebView_(self, sender):
+    self.wkWebView.reload()
+    #self.wkWebView.reloadFromOrigin()
+
+  @objc_method
+  def refreshWebView_(self, sender):
+    self.reLoadWebView_(sender)
+    sender.endRefreshing()
 
 
 if __name__ == '__main__':
-  uri_path = Path('./src/index.html')
-  m_vc = WebViewController.load_url(uri_path)
-  n_vc = NavigationController.new(m_vc)
-  present_objc(n_vc)
+  from rbedge.app import App
+  from rbedge.enumerations import UIModalPresentationStyle
+
+  index_path = Path('./docs/index.html')
+
+  main_vc = WebViewController.alloc().initWithIndexPath_(index_path)
+
+  presentation_style = UIModalPresentationStyle.fullScreen
+  #presentation_style = UIModalPresentationStyle.pageSheet
+
+  app = App(main_vc, presentation_style)
+  app.present()
 
