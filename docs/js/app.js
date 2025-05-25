@@ -1,9 +1,17 @@
 import createSourceHTML from './sandboxes/defaultHTML.js'
 import Editor from './editor.js';
 
-const fsPath = './js/sketchBook/mainSketch.js';
-let loadedSource;
+
+//let loadedSource;
 let isShowEditor = true;
+
+const mainSketch = './js/sketchBook/mainSketch.js';
+const devSketch = './js/sketchBook/devSketch.js';
+
+const filePath =`${location.protocol}` === 'file:' ? devSketch : mainSketch;
+
+const loadedSource = await fetchSketchFile(filePath);
+
 
 
 /* -- load Source */
@@ -37,11 +45,6 @@ const hideCode = (divElement) => {
 
 
 
-
-loadedSource = await fetchSketchFile(fsPath);
-
-
-
 // sandbox
 const sandbox = document.createElement('iframe');
 sandbox.id = 'sandbox';
@@ -64,15 +67,16 @@ sandbox.src = getBlobURL(createSourceHTML(loadedSource));
 const editorDiv = document.createElement('div');
 editorDiv.id = 'editor-div';
 editorDiv.style.width = '100%';
+//editorDiv.style.height = '100dvh';
 editorDiv.style.position = 'relative';
 editorDiv.style.display = 'grid';
 editorDiv.style.gridTemplateRows = '1fr auto';
-editorDiv.style.height = '100dvh';
 editorDiv.style.overflow = 'auto';
-// editorDiv.style.backgroundColor = 'dodgerblue'
+//editorDiv.style.backgroundColor = 'dodgerblue'
+//editorDiv.style.opacity = 0.33;
 
 
-const editor = new Editor(editorDiv, loadedSource);
+
 
 
 const runButton = document.createElement('button');
@@ -94,6 +98,8 @@ hideButton.style.top = '4rem';
 hideButton.style.right = 0;
 
 
+
+const editor = new Editor(editorDiv, loadedSource);
 
 document.body.appendChild(sandbox);
 document.body.appendChild(editorDiv);
