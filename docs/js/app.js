@@ -4,6 +4,7 @@ import Editor from './editor.js';
 
 //let loadedSource;
 let isShowEditor = true;
+const addEruda = true;
 
 const mainSketch = './js/sketchBook/mainSketch.js';
 const devSketch = './js/sketchBook/devSketch.js';
@@ -26,7 +27,7 @@ const getBlobURL = (sourceCode) => {
 }
 
 const reloadSketch = (iframeElement, editorObject) => {
-  const sourceCode = createSourceHTML(editorObject.toString);
+  const sourceCode = createSourceHTML(editorObject.toString, addEruda);
   iframeElement.src = getBlobURL(sourceCode);
 }
 
@@ -57,7 +58,7 @@ sandbox.style.top = 0;
 sandbox.style.left = 0;
 sandbox.style.zIndex = 0;
 sandbox.style.backgroundColor = 'lightgray';
-sandbox.src = getBlobURL(createSourceHTML(loadedSource));
+sandbox.src = getBlobURL(createSourceHTML(loadedSource, addEruda));
 
 
 
