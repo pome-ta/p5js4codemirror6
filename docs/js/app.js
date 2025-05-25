@@ -67,7 +67,7 @@ sandbox.src = getBlobURL(createSourceHTML(loadedSource));
 const editorDiv = document.createElement('div');
 editorDiv.id = 'editor-div';
 editorDiv.style.width = '100%';
-//editorDiv.style.height = '100dvh';
+editorDiv.style.height = '100dvh';
 editorDiv.style.position = 'relative';
 editorDiv.style.display = 'grid';
 editorDiv.style.gridTemplateRows = '1fr auto';
@@ -81,7 +81,7 @@ editorDiv.style.overflow = 'auto';
 
 const runButton = document.createElement('button');
 runButton.id = 'runButton'
-runButton.textContent = 'runCode'
+runButton.textContent = '🏃‍➡️: runCode'
 runButton.style.margin = '1rem';
 runButton.style.height = '2rem';
 runButton.style.position = 'fixed';

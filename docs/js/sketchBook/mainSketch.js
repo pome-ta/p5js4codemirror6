@@ -1,7 +1,11 @@
+const v = 360;
+
 function setup() {
-  createCanvas(240, 64);
+  createCanvas(v, v);
+  colorMode(HSL, v, 1, 1);
 }
 
 function draw() {
-  background(random() * 255);
+  background(frameCount % v, 1, 0.5);
 }
+
