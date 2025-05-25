@@ -35,10 +35,10 @@ const reloadSketch = (iframeElement, editorObject) => {
 const hideCode = (divElement) => {
   if (isShowEditor) {
     divElement.style.display = 'none';
-    hideButton.textContent = 'showCode'
+    hideButton.textContent = '😁: showCode'
   } else {
     divElement.style.display = 'grid';
-    hideButton.textContent = 'hideCode';
+    hideButton.textContent = '🫥: hideCode';
   }
   isShowEditor = !isShowEditor;
 }
@@ -81,7 +81,7 @@ editorDiv.style.overflow = 'auto';
 
 const runButton = document.createElement('button');
 runButton.id = 'runButton'
-runButton.textContent = '🏃‍➡️: runCode'
+runButton.textContent = '😘: runCode'
 runButton.style.margin = '1rem';
 runButton.style.height = '2rem';
 runButton.style.position = 'fixed';
@@ -90,7 +90,7 @@ runButton.style.right = 0;
 
 const hideButton = document.createElement('button');
 hideButton.id = 'hideButton'
-hideButton.textContent = 'hideCode'
+hideButton.textContent = '🫥: hideCode'
 hideButton.style.margin = '1rem';
 hideButton.style.height = '2rem';
 hideButton.style.position = 'fixed';
