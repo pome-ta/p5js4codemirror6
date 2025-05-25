@@ -16,7 +16,7 @@ const sketch = (p) => {
     p.createCanvas(p.windowWidth, p.windowHeight);
     windowFlexSize();
     p.frameRate(30);
-    p.background(255-23);
+    p.background(255 - 23);
     p.noFill();
 
     _angnoise = p.random(10);

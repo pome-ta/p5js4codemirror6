@@ -16,7 +16,7 @@ const bgRectangleClassName = 'cm-bgRectangle';
 const bgRectangleMark = Decoration.mark({ class: bgRectangleClassName });
 const bgRectangleTheme = EditorView.baseTheme({
   // '.cm-bgRectangle': { backgroundColor: '#232323aa' },
-  '.cm-bgRectangle': { backgroundColor: '#232323dd' },
+  '.cm-bgRectangle': { backgroundColor: '#121212bb' },
 });
 
 const bgRectEffect = {
@@ -89,7 +89,7 @@ function bgRectangleSet(view) {
  * whitespaceShow
  */
 const u22c5 = '⋅'; // DOT OPERATOR
-const ivory = '#abb2bf44'; // todo: oneDark から拝借
+// const ivory = '#abb2bf44'; // todo: oneDark から拝借
 const whitespaceShow = highlightSpecialChars({
   render: (code) => {
     let node = document.createElement('span');
@@ -124,6 +124,7 @@ const chalky = '#e5c07b',
   coral = '#e06c75',
   cyan = '#56b6c2',
   invalid = '#ffffff',
+  ivory = '#abb2bf',
   stone = '#7d8799', // Brightened compared to original to increase contrast
   malibu = '#61afef',
   sage = '#98c379',
@@ -134,7 +135,8 @@ const chalky = '#e5c07b',
   background = '#282c3400',
   tooltipBackground = '#353a42',
   selection = '#528bff80',
-  cursor = '#528bff';
+  // cursor = '#528bff';
+  cursor = '#fff';
 
 const transparentTheme = EditorView.theme({
   //const transparentTheme = EditorView.baseTheme({
@@ -180,6 +182,7 @@ const transparentTheme = EditorView.theme({
   '&.cm-focused .cm-matchingBracket, &.cm-focused .cm-nonmatchingBracket': {
     backgroundColor: '#bad0f847',
     outline: '1px solid #515a6b',
+    // outline: '1px solid #aa5a6b',
   },
   '.cm-gutters': {
     backgroundColor: background,
@@ -216,19 +219,14 @@ const transparentTheme = EditorView.theme({
   { dark: true }
 );
 
-
-
-
 const _extensions = [
   transparentTheme,
-
   //fontSizeTheme,
   ...initExtensions,
-  //whitespaceShow,
+  // whitespaceShow,
   resOutlineTheme,
   bgRectangleTheme,
 ];
-
 
 class Editor {
   constructor(editorDiv, doc = '', extensions = null) {

@@ -7,11 +7,9 @@ let isShowEditor = true;
 
 const mainSketch = './js/sketchBook/mainSketch.js';
 const devSketch = './js/sketchBook/devSketch.js';
-
-const filePath =`${location.protocol}` === 'file:' ? devSketch : mainSketch;
+const filePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
 
 const loadedSource = await fetchSketchFile(filePath);
-
 
 
 /* -- load Source */
