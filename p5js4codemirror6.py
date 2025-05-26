@@ -81,18 +81,27 @@ class WebViewController(UIViewController):
     self.navigationController.setNavigationBarHidden_animated_(True, True)
     self.navigationController.setToolbarHidden_animated_(False, True)
 
-    refreshButtonItem = UIBarButtonItem.alloc().initWithImage(
-      UIImage.systemImageNamed_('arrow.clockwise.circle'),
-      style=UIBarButtonItemStyle.plain,
-      target=self,
-      action=SEL('reLoadWebView:'))
-
-    closeImage = UIImage.systemImageNamed_('multiply.circle')
+    closeImage = UIImage.systemImageNamed_('arrow.down.app')
     closeButtonItem = UIBarButtonItem.alloc().initWithImage(
       closeImage,
       style=UIBarButtonItemStyle.plain,
       target=self.navigationController,
       action=SEL('doneButtonTapped:'))
+
+    refreshImage = UIImage.systemImageNamed_('arrow.clockwise.circle')
+    refreshButtonItem = UIBarButtonItem.alloc().initWithImage(
+      refreshImage,
+      style=UIBarButtonItemStyle.plain,
+      target=self,
+      action=SEL('reLoadWebView:'))
+
+    saveUpdateImage = UIImage.systemImageNamed_('text.badge.checkmark.rtl')
+
+    saveUpdateButtonItem = UIBarButtonItem.alloc().initWithImage(
+      saveUpdateImage,
+      style=UIBarButtonItemStyle.plain,
+      target=self,
+      action=SEL('saveFileAction:'))
 
     promptLabel = UILabel.new()
     promptLabel.setTextAlignment_(NSTextAlignment.center)
@@ -104,24 +113,26 @@ class WebViewController(UIViewController):
     titleLabel.setFont_(
       UIFont.preferredFontForTextStyle_(UIFontTextStyle.caption1))
 
-    stackView = UIStackView.alloc().initWithArrangedSubviews_([
+    stackTextView = UIStackView.alloc().initWithArrangedSubviews_([
       promptLabel,
       titleLabel,
     ])
-    stackView.setDistribution_(UIStackViewDistribution.equalCentering)
+    stackTextView.setDistribution_(UIStackViewDistribution.equalCentering)
 
-    stackTextItem = UIBarButtonItem.alloc().initWithCustomView_(stackView)
-    stackView.setAxis_(UILayoutConstraintAxis.vertical)
+    stackTextItem = UIBarButtonItem.alloc().initWithCustomView_(stackTextView)
+    stackTextView.setAxis_(UILayoutConstraintAxis.vertical)
 
     flexibleSpace = UIBarButtonSystemItem.flexibleSpace
     flexibleSpaceBarButtonItem = UIBarButtonItem.alloc(
     ).initWithBarButtonSystemItem(flexibleSpace, target=None, action=None)
 
     toolbarButtonItems = [
-      refreshButtonItem,
+      saveUpdateButtonItem,
       flexibleSpaceBarButtonItem,
       stackTextItem,
       flexibleSpaceBarButtonItem,
+      refreshButtonItem,
+      #flexibleSpaceBarButtonItem,
       closeButtonItem,
     ]
 
@@ -284,12 +295,6 @@ class WebViewController(UIViewController):
     loadFileURL = fileURLWithPath(str(self.indexPathObject), False)
     allowingReadAccessToURL = fileURLWithPath(str(self.indexPathObject.parent),
                                               True)
-    '''
-    loadFileURL = NSURL.fileURLWithPath_isDirectory_(str(self.indexPathObject),
-                                                     False)
-    allowingReadAccessToURL = NSURL.fileURLWithPath_isDirectory_(
-      str(self.indexPathObject.parent), True)
-    '''
 
     self.wkWebView.loadFileURL_allowingReadAccessToURL_(
       loadFileURL, allowingReadAccessToURL)
@@ -317,14 +322,67 @@ class WebViewController(UIViewController):
     self.reLoadWebView_(sender)
     sender.endRefreshing()
 
+  @objc_method
+  def saveFileAction_(self, sender):
+    if self.savePathObject is None or not (self.savePathObject.exists()):
+      return
+
+    javaScriptString = '''
+    (function getShaderCode() {
+       const root = document.querySelector('#editor-div');
+       const cme = Array.from(root.childNodes).find((cme) => cme);
+       const cms = Array.from(cme.childNodes).find((cms) =>
+         cms.classList.contains('cm-scroller')
+       );
+       const cmc = Array.from(cms.childNodes).find((cmc) =>
+         cmc.classList.contains('cm-content')
+       );
+       const v = cmc.cmView.view.state.doc.toString();
+       return v;
+    }());
+    '''
+
+    def completionHandler(object_id, error_id):
+      objc_instance = ObjCInstance(object_id)
+      self.savePathObject.write_text(str(objc_instance), encoding='utf-8')
+
+    self.wkWebView.evaluateJavaScript_completionHandler_(
+      at(javaScriptString),
+      Block(completionHandler, None, *[
+        objc_id,
+        objc_id,
+      ]))
+
+    try:
+      import editor
+    except (ModuleNotFoundError, LookupError):
+      return
+
+    def open_file(url: Path, tab: bool):
+      editor.open_file(f'{url.resolve()}', tab)
+
+    # todo: save したfile editor 上のバッファを最新にする
+    open_file(self.savePathObject, True)
+    dummy_path = Path(editor.__file__)
+    while _path := dummy_path:
+      if (dummy_path := _path).name == 'Pythonista3.app':
+        break
+      dummy_path = _path.parent
+    open_file(Path('./', dummy_path, 'Welcome3.md'), False)
+    open_file(self.savePathObject, False)
+
 
 if __name__ == '__main__':
   from rbedge.app import App
   from rbedge.enumerations import UIModalPresentationStyle
 
   index_path = Path('./docs/index.html')
+  save_path = Path('./docs/js/sketchBook/devSketch.js')
 
   main_vc = WebViewController.alloc().initWithIndexPath_(index_path)
+  _title = NSStringFromClass(WebViewController)
+  main_vc.navigationItem.title = _title
+  main_vc.savePathObject = save_path
 
   presentation_style = UIModalPresentationStyle.fullScreen
   #presentation_style = UIModalPresentationStyle.pageSheet
