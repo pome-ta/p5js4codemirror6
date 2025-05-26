@@ -106,16 +106,20 @@ class WebViewController(UIViewController):
     promptLabel = UILabel.new()
     promptLabel.setTextAlignment_(NSTextAlignment.center)
     promptLabel.setFont_(
-      UIFont.preferredFontForTextStyle_(UIFontTextStyle.callout))
+      UIFont.preferredFontForTextStyle_(UIFontTextStyle.headline))
 
+    #headline
+    
     titleLabel = UILabel.new()
     titleLabel.setTextAlignment_(NSTextAlignment.center)
     titleLabel.setFont_(
       UIFont.preferredFontForTextStyle_(UIFontTextStyle.caption1))
 
+    
+    
     stackTextView = UIStackView.alloc().initWithArrangedSubviews_([
-      promptLabel,
       titleLabel,
+      promptLabel,
     ])
     stackTextView.setDistribution_(UIStackViewDistribution.equalCentering)
 
@@ -125,6 +129,13 @@ class WebViewController(UIViewController):
     flexibleSpace = UIBarButtonSystemItem.flexibleSpace
     flexibleSpaceBarButtonItem = UIBarButtonItem.alloc(
     ).initWithBarButtonSystemItem(flexibleSpace, target=None, action=None)
+    
+    fixedSpace = UIBarButtonSystemItem.fixedSpace
+    fixedSpaceBarButtonItem = UIBarButtonItem.alloc(
+    ).initWithBarButtonSystemItem(fixedSpace, target=None, action=None)
+    fixedSpaceBarButtonItem.setWidth_(16.0)
+    
+    
 
     toolbarButtonItems = [
       saveUpdateButtonItem,
@@ -133,6 +144,7 @@ class WebViewController(UIViewController):
       flexibleSpaceBarButtonItem,
       refreshButtonItem,
       #flexibleSpaceBarButtonItem,
+      fixedSpaceBarButtonItem,
       closeButtonItem,
     ]
 
@@ -177,6 +189,10 @@ class WebViewController(UIViewController):
     # --- Navigation
     self.navigationItem.title = NSStringFromClass(__class__) if (
       title := self.navigationItem.title) is None else title
+    self.titleLabel.setText_(self.navigationItem.title)
+    self.titleLabel.sizeToFit()
+    
+    
     self.view.backgroundColor = UIColor.systemFillColor()
 
     self.loadFileIndexPath()
@@ -272,9 +288,7 @@ class WebViewController(UIViewController):
   def webView_didFinishNavigation_(self, webView, navigation):
     # ページ読み込みが完了した時
     title = webView.title
-    self.titleLabel.setText_(str(title))
-    self.titleLabel.sizeToFit()
-    self.promptLabel.setHidden_(self.titleLabel.text == self.promptLabel.text)
+    self.updatePromptLabel(title)
 
   @objc_method
   def webView_didReceiveServerRedirectForProvisionalNavigation_(
@@ -303,10 +317,16 @@ class WebViewController(UIViewController):
   def observeValueForKeyPath_ofObject_change_context_(self, keyPath, objct,
                                                       change, context):
     title = self.wkWebView.title
+    self.updatePromptLabel(title)
+
+  @objc_method
+  def updatePromptLabel(self, title):
     self.promptLabel.setText_(str(title))
     self.promptLabel.sizeToFit()
     self.promptLabel.setHidden_(self.titleLabel.text == self.promptLabel.text)
 
+  
+  
   @objc_method
   def doneButtonTapped_(self, sender):
     #self.visibleViewController.dismissViewControllerAnimated_completion_(True, None)
