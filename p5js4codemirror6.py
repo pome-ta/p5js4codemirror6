@@ -108,15 +108,11 @@ class WebViewController(UIViewController):
     promptLabel.setFont_(
       UIFont.preferredFontForTextStyle_(UIFontTextStyle.headline))
 
-    #headline
-    
     titleLabel = UILabel.new()
     titleLabel.setTextAlignment_(NSTextAlignment.center)
     titleLabel.setFont_(
       UIFont.preferredFontForTextStyle_(UIFontTextStyle.caption1))
 
-    
-    
     stackTextView = UIStackView.alloc().initWithArrangedSubviews_([
       titleLabel,
       promptLabel,
@@ -129,13 +125,11 @@ class WebViewController(UIViewController):
     flexibleSpace = UIBarButtonSystemItem.flexibleSpace
     flexibleSpaceBarButtonItem = UIBarButtonItem.alloc(
     ).initWithBarButtonSystemItem(flexibleSpace, target=None, action=None)
-    
+
     fixedSpace = UIBarButtonSystemItem.fixedSpace
     fixedSpaceBarButtonItem = UIBarButtonItem.alloc(
     ).initWithBarButtonSystemItem(fixedSpace, target=None, action=None)
     fixedSpaceBarButtonItem.setWidth_(16.0)
-    
-    
 
     toolbarButtonItems = [
       saveUpdateButtonItem,
@@ -191,8 +185,7 @@ class WebViewController(UIViewController):
       title := self.navigationItem.title) is None else title
     self.titleLabel.setText_(self.navigationItem.title)
     self.titleLabel.sizeToFit()
-    
-    
+
     self.view.backgroundColor = UIColor.systemFillColor()
 
     self.loadFileIndexPath()
@@ -325,11 +318,8 @@ class WebViewController(UIViewController):
     self.promptLabel.sizeToFit()
     self.promptLabel.setHidden_(self.titleLabel.text == self.promptLabel.text)
 
-  
-  
   @objc_method
   def doneButtonTapped_(self, sender):
-    #self.visibleViewController.dismissViewControllerAnimated_completion_(True, None)
     self.navigationController.doneButtonTapped(sender)
 
   @objc_method
