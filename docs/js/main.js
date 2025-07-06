@@ -37,14 +37,6 @@ const getBlobURL = (sourceCode) => {
 
 
 
-/*
-
-(iframeElement, editorObject) => {
-  const sourceCode = createSourceHTML(editorObject.toString, addEruda);
-  iframeElement.src = getBlobURL(sourceCode);
-}
-*/
-
 const mainSketch = './js/sketchBooks/mainSketch.js';
 const devSketch = './js/sketchBooks/devSketch.js';
 const filePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
@@ -73,8 +65,6 @@ const sandbox = Dom.create('iframe', {
   },
   
 });
-
-//console.log(sandbox)
 
 
 /* --- editor(View) */
