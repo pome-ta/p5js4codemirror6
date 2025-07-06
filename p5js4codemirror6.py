@@ -17,7 +17,12 @@ from rbedge.enumerations import (
   UIScrollViewKeyboardDismissMode,
   NSKeyValueObservingOptions,
 )
-from rbedge.globalVariables import UIFontTextStyle
+
+from rbedge.globalVariables import (
+  UIFontTextStyle,
+  NSNotificationName,
+)
+
 from rbedge.makeZero import CGRectZero
 from rbedge.functions import NSStringFromClass
 from rbedge import pdbr
@@ -38,12 +43,22 @@ UILabel = ObjCClass('UILabel')
 UIFont = ObjCClass('UIFont')
 UIStackView = ObjCClass('UIStackView')
 
+WKContentView = ObjCClass('WKContentView')  # todo: 型確認用
+NSNotificationCenter = ObjCClass('NSNotificationCenter')
+
+# xxx: iPad(mac) 挙動対策
+UIDevice = ObjCClass('UIDevice')
+
+IS_PHONE = True if UIDevice.currentDevice.model == 'iPhone' else False
+
 
 class WebViewController(UIViewController):
 
   wkWebView: WKWebView = objc_property()
   titleLabel: UILabel = objc_property()
   promptLabel: UILabel = objc_property()
+
+  addInputAccessoryToolbarButtonItems: list = objc_property()
 
   indexPathObject: Path = objc_property(ctypes.py_object)
   savePathObject: Path = objc_property(ctypes.py_object)
@@ -70,7 +85,6 @@ class WebViewController(UIViewController):
       return self
 
     self.indexPathObject = index_path
-
     return self
 
   @objc_method
@@ -78,30 +92,9 @@ class WebViewController(UIViewController):
     send_super(__class__, self, 'loadView')
     #print(f'\t{NSStringFromClass(__class__)}: loadView')
     # --- toolbar set up
-    self.navigationController.setNavigationBarHidden_animated_(True, True)
+    self.navigationController.setNavigationBarHidden_animated_(IS_PHONE, True)
     self.navigationController.setToolbarHidden_animated_(False, True)
-
-    closeImage = UIImage.systemImageNamed_('arrow.down.app')
-    closeButtonItem = UIBarButtonItem.alloc().initWithImage(
-      closeImage,
-      style=UIBarButtonItemStyle.plain,
-      target=self.navigationController,
-      action=SEL('doneButtonTapped:'))
-
-    refreshImage = UIImage.systemImageNamed_('arrow.clockwise.circle')
-    refreshButtonItem = UIBarButtonItem.alloc().initWithImage(
-      refreshImage,
-      style=UIBarButtonItemStyle.plain,
-      target=self,
-      action=SEL('reLoadWebView:'))
-
-    saveUpdateImage = UIImage.systemImageNamed_('text.badge.checkmark.rtl')
-
-    saveUpdateButtonItem = UIBarButtonItem.alloc().initWithImage(
-      saveUpdateImage,
-      style=UIBarButtonItemStyle.plain,
-      target=self,
-      action=SEL('saveFileAction:'))
+    #self.navigationController.setToolbarHidden_animated_(not IS_PHONE, True)
 
     promptLabel = UILabel.new()
     promptLabel.setTextAlignment_(NSTextAlignment.center)
@@ -122,24 +115,10 @@ class WebViewController(UIViewController):
     stackTextItem = UIBarButtonItem.alloc().initWithCustomView_(stackTextView)
     stackTextView.setAxis_(UILayoutConstraintAxis.vertical)
 
-    flexibleSpace = UIBarButtonSystemItem.flexibleSpace
-    flexibleSpaceBarButtonItem = UIBarButtonItem.alloc(
-    ).initWithBarButtonSystemItem(flexibleSpace, target=None, action=None)
-
-    fixedSpace = UIBarButtonSystemItem.fixedSpace
-    fixedSpaceBarButtonItem = UIBarButtonItem.alloc(
-    ).initWithBarButtonSystemItem(fixedSpace, target=None, action=None)
-    fixedSpaceBarButtonItem.setWidth_(16.0)
-
     toolbarButtonItems = [
-      saveUpdateButtonItem,
-      flexibleSpaceBarButtonItem,
+      *self.createLeftButtonItems(),
       stackTextItem,
-      flexibleSpaceBarButtonItem,
-      refreshButtonItem,
-      #flexibleSpaceBarButtonItem,
-      fixedSpaceBarButtonItem,
-      closeButtonItem,
+      *self.createRightButtonItems(),
     ]
 
     self.setToolbarItems_animated_(toolbarButtonItems, True)
@@ -175,6 +154,12 @@ class WebViewController(UIViewController):
 
     self.wkWebView = wkWebView
 
+    self.addInputAccessoryToolbarButtonItems = [
+      *self.createLeftButtonItems(),
+      self.createFlexibleSpaceBarButtonItem(),
+      *self.createRightButtonItems(),
+    ]
+
   @objc_method
   def viewDidLoad(self):
     send_super(__class__, self, 'viewDidLoad')
@@ -186,7 +171,7 @@ class WebViewController(UIViewController):
     self.titleLabel.setText_(self.navigationItem.title)
     self.titleLabel.sizeToFit()
 
-    self.view.backgroundColor = UIColor.systemFillColor()
+    self.view.backgroundColor = UIColor.secondarySystemBackgroundColor()
 
     self.loadFileIndexPath()
 
@@ -216,6 +201,15 @@ class WebViewController(UIViewController):
                  ctypes.c_bool,
                ])
     #print(f'\t{NSStringFromClass(__class__)}: viewWillAppear_')
+
+    notificationCenter = NSNotificationCenter.defaultCenter
+
+    notificationCenter.addObserver_selector_name_object_(
+      self, SEL('keyboardWillShow:'),
+      NSNotificationName.keyboardWillShowNotification, None)
+    notificationCenter.addObserver_selector_name_object_(
+      self, SEL('keyboardWillHide:'),
+      NSNotificationName.keyboardWillHideNotification, None)
 
   @objc_method
   def viewDidAppear_(self, animated: bool):
@@ -250,6 +244,12 @@ class WebViewController(UIViewController):
                  ctypes.c_bool,
                ])
     #print(f'\t{NSStringFromClass(__class__)}: viewDidDisappear_')
+
+    notificationCenter = NSNotificationCenter.defaultCenter
+    notificationCenter.removeObserver_name_object_(
+      self, NSNotificationName.keyboardWillShowNotification, None)
+    notificationCenter.removeObserver_name_object_(
+      self, NSNotificationName.keyboardWillHideNotification, None)
 
   @objc_method
   def didReceiveMemoryWarning(self):
@@ -319,6 +319,59 @@ class WebViewController(UIViewController):
     self.promptLabel.setHidden_(self.titleLabel.text == self.promptLabel.text)
 
   @objc_method
+  def createLeftButtonItems(self):
+    saveUpdateImage = UIImage.systemImageNamed_('text.badge.checkmark.rtl')
+
+    saveUpdateButtonItem = UIBarButtonItem.alloc().initWithImage(
+      saveUpdateImage,
+      style=UIBarButtonItemStyle.plain,
+      target=self,
+      action=SEL('saveFileAction:'))
+
+    return [
+      saveUpdateButtonItem,
+      self.createFlexibleSpaceBarButtonItem(),
+    ]
+
+  @objc_method
+  def createRightButtonItems(self):
+    refreshImage = UIImage.systemImageNamed_('arrow.clockwise.circle')
+    refreshButtonItem = UIBarButtonItem.alloc().initWithImage(
+      refreshImage,
+      style=UIBarButtonItemStyle.plain,
+      target=self,
+      action=SEL('reLoadWebView:'))
+
+    closeImage = UIImage.systemImageNamed_('arrow.down.app')
+    closeButtonItem = UIBarButtonItem.alloc().initWithImage(
+      closeImage,
+      style=UIBarButtonItemStyle.plain,
+      target=self.navigationController,
+      action=SEL('doneButtonTapped:'))
+
+    return [
+      self.createFlexibleSpaceBarButtonItem(),
+      refreshButtonItem,
+      self.createFixedSpaceBarButtonItem(),
+      closeButtonItem,
+    ]
+
+  @objc_method
+  def createFlexibleSpaceBarButtonItem(self):
+    flexibleSpace = UIBarButtonSystemItem.flexibleSpace
+    flexibleSpaceBarButtonItem = UIBarButtonItem.alloc(
+    ).initWithBarButtonSystemItem(flexibleSpace, target=None, action=None)
+    return flexibleSpaceBarButtonItem
+
+  @objc_method
+  def createFixedSpaceBarButtonItem(self):
+    fixedSpace = UIBarButtonSystemItem.fixedSpace
+    fixedSpaceBarButtonItem = UIBarButtonItem.alloc(
+    ).initWithBarButtonSystemItem(fixedSpace, target=None, action=None)
+    fixedSpaceBarButtonItem.setWidth_(16.0)
+    return fixedSpaceBarButtonItem
+
+  @objc_method
   def doneButtonTapped_(self, sender):
     self.navigationController.doneButtonTapped(sender)
 
@@ -354,6 +407,8 @@ class WebViewController(UIViewController):
 
     def completionHandler(object_id, error_id):
       objc_instance = ObjCInstance(object_id)
+      if objc_instance is None:
+        return
       self.savePathObject.write_text(str(objc_instance), encoding='utf-8')
 
     self.wkWebView.evaluateJavaScript_completionHandler_(
@@ -381,18 +436,71 @@ class WebViewController(UIViewController):
     open_file(Path('./', dummy_path, 'Welcome3.md'), False)
     open_file(self.savePathObject, False)
 
+  @objc_method
+  def addUpdateInputAccessoryViewItems(self):
+    # ref: [Objective-Cの黒魔術がよくわからなかったので覗いてみた👻 #Swift - Qiita](https://qiita.com/mopiemon/items/8d0dd7d678c4dadeadd4)
+    candidateView: WKContentView = None
+
+    for subview in self.wkWebView.scrollView.subviews():
+      if subview.isMemberOfClass_(WKContentView):
+        candidateView = subview
+        break
+    if (targetView := candidateView) is None:
+      return
+
+    inputAccessoryViewSubviews = None
+
+    try:
+      inputAccessoryViewSubviews = targetView.inputAccessoryView.subviews()
+    except Exception as e:
+      #print(f'-> inputAccessoryViewSubviews: {e}')
+      return
+
+    inputViewContentSubviews = None
+    try:
+      inputViewContentSubviews = inputAccessoryViewSubviews.objectAtIndex_(
+        0).subviews()
+    except Exception as e:
+      #print(f'-> inputViewContentSubviews: {e}')
+      return
+
+    toolbar = None
+    try:
+      toolbar = inputViewContentSubviews.objectAtIndex_(0)
+    except Exception as e:
+      #print(f'-> toolbar: {e}')
+      return
+
+    toolbarButtonItems = toolbar.items
+    doneButton = toolbarButtonItems.objectAtIndex_(len(toolbarButtonItems) - 1)
+
+    toolbar.items = [
+      *self.addInputAccessoryToolbarButtonItems,
+      doneButton,
+    ]
+
+  @objc_method
+  def keyboardWillShow_(self, notification):
+    self.addUpdateInputAccessoryViewItems()
+
+  @objc_method
+  def keyboardWillHide_(self, notification):
+    pass
+
 
 if __name__ == '__main__':
   from rbedge.app import App
   from rbedge.enumerations import UIModalPresentationStyle
 
   index_path = Path('./docs/index.html')
-  save_path = Path('./docs/js/sketchBook/devSketch.js')
+  #save_path = Path('./docs/js/editor/index.js')
+  save_path = Path('./docs/js/main.js')
 
   main_vc = WebViewController.alloc().initWithIndexPath_(index_path)
   _title = NSStringFromClass(WebViewController)
   main_vc.navigationItem.title = _title
-  main_vc.savePathObject = save_path
+
+  main_vc.setSavePathObject_(save_path)
 
   presentation_style = UIModalPresentationStyle.fullScreen
   #presentation_style = UIModalPresentationStyle.pageSheet
