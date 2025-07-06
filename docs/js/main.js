@@ -1,7 +1,7 @@
 import Dom from './utils/dom.js';
 import createEditorView from './editor/index.js';
 
-import {EditorSelection} from './editor/codemirror/state.js';
+import { EditorSelection } from './editor/codemirror/state.js';
 import {
   cursorCharLeft,
   cursorCharRight,
@@ -15,7 +15,7 @@ import {
 } from './editor/codemirror/commands.js';
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
-
+const addEruda = true;
 
 /* --- load Source */
 async function insertFetchDoc(filePath) {
@@ -26,8 +26,12 @@ async function insertFetchDoc(filePath) {
   return await fetchFilePath(filePath);
 }
 
+const mainSketch = './js/sketchBooks/mainSketch.js';
+const devSketch = './js/sketchBooks/devSketch.js';
+const filePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
 // const codeFilePath = './js/editor/index.js';
-const codeFilePath = './js/main.js';
+// const codeFilePath = './js/main.js';
+const codeFilePath = filePath;
 
 const editorDiv = Dom.create('div', {
   setAttrs: {
@@ -43,12 +47,9 @@ const editor = createEditorView(editorDiv);
 
 /* --- accessory */
 
-
-
 const callButton = Dom.create('button', {
   textContent: '🔄',
 });
-
 
 const summaryTextContent = (bool) => `📝 Code: ${bool ? 'hide' : 'show'}`;
 const initDetailsOpen = false;
@@ -70,11 +71,10 @@ const wrapSummary = Dom.create('div', {
   },
 });
 
-
 const detailsControl = (isDetailsOpen, summaryElement, divElement) => {
   summaryElement.textContent = summaryTextContent(isDetailsOpen);
   divElement.style.display = isDetailsOpen ? '' : 'none';
-}
+};
 
 const details = Dom.create('details', {
   setAttrs: {
@@ -105,7 +105,6 @@ const details = Dom.create('details', {
   ],
   appendChildren: [summary, wrapSummary],
 });
-
 
 const headerControlWrap = Dom.create('div', {
   setStyles: {
@@ -153,7 +152,6 @@ const header = Dom.create('header', {
   ],
   appendChildren: [headerControlWrap],
 });
-
 
 const buttonFactory = (buttonIconChar, actionHandle) => {
   function createFrame(width, height) {
@@ -212,7 +210,6 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
 
   return actionButton;
 };
-
 
 // wip: 最大数問題
 const buttons = Object.entries({
@@ -300,7 +297,6 @@ const divStep = 16;
 let swipeAreaWidth, stepValue;
 let startX = 0;
 
-
 const footerHandleEvent = function () {
   const footer = document.querySelector('#footer');
   if (!this.targetEditor.hasFocus) {
@@ -308,7 +304,6 @@ const footerHandleEvent = function () {
     return;
   }
   footer.style.display = '';
-
 
   const offsetTop = window.visualViewport.offsetTop;
   const offsetBottom =
@@ -406,8 +401,8 @@ const footer = Dom.create('footer', {
             moveCache < headLine
               ? headLine
               : moveCache >= endLine
-                ? endLine
-                : moveCache;
+              ? endLine
+              : moveCache;
 
           this.targetEditor.dispatch({
             selection: EditorSelection.create([
@@ -424,17 +419,18 @@ const footer = Dom.create('footer', {
 
 const setLayout = () => {
   const rootMain = Dom.create('div', {
-    setAttrs: {id: 'rootMain'},
+    setAttrs: {
+      id: 'rootMain',
+    },
     setStyles: {
       display: 'grid',
       'grid-template-rows': 'auto 1fr auto',
       height: '100%',
       overflow: 'auto',
-
+      'background-color': 'magenta',
     },
     appendChildren: [header, editorDiv],
   });
-
 
   if (IS_TOUCH_DEVICE) {
     rootMain.appendChild(footer);
@@ -447,7 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
     editor.dispatch({
-      changes: {from: editor.state?.doc.length, insert: loadedSource},
+      changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
   });
 });

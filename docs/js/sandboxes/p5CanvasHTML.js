@@ -3,7 +3,7 @@ const erudaSacript = `<script type="module">
       eruda.init();
     </script>`;
 
-const createSourceHTML = (source, debug=false) => {
+const createSourceHTML = (source, debug = false) => {
   return `<!doctype html>
 <html lang="ja">
   <head>
@@ -32,6 +32,6 @@ const createSourceHTML = (source, debug=false) => {
     <script>${source}</script>
   </body>
 </html>`;
-}
+};
 
 export default createSourceHTML;
