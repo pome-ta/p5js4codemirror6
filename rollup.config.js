@@ -1,9 +1,15 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
-export default {
-  input: './docs/js/modules/srcBundles/codemirror.setup.js',
-  output: {
-    file: './docs/js/modules/codemirror.bundle.js',
-    format: 'es',
-  },
-  plugins: [nodeResolve()],
+
+const codemirror = () => {
+  return {
+    input: './docs/js/editor/codemirror/bundleSrc/codemirror.src.js',
+    output: {
+      file: './docs/js/editor/codemirror/codemirror.bundle.js',
+      format: 'es',
+    },
+    plugins: [nodeResolve()],
+  };
 };
+
+export default [codemirror()];
+
