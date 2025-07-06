@@ -494,7 +494,7 @@ if __name__ == '__main__':
 
   index_path = Path('./docs/index.html')
   #save_path = Path('./docs/js/editor/index.js')
-  save_path = Path('./docs/js/main.js')
+  save_path = Path('./docs/js/sketchBooks/devSketch.js')
 
   main_vc = WebViewController.alloc().initWithIndexPath_(index_path)
   _title = NSStringFromClass(WebViewController)

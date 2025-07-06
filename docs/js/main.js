@@ -1,5 +1,7 @@
 import Dom from './utils/dom.js';
 import createEditorView from './editor/index.js';
+import createSourceHTML from './sandboxes/p5CanvasHTML.js';
+
 
 import { EditorSelection } from './editor/codemirror/state.js';
 import {
@@ -26,6 +28,23 @@ async function insertFetchDoc(filePath) {
   return await fetchFilePath(filePath);
 }
 
+
+const getBlobURL = (sourceCode) => {
+  const sourceBlob = new Blob([sourceCode], { type: 'text/html' });
+  const blobURL = URL.createObjectURL(sourceBlob);
+  return blobURL;
+}
+
+
+
+/*
+
+(iframeElement, editorObject) => {
+  const sourceCode = createSourceHTML(editorObject.toString, addEruda);
+  iframeElement.src = getBlobURL(sourceCode);
+}
+*/
+
 const mainSketch = './js/sketchBooks/mainSketch.js';
 const devSketch = './js/sketchBooks/devSketch.js';
 const filePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
@@ -33,6 +52,32 @@ const filePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
 // const codeFilePath = './js/main.js';
 const codeFilePath = filePath;
 
+/* --- iframe */
+const sandbox = Dom.create('iframe', {
+  setAttrs: {
+    id: 'sandbox',
+    sandbox: 'allow-same-origin allow-scripts',
+    allow: 'accelerometer; ambient-light-sensor; autoplay; bluetooth; camera; encrypted-media; geolocation; gyroscope; \ hid; microphone; magnetometer; midi; payment; usb; serial; vr; xr-spatial-tracking',
+    loading: 'lazy',
+    src: getBlobURL(createSourceHTML(insertFetchDoc(codeFilePath), addEruda)),
+  },
+  setStyles: {
+    width: '100%',
+    height: '100dvh',
+    'border-width': '0',
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    'z-index': '-1',
+    'background-color': 'lightgray',
+  },
+  
+});
+
+//console.log(sandbox)
+
+
+/* --- editor(View) */
 const editorDiv = Dom.create('div', {
   setAttrs: {
     id: 'editor-div',
@@ -46,9 +91,24 @@ const editorDiv = Dom.create('div', {
 const editor = createEditorView(editorDiv);
 
 /* --- accessory */
+const reloadSketchHandleEvent = function () {
+  const toStringDoc = this.targetEditor.viewState.state.doc.toString();
+  const sourceCode = createSourceHTML(toStringDoc, addEruda);
+  this.targetSandbox.src = getBlobURL(sourceCode);
+};
 
 const callButton = Dom.create('button', {
   textContent: '🔄',
+  addEventListeners: [
+    {
+      type: 'click',
+      listener: {
+        targetSandbox: sandbox,
+        targetEditor: editor,
+        handleEvent: reloadSketchHandleEvent,
+      },
+    },
+  ],
 });
 
 const summaryTextContent = (bool) => `📝 Code: ${bool ? 'hide' : 'show'}`;
@@ -427,7 +487,8 @@ const setLayout = () => {
       'grid-template-rows': 'auto 1fr auto',
       height: '100%',
       overflow: 'auto',
-      'background-color': 'magenta',
+      //'background-color': 'magenta',
+      //position: 'relative',
     },
     appendChildren: [header, editorDiv],
   });
@@ -435,6 +496,7 @@ const setLayout = () => {
   if (IS_TOUCH_DEVICE) {
     rootMain.appendChild(footer);
   }
+  document.body.appendChild(sandbox);
   document.body.appendChild(rootMain);
 };
 
