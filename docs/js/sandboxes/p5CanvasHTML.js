@@ -1,6 +1,12 @@
 const erudaSacript = `<script type="module">
       import eruda from 'https://cdn.skypack.dev/eruda';
       eruda.init();
+      const d = new Date();
+      const hh = d.getHours().toString(10).padStart(2, '0');
+      const mm = d.getMinutes().toString(10).padStart(2, '0');
+      const ss = d.getSeconds().toString(10).padStart(2, '0');
+      const outLog = 'p5Canvas: ' + '[' + hh + ':' + mm + ':' + ss + ']';
+      console.log(outLog);
     </script>`;
 
 const createSourceHTML = (source, debug = false) => {

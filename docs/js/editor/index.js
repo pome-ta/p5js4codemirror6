@@ -69,7 +69,7 @@ const minimalSetup = (() => [
 const bgRectangleClassName = 'cm-bgRectangle';
 const bgRectangleMark = Decoration.mark({ class: bgRectangleClassName });
 const bgRectangleTheme = EditorView.baseTheme({
-  '.cm-bgRectangle': { backgroundColor: '#121212bb' },
+  '.cm-bgRectangle': { backgroundColor: '#12121288' },
 });
 const bgRectEffect = {
   add: StateEffect.define({ from: 0, to: 0 }),
@@ -227,6 +227,7 @@ const updateCallback = EditorView.updateListener.of(
 const initTheme = EditorView.theme({
   '&': {
     fontSize: '0.64rem', //fontSize: '1rem',
+    backgroundColor: background,
   },
   '.cm-scroller': {
     fontFamily:

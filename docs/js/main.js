@@ -51,7 +51,7 @@ const sandbox = Dom.create('iframe', {
     sandbox: 'allow-same-origin allow-scripts',
     allow: 'accelerometer; ambient-light-sensor; autoplay; bluetooth; camera; encrypted-media; geolocation; gyroscope; \ hid; microphone; magnetometer; midi; payment; usb; serial; vr; xr-spatial-tracking',
     loading: 'lazy',
-    src: getBlobURL(createSourceHTML(insertFetchDoc(codeFilePath), addEruda)),
+    //src: getBlobURL(createSourceHTML(insertFetchDoc(codeFilePath), addEruda)),
   },
   setStyles: {
     width: '100%',
@@ -60,7 +60,7 @@ const sandbox = Dom.create('iframe', {
     position: 'fixed',
     top: '0',
     left: '0',
-    'z-index': '-1',
+    'z-index': '0',
     'background-color': 'lightgray',
   },
   
@@ -101,7 +101,7 @@ const callButton = Dom.create('button', {
   ],
 });
 
-const summaryTextContent = (bool) => `📝 Code: ${bool ? 'hide' : 'show'}`;
+const summaryTextContent = (bool) => `source: ${bool ? 'hide' : 'show'}`;
 const initDetailsOpen = false;
 
 const summary = Dom.create('summary', {
@@ -497,5 +497,8 @@ document.addEventListener('DOMContentLoaded', () => {
     editor.dispatch({
       changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
+    const editorDoc = editor.viewState.state.doc.toString()
+    sandbox.src = getBlobURL(createSourceHTML(editorDoc, addEruda));
+    
   });
 });
