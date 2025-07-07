@@ -90,5 +90,7 @@ const sketch = (p) => {
 document.addEventListener('DOMContentLoaded', () => {
   // --- start
   new p5(sketch);
+  console.log(window)
+  //console.log(self)
 });
 

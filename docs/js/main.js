@@ -39,10 +39,10 @@ const getBlobURL = (sourceCode) => {
 
 const mainSketch = './js/sketchBooks/mainSketch.js';
 const devSketch = './js/sketchBooks/devSketch.js';
-const filePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
+const codeFilePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
 // const codeFilePath = './js/editor/index.js';
 // const codeFilePath = './js/main.js';
-const codeFilePath = filePath;
+//const codeFilePath = filePath;
 
 /* --- iframe */
 const sandbox = Dom.create('iframe', {
@@ -501,4 +501,6 @@ document.addEventListener('DOMContentLoaded', () => {
     sandbox.src = getBlobURL(createSourceHTML(editorDoc, addEruda));
     
   });
+  
+  console.log(sandbox)
 });
