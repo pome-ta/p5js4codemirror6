@@ -1,4 +1,4 @@
-const erudaSacript = `<script type="module">
+const erudaScript = `<script type="module">
       import eruda from 'https://cdn.skypack.dev/eruda';
       eruda.init();
       const d = new Date();
@@ -9,6 +9,8 @@ const erudaSacript = `<script type="module">
       console.log(outLog);
     </script>`;
 
+
+
 const createSourceHTML = (source, debug = false) => {
   return `<!doctype html>
 <html lang="ja">
@@ -17,7 +19,7 @@ const createSourceHTML = (source, debug = false) => {
     <meta name="viewport"
     content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
     
-    ${debug ? erudaSacript : ''}
+    ${debug ? erudaScript : ''}
     
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.5/lib/p5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/addons/p5.sound.min.js"></script>
@@ -35,7 +37,7 @@ const createSourceHTML = (source, debug = false) => {
     
   </head>
   <body>
-    <script>${source}</script>
+    <script id="p5script">${source};</script>
   </body>
 </html>`;
 };

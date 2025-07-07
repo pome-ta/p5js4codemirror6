@@ -3,7 +3,7 @@ import createEditorView from './editor/index.js';
 import createSourceHTML from './sandboxes/p5CanvasHTML.js';
 
 
-import { EditorSelection } from './editor/codemirror/state.js';
+import {EditorSelection} from './editor/codemirror/state.js';
 import {
   cursorCharLeft,
   cursorCharRight,
@@ -30,16 +30,15 @@ async function insertFetchDoc(filePath) {
 
 
 const getBlobURL = (sourceCode) => {
-  const sourceBlob = new Blob([sourceCode], { type: 'text/html' });
-  const blobURL = URL.createObjectURL(sourceBlob);
-  return blobURL;
-}
-
+  const sourceBlob = new Blob([sourceCode], {type: 'text/html'});
+  return URL.createObjectURL(sourceBlob);
+};
 
 
 const mainSketch = './js/sketchBooks/mainSketch.js';
 const devSketch = './js/sketchBooks/devSketch.js';
 const codeFilePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
+// const codeFilePath = 1 ? devSketch : mainSketch;
 // const codeFilePath = './js/editor/index.js';
 // const codeFilePath = './js/main.js';
 //const codeFilePath = filePath;
@@ -63,7 +62,7 @@ const sandbox = Dom.create('iframe', {
     'z-index': '0',
     'background-color': 'lightgray',
   },
-  
+
 });
 
 
@@ -451,8 +450,8 @@ const footer = Dom.create('footer', {
             moveCache < headLine
               ? headLine
               : moveCache >= endLine
-              ? endLine
-              : moveCache;
+                ? endLine
+                : moveCache;
 
           this.targetEditor.dispatch({
             selection: EditorSelection.create([
@@ -495,12 +494,12 @@ document.addEventListener('DOMContentLoaded', () => {
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
     editor.dispatch({
-      changes: { from: editor.state?.doc.length, insert: loadedSource },
+      changes: {from: editor.state?.doc.length, insert: loadedSource},
     });
-    const editorDoc = editor.viewState.state.doc.toString()
+    const editorDoc = editor.viewState.state.doc.toString();
     sandbox.src = getBlobURL(createSourceHTML(editorDoc, addEruda));
-    
+
   });
-  
-  console.log(sandbox)
+
+  // console.log(sandbox);
 });
