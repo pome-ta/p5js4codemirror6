@@ -89,8 +89,8 @@ const sketch = (p) => {
 
 document.addEventListener('DOMContentLoaded', () => {
   // --- start
-  new p5(sketch);
-  // console.log(window)
+  window._p5Instance = new p5(sketch);
+  console.log(window)
   //console.log(self)
 });
 

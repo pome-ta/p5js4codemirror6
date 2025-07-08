@@ -501,5 +501,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
   });
 
-  // console.log(sandbox);
+  console.log(sandbox.body);
 });
