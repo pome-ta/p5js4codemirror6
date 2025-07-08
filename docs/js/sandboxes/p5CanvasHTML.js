@@ -43,7 +43,7 @@ const createSourceHTML = (source, debug = false) => {
     
   </head>
   <body>
-    <script id="p5script">${source};</script>
+    <script id="p5script" defer>${source};</script>
   </body>
 </html>`;
 };

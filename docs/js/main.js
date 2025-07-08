@@ -37,8 +37,8 @@ const getBlobURL = (sourceCode) => {
 
 const mainSketch = './js/sketchBooks/mainSketch.js';
 const devSketch = './js/sketchBooks/devSketch.js';
-const codeFilePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
-// const codeFilePath = 1 ? devSketch : mainSketch;
+//const codeFilePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
+const codeFilePath = 1 ? devSketch : mainSketch;
 // const codeFilePath = './js/editor/index.js';
 // const codeFilePath = './js/main.js';
 //const codeFilePath = filePath;
@@ -501,5 +501,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
   });
 
-  console.log(sandbox.body);
+  //console.log(sandbox.body);
 });
