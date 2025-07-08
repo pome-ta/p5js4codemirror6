@@ -83,7 +83,9 @@ const editor = createEditorView(editorDiv);
 const reloadSketchHandleEvent = function () {
   const toStringDoc = this.targetEditor.viewState.state.doc.toString();
   const sourceCode = createSourceHTML(toStringDoc, addEruda);
-  this.targetSandbox.src = getBlobURL(sourceCode);
+  //this.targetSandbox.src = getBlobURL(sourceCode);
+  sandbox.contentWindow.postMessage(sourceCode, '*');
+  
 };
 
 const callButton = Dom.create('button', {
@@ -498,6 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     const editorDoc = editor.viewState.state.doc.toString();
     sandbox.src = getBlobURL(createSourceHTML(editorDoc, addEruda));
+    //sandbox.contentWindow.postMessage(editorDoc, '*');
 
   });
 

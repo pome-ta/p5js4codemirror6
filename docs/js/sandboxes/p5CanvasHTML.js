@@ -43,7 +43,13 @@ const createSourceHTML = (source, debug = false) => {
     
   </head>
   <body>
-    <script id="p5script" defer>${source};</script>
+    
+    <script>
+      window.addEventListener('message', (e) => {
+        console.log(e)
+      }
+    </script>
+        <script id="p5script" defer>${source};</script>
   </body>
 </html>`;
 };
