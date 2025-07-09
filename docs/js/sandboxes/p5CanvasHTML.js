@@ -9,6 +9,19 @@ const erudaScript = `<script type="module">
 
 const buildScript = `<script>
 window._p5Instance = null;
+window.__p5 = window.p5;
+
+//window.p5 = null;
+
+class p5 extends window.__p5 {
+  constructor(sketch, node) {
+    super(sketch, node);
+    window._p5Instance = this;
+  }
+}
+
+window.p5 = p5;
+
 
 document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('message', (e) => {

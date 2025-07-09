@@ -1,6 +1,7 @@
 const title = 'p5 sound';
 
 const sketch = (p) => {
+  //window._p5Instance = p;
   let w, h;
   let setupWidth, setupHeight;
 
@@ -21,6 +22,7 @@ const sketch = (p) => {
     sineTone.amp(0.5);
 
     sineTone.start();
+    //console.log(p.getAudioContext());
 
   };
 
@@ -54,7 +56,9 @@ const sketch = (p) => {
 
 document.addEventListener('DOMContentLoaded', () => {
   // --- start
-  window._p5Instance = new p5(sketch);
+  //window._p5Instance = new p5(sketch);
+  new p5(sketch);
+  //console.log(window._p5Instance)
 });
 
 
