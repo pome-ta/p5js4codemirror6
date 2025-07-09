@@ -5,6 +5,7 @@ const sketch = (p) => {
   let setupWidth, setupHeight;
 
   const v = 360;
+  let sineTone, env, analyzer;
 
 
   p.setup = () => {
@@ -15,7 +16,11 @@ const sketch = (p) => {
 
     p.colorMode(p.HSL, v, 1, 1);
 
-    //p.noFill();
+    sineTone = new p5.Oscillator('sine');
+    sineTone.freq(440);
+    sineTone.amp(0.5);
+
+    sineTone.start();
 
   };
 
