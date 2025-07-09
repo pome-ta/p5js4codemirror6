@@ -92,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window._p5Instance = new p5(sketch);
   
   //console.log(self)
+  console.log('fuga')
 });
 
 //console.log(window)

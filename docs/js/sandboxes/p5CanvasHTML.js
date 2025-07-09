@@ -39,17 +39,23 @@ const createSourceHTML = (source, debug = false) => {
         display: block;
       }
     </style>
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('hoge')
+      window.addEventListener('message', (e) => {
+        console.log(e)
+      }
+});
 
+    
+    </script>
     
   </head>
   <body>
     
-    <script>
-      window.addEventListener('message', (e) => {
-        console.log(e)
-      }
-    </script>
-        <script id="p5script" defer>${source};</script>
+
+    <script id="p5script" defer>${source};</script>
+
   </body>
 </html>`;
 };

@@ -84,6 +84,7 @@ const reloadSketchHandleEvent = function () {
   const toStringDoc = this.targetEditor.viewState.state.doc.toString();
   const sourceCode = createSourceHTML(toStringDoc, addEruda);
   //this.targetSandbox.src = getBlobURL(sourceCode);
+  console.log(sourceCode)
   sandbox.contentWindow.postMessage(sourceCode, '*');
   
 };
