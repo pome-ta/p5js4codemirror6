@@ -60,7 +60,8 @@ const sandbox = Dom.create('iframe', {
     top: '0',
     left: '0',
     'z-index': '0',
-    'background-color': 'lightgray',
+    //'background-color': 'lightgray',
+    'background-color': 'darkgray',
   },
 
 });
