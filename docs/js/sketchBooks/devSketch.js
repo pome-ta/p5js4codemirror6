@@ -90,10 +90,6 @@ const sketch = (p) => {
 document.addEventListener('DOMContentLoaded', () => {
   // --- start
   window._p5Instance = new p5(sketch);
-  
-  //console.log(self)
-  console.log('fuga')
 });
 
-//console.log(window)
 

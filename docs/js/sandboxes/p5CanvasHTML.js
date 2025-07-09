@@ -15,7 +15,20 @@ const erudaScript = `<script type="module">
       console.log(outLog);
     </script>`;
 
+const buildScript = `<script>
+window._p5Instance = null;
 
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('hoge');
+  window.addEventListener('message', (e) => {
+    console.log(e)
+  });
+  console.log(window);
+});
+
+
+
+</script>`;
 
 const createSourceHTML = (source, debug = false) => {
   return `<!doctype html>
@@ -39,20 +52,11 @@ const createSourceHTML = (source, debug = false) => {
         display: block;
       }
     </style>
-  <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log('hoge')
-      window.addEventListener('message', (e) => {
-        console.log(e)
-      }
-});
-
     
-    </script>
+    ${buildScript}
     
   </head>
   <body>
-    
 
     <script id="p5script" defer>${source};</script>
 
