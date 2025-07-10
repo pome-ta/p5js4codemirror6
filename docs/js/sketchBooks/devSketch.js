@@ -23,7 +23,6 @@ const sketch = (p) => {
     sineTone.amp(0.5);
 
     sineTone.start();
-    //console.log(p.getAudioContext());
 
   };
 
@@ -66,4 +65,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 */
 
-new p5(sketch);
+//new p5(sketch);
+window._p5Instance = new p5(sketch);
