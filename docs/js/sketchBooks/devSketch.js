@@ -1,7 +1,6 @@
 const title = 'p5 sound';
 
 const sketch = (p) => {
-  //window._p5Instance = p;
   let w, h;
   let setupWidth, setupHeight;
 
@@ -18,7 +17,9 @@ const sketch = (p) => {
     p.colorMode(p.HSL, v, 1, 1);
 
     sineTone = new p5.Oscillator('sine');
-    sineTone.freq(440);
+    const tone = 440 * p.random();
+    console.log(`tone: ${tone}`)
+    sineTone.freq(tone);
     sineTone.amp(0.5);
 
     sineTone.start();
@@ -54,17 +55,15 @@ const sketch = (p) => {
   }
 };
 
-
-
-// document.addEventListener('DOMContentLoaded', () => {
-//   // --- start
-//   //window._p5Instance = new p5(sketch);
-//   new p5(sketch);
-//   //console.log(window._p5Instance)
-//   console.log('hoge')
-// });
-
+/*
+// xxx: `load` 時点で呼び出されるし、再読み込みではなく書き換えだから意味を為さない
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('do')
-})
+  // --- start
+  //window._p5Instance = new p5(sketch);
+  new p5(sketch);
+  //console.log(window._p5Instance)
+  console.log('hoge')
+});
+*/
+
 new p5(sketch);

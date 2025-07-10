@@ -35,9 +35,7 @@ const mainSketch = './js/sketchBooks/mainSketch.js';
 const devSketch = './js/sketchBooks/devSketch.js';
 //const codeFilePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
 const codeFilePath = 1 ? devSketch : mainSketch;
-// const codeFilePath = './js/editor/index.js';
-// const codeFilePath = './js/main.js';
-//const codeFilePath = filePath;
+
 
 /* --- editor(View) */
 const editorDiv = DomFactory.create('div', {
@@ -46,13 +44,12 @@ const editorDiv = DomFactory.create('div', {
   },
   setStyles: {
     width: '100%',
-    //'box-sizing': 'border-box',
   },
 });
 
 const editor = createEditorView(editorDiv);
 
-// xxx: iframe 生成時と、再読み込み機能と併用
+// xxx: iframe 生成時と、書き換え時と併用
 const reloadSketchHandleEvent = function (e) {
   const toStringDoc = this.targetEditor.viewState.state.doc.toString();
   this.targetSandbox = this.targetSandbox ? this.targetSandbox : e.target;
@@ -505,11 +502,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     // const editorDoc = editor.viewState.state.doc.toString();
     // sandbox.src = getBlobURL(createSourceHTML(addEruda));
-    // console.log('editorDoc');
     // sandbox.contentWindow.postMessage(editorDoc, '*');
     //sandbox.src = getBlobURL(createSourceHTML(editorDoc, addEruda));
-    //sandbox.contentWindow.postMessage(editorDoc, '*');
   });
 
-  //console.log(sandbox.body);
 });
