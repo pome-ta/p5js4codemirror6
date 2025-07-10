@@ -1,4 +1,4 @@
-import Dom from '../utils/dom.js';
+import DomFactory from '../utils/domFactory.js';
 
 
 const erudaScript = `<script type="module">
@@ -33,7 +33,7 @@ function runSketch(code) {
     window._p5Instance = null;
   }
   
-  const script = Dom.create('script', {
+  const script = DomFactory.create('script', {
     setAttrs: {
       id: 'p5SourceScript',
       type: 'text/javascript',

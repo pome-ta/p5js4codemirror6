@@ -1,4 +1,4 @@
-export default class Dom {
+export default class DomFactory {
   #element;
   #buildEvent;
 
@@ -6,8 +6,7 @@ export default class Dom {
     this.#element =
       typeof domTag === 'string' ? document.createElement(domTag) : domTag;
 
-    this.#buildEvent = new CustomEvent('build', {detail: this.#element});
-    
+    this.#buildEvent = new CustomEvent('build', { detail: this.#element });
   }
 
   get element() {
@@ -23,7 +22,7 @@ export default class Dom {
       ? Object.entries(options).forEach(([key, value]) => instance[key](value))
       : null;
     instance.element.dispatchEvent(instance.buildEvent);
-    
+
     return instance.element;
   }
 
@@ -63,7 +62,7 @@ export default class Dom {
     return this;
   }
 
-  addEventListener({type, listener, options}) {
+  addEventListener({ type, listener, options }) {
     this.#element.addEventListener(type, listener, options);
 
     return this;
@@ -75,7 +74,7 @@ export default class Dom {
     return this;
   }
 
-  targetAddEventListener({target, type, listener, options}) {
+  targetAddEventListener({ target, type, listener, options }) {
     target.addEventListener(type, listener, options);
 
     return this;

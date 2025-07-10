@@ -1,9 +1,7 @@
-import Dom from './utils/dom.js';
+import DomFactory from './utils/domFactory.js';
 import createEditorView from './editor/index.js';
-import createSourceHTML from './sandboxes/p5CanvasHTML.js';
-
-
-import {EditorSelection} from './editor/codemirror/state.js';
+// import createSourceHTML from './sandboxes/p5CanvasHTML.js';
+import { EditorSelection } from './editor/codemirror/state.js';
 import {
   cursorCharLeft,
   cursorCharRight,
@@ -17,7 +15,7 @@ import {
 } from './editor/codemirror/commands.js';
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
-const addEruda = true;
+// const addEruda = true;
 
 /* --- load Source */
 async function insertFetchDoc(filePath) {
@@ -28,29 +26,48 @@ async function insertFetchDoc(filePath) {
   return await fetchFilePath(filePath);
 }
 
-
 const getBlobURL = (sourceCode) => {
-  const sourceBlob = new Blob([sourceCode], {type: 'text/html'});
+  const sourceBlob = new Blob([sourceCode], { type: 'text/html' });
   return URL.createObjectURL(sourceBlob);
 };
-
 
 const mainSketch = './js/sketchBooks/mainSketch.js';
 const devSketch = './js/sketchBooks/devSketch.js';
 //const codeFilePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
-const codeFilePath = 0 ? devSketch : mainSketch;
+const codeFilePath = 1 ? devSketch : mainSketch;
 // const codeFilePath = './js/editor/index.js';
 // const codeFilePath = './js/main.js';
 //const codeFilePath = filePath;
 
+/* --- editor(View) */
+const editorDiv = DomFactory.create('div', {
+  setAttrs: {
+    id: 'editor-div',
+  },
+  setStyles: {
+    width: '100%',
+    //'box-sizing': 'border-box',
+  },
+});
+
+const editor = createEditorView(editorDiv);
+
+// xxx: iframe 生成時と、再読み込み機能と併用
+const reloadSketchHandleEvent = function (e) {
+  const toStringDoc = this.targetEditor.viewState.state.doc.toString();
+  this.targetSandbox = this.targetSandbox ? this.targetSandbox : e.target;
+  this.targetSandbox.contentWindow.postMessage(toStringDoc, '*');
+};
+
 /* --- iframe */
-const sandbox = Dom.create('iframe', {
+const sandbox = DomFactory.create('iframe', {
   setAttrs: {
     id: 'sandbox',
     sandbox: 'allow-same-origin allow-scripts',
-    allow: 'accelerometer; ambient-light-sensor; autoplay; bluetooth; camera; encrypted-media; geolocation; gyroscope; \ hid; microphone; magnetometer; midi; payment; usb; serial; vr; xr-spatial-tracking',
+    allow:
+      'accelerometer; ambient-light-sensor; autoplay; bluetooth; camera; encrypted-media; geolocation; gyroscope;  hid; microphone; magnetometer; midi; payment; usb; serial; vr; xr-spatial-tracking',
     loading: 'lazy',
-    //src: getBlobURL(createSourceHTML(insertFetchDoc(codeFilePath), addEruda)),
+    src: './js/sandboxes/sandbox.html',
   },
   setStyles: {
     width: '100%',
@@ -63,34 +80,20 @@ const sandbox = Dom.create('iframe', {
     //'background-color': 'lightgray',
     'background-color': 'darkgray',
   },
-
+  addEventListeners: [
+    {
+      type: 'load',
+      listener: {
+        targetEditor: editor,
+        targetSandbox: null,
+        handleEvent: reloadSketchHandleEvent,
+      },
+    },
+  ],
 });
-
-
-/* --- editor(View) */
-const editorDiv = Dom.create('div', {
-  setAttrs: {
-    id: 'editor-div',
-  },
-  setStyles: {
-    width: '100%',
-    //'box-sizing': 'border-box',
-  },
-});
-
-const editor = createEditorView(editorDiv);
 
 /* --- accessory */
-const reloadSketchHandleEvent = function () {
-  const toStringDoc = this.targetEditor.viewState.state.doc.toString();
-  //const sourceCode = createSourceHTML(toStringDoc, addEruda);
-  //this.targetSandbox.src = getBlobURL(sourceCode);
-  //console.log(sourceCode)
-  sandbox.contentWindow.postMessage(toStringDoc, '*');
-  
-};
-
-const callButton = Dom.create('button', {
+const callButton = DomFactory.create('button', {
   textContent: '🔄',
   addEventListeners: [
     {
@@ -107,7 +110,7 @@ const callButton = Dom.create('button', {
 const summaryTextContent = (bool) => `source: ${bool ? 'hide' : 'show'}`;
 const initDetailsOpen = false;
 
-const summary = Dom.create('summary', {
+const summary = DomFactory.create('summary', {
   setStyles: {
     'font-family':
       'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
@@ -117,7 +120,7 @@ const summary = Dom.create('summary', {
   textContent: summaryTextContent(initDetailsOpen),
 });
 
-const wrapSummary = Dom.create('div', {
+const wrapSummary = DomFactory.create('div', {
   setStyles: {
     display: 'flex',
     'justify-content': 'space-between',
@@ -129,7 +132,7 @@ const detailsControl = (isDetailsOpen, summaryElement, divElement) => {
   divElement.style.display = isDetailsOpen ? '' : 'none';
 };
 
-const details = Dom.create('details', {
+const details = DomFactory.create('details', {
   setAttrs: {
     id: 'details',
     open: `${initDetailsOpen}`,
@@ -159,7 +162,7 @@ const details = Dom.create('details', {
   appendChildren: [summary, wrapSummary],
 });
 
-const headerControlWrap = Dom.create('div', {
+const headerControlWrap = DomFactory.create('div', {
   setStyles: {
     display: 'grid',
     'grid-template-columns': 'auto 1fr',
@@ -174,7 +177,7 @@ const headerHandleEvent = function () {
 };
 
 /* --- accessory-header */
-const header = Dom.create('header', {
+const header = DomFactory.create('header', {
   setAttrs: {
     id: 'header',
   },
@@ -208,7 +211,7 @@ const header = Dom.create('header', {
 
 const buttonFactory = (buttonIconChar, actionHandle) => {
   function createFrame(width, height) {
-    return Dom.create('div', {
+    return DomFactory.create('div', {
       setStyles: {
         'min-width': `${width}`,
         height: `${height}`,
@@ -226,7 +229,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
   // const btnRadius = '16%';
 
   const createActionButton = (iconChar) => {
-    const icon = Dom.create('span', {
+    const icon = DomFactory.create('span', {
       textContent: `${iconChar}`,
       setStyles: {
         'font-family':
@@ -239,7 +242,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
       },
     });
 
-    const button = Dom.create(createFrame('88%', '98%'), {
+    const button = DomFactory.create(createFrame('88%', '98%'), {
       setStyles: {
         //'background-color': '#8e8e93', // light gray
         background: `var(--accessory-button-backGround-normal)`,
@@ -250,7 +253,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
       appendChildren: [icon],
     });
 
-    return Dom.create(createFrame(btnW, btnH), {
+    return DomFactory.create(createFrame(btnW, btnH), {
       setStyles: {
         cursor: 'pointer',
       },
@@ -333,7 +336,7 @@ const buttons = Object.entries({
   return buttonFactory(str, fnc);
 });
 
-const buttonsWrap = Dom.create('div', {
+const buttonsWrap = DomFactory.create('div', {
   setStyles: {
     width: '100%',
     'box-sizing': 'border-box',
@@ -368,7 +371,7 @@ const footerHandleEvent = function () {
 };
 
 /* --- accessory-footer */
-const footer = Dom.create('footer', {
+const footer = DomFactory.create('footer', {
   setAttrs: {
     id: 'footer',
   },
@@ -454,8 +457,8 @@ const footer = Dom.create('footer', {
             moveCache < headLine
               ? headLine
               : moveCache >= endLine
-                ? endLine
-                : moveCache;
+              ? endLine
+              : moveCache;
 
           this.targetEditor.dispatch({
             selection: EditorSelection.create([
@@ -471,7 +474,7 @@ const footer = Dom.create('footer', {
 });
 
 const setLayout = () => {
-  const rootMain = Dom.create('div', {
+  const rootMain = DomFactory.create('div', {
     setAttrs: {
       id: 'rootMain',
     },
@@ -498,14 +501,14 @@ document.addEventListener('DOMContentLoaded', () => {
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
     editor.dispatch({
-      changes: {from: editor.state?.doc.length, insert: loadedSource},
+      changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
-    const editorDoc = editor.viewState.state.doc.toString();
-    sandbox.src = getBlobURL(createSourceHTML(addEruda));
-    sandbox.contentWindow.postMessage(editorDoc, '*');
+    // const editorDoc = editor.viewState.state.doc.toString();
+    // sandbox.src = getBlobURL(createSourceHTML(addEruda));
+    // console.log('editorDoc');
+    // sandbox.contentWindow.postMessage(editorDoc, '*');
     //sandbox.src = getBlobURL(createSourceHTML(editorDoc, addEruda));
     //sandbox.contentWindow.postMessage(editorDoc, '*');
-
   });
 
   //console.log(sandbox.body);

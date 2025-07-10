@@ -54,11 +54,17 @@ const sketch = (p) => {
   }
 };
 
+
+
+// document.addEventListener('DOMContentLoaded', () => {
+//   // --- start
+//   //window._p5Instance = new p5(sketch);
+//   new p5(sketch);
+//   //console.log(window._p5Instance)
+//   console.log('hoge')
+// });
+
 document.addEventListener('DOMContentLoaded', () => {
-  // --- start
-  //window._p5Instance = new p5(sketch);
-  new p5(sketch);
-  //console.log(window._p5Instance)
-});
-
-
+  console.log('do')
+})
+new p5(sketch);
