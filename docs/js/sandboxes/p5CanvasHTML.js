@@ -1,3 +1,6 @@
+import Dom from '../utils/dom.js';
+
+
 const erudaScript = `<script type="module">
       import eruda from 'https://cdn.skypack.dev/eruda';
       eruda.init();
@@ -9,9 +12,9 @@ const erudaScript = `<script type="module">
 
 const buildScript = `<script>
 window._p5Instance = null;
-window.__p5 = window.p5;
 
-//window.p5 = null;
+window.__p5 = window.p5;
+delete window.p5;
 
 class p5 extends window.__p5 {
   constructor(sketch, node) {
@@ -21,19 +24,45 @@ class p5 extends window.__p5 {
 }
 
 window.p5 = p5;
+delete window.__p5;
 
+
+function runSketch(code) {
+  if (window._p5Instance) {
+    window._p5Instance.remove();
+    window._p5Instance = null;
+  }
+  
+  const script = Dom.create('script', {
+    setAttrs: {
+      id: 'p5SourceScript',
+      type: 'text/javascript',
+    },
+    textContent: code,
+    appendParent: document.body,
+  });
+  
+  try {
+    if (window._p5Instance === null){
+      window._p5Instance = new p5();
+    }
+    
+  } catch (e) {
+    console.log('Error: ' + e.message);
+  }
+  document.body.removeChild(script);
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('message', (e) => {
-    console.log(e)
+    const sourceCode = e.data;
+    runSketch(sourceCode);
   });
 });
 
-
-
 </script>`;
 
-const createSourceHTML = (source, debug = false) => {
+const createSourceHTML = (debug = false) => {
   return `<!doctype html>
 <html lang="ja">
   <head>
@@ -59,11 +88,7 @@ const createSourceHTML = (source, debug = false) => {
     ${buildScript}
     
   </head>
-  <body>
-
-    <script id="p5script" defer>${source};</script>
-
-  </body>
+  <body></body>
 </html>`;
 };
 

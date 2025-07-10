@@ -83,10 +83,10 @@ const editor = createEditorView(editorDiv);
 /* --- accessory */
 const reloadSketchHandleEvent = function () {
   const toStringDoc = this.targetEditor.viewState.state.doc.toString();
-  const sourceCode = createSourceHTML(toStringDoc, addEruda);
-  this.targetSandbox.src = getBlobURL(sourceCode);
+  //const sourceCode = createSourceHTML(toStringDoc, addEruda);
+  //this.targetSandbox.src = getBlobURL(sourceCode);
   //console.log(sourceCode)
-  //sandbox.contentWindow.postMessage(sourceCode, '*');
+  sandbox.contentWindow.postMessage(toStringDoc, '*');
   
 };
 
@@ -501,7 +501,9 @@ document.addEventListener('DOMContentLoaded', () => {
       changes: {from: editor.state?.doc.length, insert: loadedSource},
     });
     const editorDoc = editor.viewState.state.doc.toString();
-    sandbox.src = getBlobURL(createSourceHTML(editorDoc, addEruda));
+    sandbox.src = getBlobURL(createSourceHTML(addEruda));
+    sandbox.contentWindow.postMessage(editorDoc, '*');
+    //sandbox.src = getBlobURL(createSourceHTML(editorDoc, addEruda));
     //sandbox.contentWindow.postMessage(editorDoc, '*');
 
   });
