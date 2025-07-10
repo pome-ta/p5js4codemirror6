@@ -1,6 +1,6 @@
 import DomFactory from './utils/domFactory.js';
 import createEditorView from './editor/index.js';
-// import createSourceHTML from './sandboxes/p5CanvasHTML.js';
+
 import { EditorSelection } from './editor/codemirror/state.js';
 import {
   cursorCharLeft,
@@ -15,7 +15,7 @@ import {
 } from './editor/codemirror/commands.js';
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
-// const addEruda = true;
+
 
 /* --- load Source */
 async function insertFetchDoc(filePath) {
@@ -26,15 +26,12 @@ async function insertFetchDoc(filePath) {
   return await fetchFilePath(filePath);
 }
 
-const getBlobURL = (sourceCode) => {
-  const sourceBlob = new Blob([sourceCode], { type: 'text/html' });
-  return URL.createObjectURL(sourceBlob);
-};
+
 
 const mainSketch = './js/sketchBooks/mainSketch.js';
 const devSketch = './js/sketchBooks/devSketch.js';
-//const codeFilePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
-const codeFilePath = 1 ? devSketch : mainSketch;
+const codeFilePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
+//const codeFilePath = 1 ? devSketch : mainSketch;
 
 
 /* --- editor(View) */
@@ -49,7 +46,7 @@ const editorDiv = DomFactory.create('div', {
 
 const editor = createEditorView(editorDiv);
 
-// xxx: iframe 生成時と、書き換え時と併用
+// xxx: iframe 生成時と書き換え時と併用
 const reloadSketchHandleEvent = function (e) {
   const toStringDoc = this.targetEditor.viewState.state.doc.toString();
   this.targetSandbox = this.targetSandbox ? this.targetSandbox : e.target;
@@ -171,6 +168,7 @@ const headerHandleEvent = function () {
   const header = document.querySelector('#header');
   const offsetTop = window.visualViewport.offsetTop;
   header.style.top = `${offsetTop}px`;
+  //header.style.overflow = 'hidden'
 };
 
 /* --- accessory-header */
@@ -197,6 +195,20 @@ const header = DomFactory.create('header', {
     },
     {
       target: window.visualViewport,
+      type: 'scroll',
+      listener: {
+        handleEvent: headerHandleEvent,
+      },
+    },
+    {
+      target: sandbox,
+      type: 'resize',
+      listener: {
+        handleEvent: headerHandleEvent,
+      },
+    },
+    {
+      target: sandbox,
       type: 'scroll',
       listener: {
         handleEvent: headerHandleEvent,
@@ -480,6 +492,7 @@ const setLayout = () => {
       'grid-template-rows': 'auto 1fr auto',
       height: '100%',
       overflow: 'auto',
+      
       //'background-color': 'magenta',
       //position: 'relative',
     },
@@ -491,6 +504,7 @@ const setLayout = () => {
   }
   document.body.appendChild(sandbox);
   document.body.appendChild(rootMain);
+  
 };
 
 document.addEventListener('DOMContentLoaded', () => {
