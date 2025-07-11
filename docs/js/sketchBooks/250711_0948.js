@@ -18,6 +18,7 @@ const sketch = (p) => {
   let setupWidth, setupHeight, setupRatio;
 
   let bgColor;
+  let sinOsc;
   let toneOsc;
   
   let fft;
@@ -85,6 +86,7 @@ const sketch = (p) => {
     bgColor = p.color(0, 0, 64 / 255);
     p.background(bgColor);
 
+    //sinOsc = new p5.SinOsc();
     toneOsc = new p5.SinOsc();
     //toneOsc = new p5.TriOsc();
     //toneOsc = new p5.SawOsc();
