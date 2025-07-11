@@ -26,14 +26,16 @@ const sketch = (p) => {
     
     const ctx = p.getAudioContext();
     //ctx?.close()
+    
+    const mFrq = frq + frq * (0.5 - Math.trunc(p.random() * 1000) * 0.001);
 
-    toneOsc = new p5.SinOsc(frq);
-    //toneOsc = new p5.TriOsc(frq);
-    //toneOsc = new p5.SawOsc(frq);
-    //toneOsc = new p5.SqrOsc(frq);
+    toneOsc = new p5.SinOsc(mFrq);
+    //toneOsc = new p5.TriOsc(mFrq);
+    //toneOsc = new p5.SawOsc(mFrq);
+    //toneOsc = new p5.SqrOsc(mFrq);
     toneOsc.amp(0.5);
 
-    //toneOsc.start();
+    toneOsc.start();
     
     gainValue = toneOsc.output.gain.value
 
@@ -69,7 +71,10 @@ const sketch = (p) => {
     p.noStroke();
     p.fill(0.0, 0.0, 0.8);
     
-    p.text(`${toneOsc.f}`, p.width / 2, p.height / 2);
+    const frqText = Math.trunc(toneOsc.f * 100) * 0.01;
+    
+    p.text(`${frqText}`, p.width / 2, p.height / 2);
+    //p.text(`${toneOsc.f}`, p.width / 2, p.height / 2);
 
     
 
