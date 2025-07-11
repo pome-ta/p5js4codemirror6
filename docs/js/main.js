@@ -166,8 +166,10 @@ const headerControlWrap = DomFactory.create('div', {
 
 const headerHandleEvent = function () {
   const header = document.querySelector('#header');
-  const offsetTop = window.visualViewport.offsetTop;
-  header.style.top = `${offsetTop}px`;
+  const offsetTop = Math.max(0, window.visualViewport.offsetTop);
+  //console.log(offsetTop);
+  //header.style.top = `${offsetTop}px`;
+  header.style.transform = `translateY(${offsetTop}px)`;
   //header.style.overflow = 'hidden'
 };
 
@@ -376,7 +378,13 @@ const footerHandleEvent = function () {
     window.visualViewport.height +
     offsetTop -
     window.visualViewport.pageTop;
-  footer.style.bottom = `${offsetBottom}px`;
+  const tOffsetTop =
+    visualViewport.offsetTop +
+    visualViewport.height -
+    document.documentElement.clientHeight
+  //footer.style.bottom = `${offsetBottom}px`;
+  footer.style.transform = `translateY(${tOffsetTop}px)`;
+  
 };
 
 /* --- accessory-footer */

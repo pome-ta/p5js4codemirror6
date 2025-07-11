@@ -152,7 +152,7 @@ const sketch = (p) => {
     }
 
   };
-
+  
   p.touchStarted = (e) => {
     getTouchXY();
     sinOsc.freq(frqRatio(touchX));
@@ -180,6 +180,7 @@ const sketch = (p) => {
     ts.tapEnded();
 
   };
+  
 
   p.windowResized = (event) => {
     windowFlexSize(true);
