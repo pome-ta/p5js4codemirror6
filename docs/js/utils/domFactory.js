@@ -3,24 +3,22 @@ export default class DomFactory {
   #buildEvent;
 
   constructor(domTag) {
-    this.#element =
-      typeof domTag === 'string' ? document.createElement(domTag) : domTag;
+    this.#element = typeof domTag === 'string' ? document.createElement(domTag) : domTag;
 
-    this.#buildEvent = new CustomEvent('build', { detail: this.#element });
+    this.#buildEvent = new CustomEvent('build', {detail: this.#element});
   }
 
   get element() {
     return this.#element;
   }
+
   get buildEvent() {
     return this.#buildEvent;
   }
 
   static create(tag, options) {
     const instance = new this(tag);
-    options
-      ? Object.entries(options).forEach(([key, value]) => instance[key](value))
-      : null;
+    options ? Object.entries(options).forEach(([key, value]) => instance[key](value)) : null;
     instance.element.dispatchEvent(instance.buildEvent);
 
     return instance.element;
@@ -62,7 +60,7 @@ export default class DomFactory {
     return this;
   }
 
-  addEventListener({ type, listener, options }) {
+  addEventListener({type, listener, options}) {
     this.#element.addEventListener(type, listener, options);
 
     return this;
@@ -74,7 +72,7 @@ export default class DomFactory {
     return this;
   }
 
-  targetAddEventListener({ target, type, listener, options }) {
+  targetAddEventListener({target, type, listener, options}) {
     target.addEventListener(type, listener, options);
 
     return this;

@@ -2,13 +2,6 @@ import DomFactory from '../utils/domFactory.js';
 
 function runSketch(code) {
   if (window._p5Instance) {
-    let auctx = window._p5Instance?.getAudioContext();
-    auctx.close().then(() => {
-      auctx = new window.AudioContext();
-    });
-    //auCtx?.disconnect();
-    //console.log(window._p5Instance.audiocontext);
-    //console.log(p5)
     window._p5Instance.remove();
     window._p5Instance = null;
   }
@@ -27,7 +20,7 @@ function runSketch(code) {
 
   if (window._p5Instance === null) {
     try {
-      window._p5Instance = new p5();
+      // window._p5Instance = new p5();
     } catch (e) {
       console.log('Error: ' + e.message);
     }
