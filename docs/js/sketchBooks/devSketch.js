@@ -1,18 +1,6 @@
 const title = 'tap mark';
 
 
-class EventWrapper {
-  constructor() {
-    [this.click, this.start, this.move, this.end, this.isTouch] =
-      /iPhone|iPad|iPod|Android/.test(navigator.userAgent)
-        ? ['click', 'touchstart', 'touchmove', 'touchend', true,]
-        : ['click', 'mousedown', 'mousemove', 'mouseup', false,];
-  }
-}
-
-const eventWrap = new EventWrapper();
-
-
 const sketch = (p) => {
   let w, h;
   let setupWidth, setupHeight, setupRatio;
@@ -28,55 +16,6 @@ const sketch = (p) => {
   let touchY = null;
   const delayTime = 0.2;
 
-  let ts;
-
-
-  class TapScreen {
-
-    tapSize = 48;
-    baseColrHSB = [0.0, 0.0, 1.0];
-
-    constructor(mainCanvas) {
-      this.p = mainCanvas;
-      this.pg = null;
-      this.x = null;
-      this.y = null;
-    }
-
-    update() {
-      if (this.pg === null && this.x === null && this.y === null) {
-        return;
-      }
-      this.p.image(this.pg, this.x - (this.tapSize / 2), this.y - (this.tapSize / 2));
-    }
-
-    initTapMark() {
-      this.pg = this.pg ?? this.p.createGraphics(this.tapSize, this.tapSize);
-
-      this.pg.colorMode(this.pg.HSB, 1.0, 1.0, 1.0, 1.0);
-      this.pgColor = this.pg.color(...this.baseColrHSB);
-      this.pgColor.setAlpha(0.5);
-      this.pg.fill(this.pgColor);
-
-      this.pg.noStroke();
-      this.pg.circle(this.tapSize / 2, this.tapSize / 2, this.tapSize);
-    }
-
-    tapStarted(x, y) {
-      this.initTapMark();
-      this.x = x;
-      this.y = y;
-
-    }
-    taphMoved(x, y) {
-      this.x = x;
-      this.y = y;
-    }
-    tapEnded() {
-      this.pg?.remove();
-      this.pg = null;
-    }
-  };
 
   p.setup = () => {
     // put setup code here
@@ -84,20 +23,23 @@ const sketch = (p) => {
     p.colorMode(p.HSB, 1.0, 1.0, 1.0, 1.0);
     bgColor = p.color(0, 0, 64 / 255);
     p.background(bgColor);
+    
+    const ctx = p.getAudioContext();
+    //ctx?.close()
 
-    toneOsc = new p5.SinOsc();
-    //toneOsc = new p5.TriOsc();
-    //toneOsc = new p5.SawOsc();
-    //toneOsc = new p5.SqrOsc();
+    toneOsc = new p5.SinOsc(frq);
+    //toneOsc = new p5.TriOsc(frq);
+    //toneOsc = new p5.SawOsc(frq);
+    //toneOsc = new p5.SqrOsc(frq);
+    toneOsc.amp(0.5);
+
+    //toneOsc.start();
     
     gainValue = toneOsc.output.gain.value
 
     fft = new p5.FFT();
     p.textAlign(p.CENTER, p.CENTER);
     p.textSize(32);
-
-    ts = new TapScreen(p);
-    
   };
 
   p.draw = () => {
@@ -126,68 +68,20 @@ const sketch = (p) => {
 
     p.noStroke();
     p.fill(0.0, 0.0, 0.8);
+    
+    p.text(`${toneOsc.f}`, p.width / 2, p.height / 2);
 
-    if (touchX !== null || touchY !== null) {
-      p.text(`${toneOsc.f}`, p.width / 2, p.height / 2);
-      ts.update();
-    }
+    
 
   };
   
-  p.touchStarted = (e) => {
-    getTouchXY();
-    toneOsc.freq(frqRatio(touchX));
-    toneOsc.amp(valueRatio(touchY));
-    toneOsc.start();
-
-    ts.tapStarted(touchX, touchY);
-
-  };
-
-  p.touchMoved = (e) => {
-    getTouchXY();
-    toneOsc.freq(frqRatio(touchX));
-    toneOsc.amp(valueRatio(touchY));
-
-    ts.taphMoved(touchX, touchY);
-  };
-
-  p.touchEnded = (e) => {
-    touchX = null;
-    touchY = null;
-    toneOsc.amp(0, delayTime);
-    toneOsc.stop(delayTime + 0.05);
-
-    ts.tapEnded();
-
-  };
   
 
   p.windowResized = (event) => {
     windowFlexSize(true);
   };
 
-  function getTouchXY() {
-    if (eventWrap.isTouch) {
-      for (let touch of p.touches) {
-        touchX = 0 <= touch.x && touch.x <= p.width ? touch.x : null;
-        touchY = 0 <= touch.y && touch.y <= p.height ? touch.y : null;
-      }
-    } else {  // xxx: PC 用。。。ダサい
-      touchX = p.mouseIsPressed && 0 <= p.mouseX && p.mouseX <= p.width ? p.mouseX : null;
-      touchY = p.mouseIsPressed && 0 <= p.mouseY && p.mouseY <= p.height ? p.mouseY : null;
-    }
-  }
 
-  function frqRatio(f) {
-    const fr = (f / (p.width / 2)) * frq;
-    return Math.ceil(fr * 1000) / 1000;
-  }
-
-  function valueRatio(v) {
-    const vl = v === null ? 0 : v / p.height - 1;
-    return vl;
-  }
 
   function windowFlexSize(isFullSize = false) {
     const isInitialize =

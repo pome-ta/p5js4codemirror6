@@ -12,7 +12,9 @@ function runSketch(code) {
       type: 'text/javascript',
     },
     // xxx: スコープを切る
-    textContent: `{${code}}`,
+    textContent: `{
+      ${code}
+    }`,
     appendParent: document.body,
   });
 
