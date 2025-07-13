@@ -1,39 +1,48 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="utf-8" />
-    <meta
+<head>
+  <meta charset="utf-8"/>
+  <meta
       name="viewport"
       content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"
-    />
+  />
 
-    <script type="module">
-      import eruda from 'https://cdn.skypack.dev/eruda';
-
-      eruda.init();
-
-      const timeStr = new Date().toLocaleTimeString();
-      const outLog = 'p5Canvas: ' + timeStr;
-      console.log(outLog);
-    </script>
-
-    <script src="https://unpkg.com/p5@1.11.8/lib/p5.js"></script>
-    <script src="https://unpkg.com/p5.sound@0.2.0/dist/p5.sound.js"></script>
-<!--    <script src="https://unpkg.com/p5@1.11.8/lib/addons/p5.sound.js"></script>-->
-<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/addons/p5.sound.min.js"></script>-->
-
-    <style>
-      html,
-      body {
-        margin: 0;
-        padding: 0;
+  <script type="importmap">
+    {
+      "imports": {
+        "p5/": "https://esm.sh/p5@1.11.8/",
+        "eruda": "https://esm.sh/eruda"
       }
+    }
+  </script>
 
-      canvas {
-        display: block;
-      }
-    </style>
-    <script type="module" src="sandbox.js" defer></script>
-  </head>
-  <body></body>
+<!--  <script type="module">-->
+<!--    import eruda from 'eruda';-->
+
+<!--    eruda.init();-->
+
+<!--    const timeStr = new Date().toLocaleTimeString();-->
+<!--    const outLog = 'p5Canvas: ' + timeStr;-->
+<!--    console.log(outLog);-->
+<!--  </script>-->
+
+  <!--    <script src="https://unpkg.com/p5@1.11.8/lib/p5.js"></script>-->
+  <!--    <script src="https://unpkg.com/p5.sound@0.2.0/dist/p5.sound.js"></script>-->
+  <!--    <script src="https://unpkg.com/p5@1.11.8/lib/addons/p5.sound.js"></script>-->
+  <!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/addons/p5.sound.min.js"></script>-->
+
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    canvas {
+      display: block;
+    }
+  </style>
+  <script type="module" src="sandbox.js" defer></script>
+</head>
+<body></body>
 </html>
