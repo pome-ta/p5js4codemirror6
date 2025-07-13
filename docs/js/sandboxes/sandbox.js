@@ -20,7 +20,7 @@ function runSketch(code) {
 
   if (window._p5Instance === null) {
     try {
-      // window._p5Instance = new p5();
+      //window._p5Instance = new p5();
     } catch (e) {
       console.log('Error: ' + e.message);
     }

@@ -1,8 +1,9 @@
 // await import('https://unpkg.com/p5@1.11.8/lib/addons/p5.sound.js');
 // import * as p5sound from 'https://unpkg.com/p5@1.11.8/lib/addons/p5.sound.js';
-import('https://unpkg.com/p5@1.11.8/lib/addons/p5.sound.js').then(() => {
+//import('https://unpkg.com/p5@1.11.8/lib/addons/p5.sound.js').then((m) => {
 
-
+//import {* as p5soun} from 'https://unpkg.com/p5@1.11.8/lib/addons/p5.sound.js';
+//console.log(m)
 
   const title = 'tap mark';
 
@@ -43,7 +44,7 @@ import('https://unpkg.com/p5@1.11.8/lib/addons/p5.sound.js').then(() => {
 
       toneOsc.start();
 
-      gainValue = toneOsc.output.gain.value
+      //gainValue = toneOsc.output.gain.value
 
       fft = new p5.FFT();
       p.textAlign(p.CENTER, p.CENTER);
@@ -128,4 +129,5 @@ import('https://unpkg.com/p5@1.11.8/lib/addons/p5.sound.js').then(() => {
 
   new p5(sketch);
 //window._p5Instance = new p5(sketch);
-});
+//});
+
