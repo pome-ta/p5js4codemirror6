@@ -128,10 +128,4 @@ import('https://unpkg.com/p5@1.11.8/lib/addons/p5.sound.js').then(() => {
 
   new p5(sketch);
 //window._p5Instance = new p5(sketch);
-
-
-
-
-
-
 });
