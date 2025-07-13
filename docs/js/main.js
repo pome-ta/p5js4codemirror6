@@ -1,5 +1,6 @@
 import DomFactory from './utils/domFactory.js';
 import createEditorView from './editor/index.js';
+import createSourceHTML from './sandboxes/p5CanvasHTML.js';
 
 import {EditorSelection} from './editor/codemirror/state.js';
 import {
@@ -15,6 +16,13 @@ import {
 } from './editor/codemirror/commands.js';
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
+const addEruda = true;
+
+
+const getBlobURL = (sourceCode, type = 'text/html') => {
+  const sourceBlob = new Blob([sourceCode], {type: type});
+  return URL.createObjectURL(sourceBlob);
+};
 
 
 /* --- load Source */
@@ -49,7 +57,10 @@ const editor = createEditorView(editorDiv);
 const reloadSketchHandleEvent = function (e) {
   const toStringDoc = this.targetEditor.viewState.state.doc.toString();
   this.targetSandbox = this.targetSandbox ? this.targetSandbox : e.target;
-  this.targetSandbox.contentWindow.postMessage(toStringDoc, '*');
+
+  this.targetSandbox.src = getBlobURL(createSourceHTML(toStringDoc, addEruda));
+
+  // this.targetSandbox.contentWindow.postMessage(toStringDoc, '*');
 };
 
 /* --- iframe */
@@ -60,7 +71,7 @@ const sandbox = DomFactory.create('iframe', {
     allow:
       'accelerometer; ambient-light-sensor; autoplay; bluetooth; camera; encrypted-media; geolocation; gyroscope;  hid; microphone; magnetometer; midi; payment; usb; serial; vr; xr-spatial-tracking',
     loading: 'lazy',
-    src: './js/sandboxes/sandbox.html',
+    // src: './js/sandboxes/sandbox.html',
   },
   setStyles: {
     width: '100%',
@@ -73,16 +84,16 @@ const sandbox = DomFactory.create('iframe', {
     //'background-color': 'lightgray',
     'background-color': 'darkgray',
   },
-  addEventListeners: [
-    {
-      type: 'load',
-      listener: {
-        targetEditor: editor,
-        targetSandbox: null,
-        handleEvent: reloadSketchHandleEvent,
-      },
-    },
-  ],
+  // addEventListeners: [
+  //   {
+  //     type: 'load',
+  //     listener: {
+  //       targetEditor: editor,
+  //       targetSandbox: null,
+  //       handleEvent: reloadSketchHandleEvent,
+  //     },
+  //   },
+  // ],
 });
 
 /* --- accessory */
@@ -521,8 +532,8 @@ document.addEventListener('DOMContentLoaded', () => {
     editor.dispatch({
       changes: {from: editor.state?.doc.length, insert: loadedSource},
     });
-    // const editorDoc = editor.viewState.state.doc.toString();
-    // sandbox.src = getBlobURL(createSourceHTML(addEruda));
+    const editorDoc = editor.viewState.state.doc.toString();
+    sandbox.src = getBlobURL(createSourceHTML(editorDoc, addEruda));
     // sandbox.contentWindow.postMessage(editorDoc, '*');
     //sandbox.src = getBlobURL(createSourceHTML(editorDoc, addEruda));
   });

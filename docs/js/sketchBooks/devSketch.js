@@ -1,5 +1,4 @@
-
-await import('p5/lib/addons/p5.sound');
+// await import('p5/lib/addons/p5.sound');
 
 const title = 'tap mark';
 
