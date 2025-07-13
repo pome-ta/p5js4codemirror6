@@ -26,8 +26,6 @@ const sketch = (p) => {
     bgColor = p.color(0, 0, 64 / 255);
     p.background(bgColor);
 
-    // const ctx = p.getAudioContext();
-    //ctx?.close()
 
     const mFrq = frq + frq * (0.5 - Math.trunc(p.random() * 1000) * 0.001);
 
@@ -36,7 +34,16 @@ const sketch = (p) => {
     //toneOsc = new p5.SawOsc(mFrq);
     //toneOsc = new p5.SqrOsc(mFrq);
     toneOsc.amp(0.5);
-
+    
+    const ctx = p.getAudioContext();
+    /*
+    ctx.addEventListener('statechange', (e) => {
+      console.log(`${ctx.state}`);
+    });
+    */
+    ctx.onstatechange = () => {
+      console.log(ctx.state);
+    };
     toneOsc.start();
 
     //gainValue = toneOsc.output.gain.value
@@ -118,7 +125,7 @@ const sketch = (p) => {
 };
 
 
-new p5(sketch);
-//window._p5Instance = new p5(sketch);
+//new p5(sketch);
+window._p5Instance = new p5(sketch);
 //});
 
