@@ -1,65 +1,57 @@
 const title = 'tap mark';
 
-
-
 const sketch = (p) => {
   let w, h;
   let setupWidth, setupHeight, setupRatio;
 
   let bgColor;
   
+  const frq = 440;
   let toneOsc;
-  
+  let oscTyoe;
   let fft;
 
-  const frq = 440;
-  let gainValue;
-  let touchX = null;
-  let touchY = null;
-  const delayTime = 0.2;
-
-
   p.setup = () => {
+    // sound init
+    window._cacheSounds?.forEach((s) => {
+      s.stop();
+      s.disconnect();
+    });
+  
     // put setup code here
     windowFlexSize(true);
     p.colorMode(p.HSB, 1.0, 1.0, 1.0, 1.0);
     bgColor = p.color(0, 0, 64 / 255);
     p.background(bgColor);
     
-    //const ctx = p.getAudioContext();
-    //ctx?.close()
-    //currentOsc = p.getAudioContext();
-    //console.log(currentOsc.destination);
-    //currentOsc.destination.disconnect()
-    //console.log(window._p5Instance.getAudioContext())
-    //console.log(currentOsc)
-    if (window.toneOsc) {
-      window.toneOsc.stop()
-    }
-    console.log(window.toneOsc)
     
-    
-    const mFrq = frq + frq * (0.5 - Math.trunc(p.random() * 1000) * 0.001);
+    const mFrq = Math.trunc(frq + frq * (0.5 - Math.trunc(p.random() * 1000) * 0.001));
 
     toneOsc = new p5.SinOsc(mFrq);
-    //toneOsc = new p5.TriOsc(mFrq);
-    //toneOsc = new p5.SawOsc(mFrq);
-    //toneOsc = new p5.SqrOsc(mFrq);
+    // toneOsc = new p5.TriOsc(mFrq);
+    // toneOsc = new p5.SawOsc(mFrq);
+    // toneOsc = new p5.SqrOsc(mFrq);
     
-    toneOsc.amp(0.5);
+    const oscTypes = new Map([
+      ['sine', 0.5],
+      ['triangle', 0.4],
+      ['sawtooth', 0.3],
+      ['square', 0.2]
+
+    ]);
+    
+    //toneOsc.amp(0.1);
+    oscTyoe = toneOsc.getType()
+    toneOsc.amp(oscTypes.get(oscTypes));
 
     toneOsc.start();
     
-    //gainValue = toneOsc.output.gain.value
 
     fft = new p5.FFT();
     p.textAlign(p.CENTER, p.CENTER);
     p.textSize(32);
     
-    window.toneOsc = toneOsc
-    
-    
-    
+    window._cacheSounds = [toneOsc,];
   };
 
   p.draw = () => {
@@ -89,22 +81,14 @@ const sketch = (p) => {
     p.noStroke();
     p.fill(0.0, 0.0, 0.8);
     
-    const frqText = Math.trunc(toneOsc.f * 100) * 0.01;
-    
-    p.text(`${frqText}`, p.width / 2, p.height / 2);
-    //p.text(`${toneOsc.f}`, p.width / 2, p.height / 2);
 
-    
-
+    p.text(`${oscTyoe}\n${toneOsc.f}`, p.width / 2, p.height / 2);
   };
   
   
-
   p.windowResized = (event) => {
     windowFlexSize(true);
   };
-
-
 
   function windowFlexSize(isFullSize = false) {
     const isInitialize =
@@ -135,8 +119,6 @@ const sketch = (p) => {
     p.resizeCanvas(w, h);
   }
 };
-
-
 
 new p5(sketch);
 //window._p5Instance = new p5(sketch);
