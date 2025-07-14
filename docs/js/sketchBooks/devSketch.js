@@ -8,6 +8,7 @@ const sketch = (p) => {
   let setupWidth, setupHeight, setupRatio;
 
   let bgColor;
+  let currentOsc;
   let toneOsc;
 
   let fft;
@@ -33,24 +34,17 @@ const sketch = (p) => {
     //toneOsc = new p5.TriOsc(mFrq);
     //toneOsc = new p5.SawOsc(mFrq);
     //toneOsc = new p5.SqrOsc(mFrq);
+    
     toneOsc.amp(0.5);
     
-    const ctx = p.getAudioContext();
-    /*
-    ctx.addEventListener('statechange', (e) => {
-      console.log(`${ctx.state}`);
-    });
-    */
-    ctx.onstatechange = () => {
-      console.log(ctx.state);
-    };
-    toneOsc.start();
-
     //gainValue = toneOsc.output.gain.value
 
     fft = new p5.FFT();
     p.textAlign(p.CENTER, p.CENTER);
     p.textSize(32);
+    
+    currentOsc = p.getAudioContext();
+    
   };
 
   p.draw = () => {
