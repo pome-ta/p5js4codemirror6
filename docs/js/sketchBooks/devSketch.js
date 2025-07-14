@@ -1,6 +1,5 @@
-// await import('p5/lib/addons/p5.sound');
-
 const title = 'tap mark';
+
 
 
 const sketch = (p) => {
@@ -8,9 +7,9 @@ const sketch = (p) => {
   let setupWidth, setupHeight, setupRatio;
 
   let bgColor;
-  let currentOsc;
+  
   let toneOsc;
-
+  
   let fft;
 
   const frq = 440;
@@ -26,8 +25,20 @@ const sketch = (p) => {
     p.colorMode(p.HSB, 1.0, 1.0, 1.0, 1.0);
     bgColor = p.color(0, 0, 64 / 255);
     p.background(bgColor);
-
-
+    
+    //const ctx = p.getAudioContext();
+    //ctx?.close()
+    //currentOsc = p.getAudioContext();
+    //console.log(currentOsc.destination);
+    //currentOsc.destination.disconnect()
+    //console.log(window._p5Instance.getAudioContext())
+    //console.log(currentOsc)
+    if (window.toneOsc) {
+      window.toneOsc.stop()
+    }
+    console.log(window.toneOsc)
+    
+    
     const mFrq = frq + frq * (0.5 - Math.trunc(p.random() * 1000) * 0.001);
 
     toneOsc = new p5.SinOsc(mFrq);
@@ -36,6 +47,7 @@ const sketch = (p) => {
     //toneOsc = new p5.SqrOsc(mFrq);
     
     toneOsc.amp(0.5);
+
     toneOsc.start();
     
     //gainValue = toneOsc.output.gain.value
@@ -44,7 +56,9 @@ const sketch = (p) => {
     p.textAlign(p.CENTER, p.CENTER);
     p.textSize(32);
     
-    currentOsc = p.getAudioContext();
+    window.toneOsc = toneOsc
+    
+    
     
   };
 
@@ -74,19 +88,22 @@ const sketch = (p) => {
 
     p.noStroke();
     p.fill(0.0, 0.0, 0.8);
-
+    
     const frqText = Math.trunc(toneOsc.f * 100) * 0.01;
-
+    
     p.text(`${frqText}`, p.width / 2, p.height / 2);
     //p.text(`${toneOsc.f}`, p.width / 2, p.height / 2);
 
+    
 
   };
-
+  
+  
 
   p.windowResized = (event) => {
     windowFlexSize(true);
   };
+
 
 
   function windowFlexSize(isFullSize = false) {
@@ -120,7 +137,6 @@ const sketch = (p) => {
 };
 
 
-//new p5(sketch);
-window._p5Instance = new p5(sketch);
-//});
 
+new p5(sketch);
+//window._p5Instance = new p5(sketch);

@@ -1,8 +1,7 @@
 import DomFactory from './utils/domFactory.js';
 import createEditorView from './editor/index.js';
-import createSourceHTML from './sandboxes/p5CanvasHTML.js';
 
-import {EditorSelection} from './editor/codemirror/state.js';
+import { EditorSelection } from './editor/codemirror/state.js';
 import {
   cursorCharLeft,
   cursorCharRight,
@@ -16,13 +15,6 @@ import {
 } from './editor/codemirror/commands.js';
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
-const addEruda = true;
-
-
-const getBlobURL = (sourceCode, type = 'text/html') => {
-  const sourceBlob = new Blob([sourceCode], {type: type});
-  return URL.createObjectURL(sourceBlob);
-};
 
 
 /* --- load Source */
@@ -35,10 +27,11 @@ async function insertFetchDoc(filePath) {
 }
 
 
+
 const mainSketch = './js/sketchBooks/mainSketch.js';
 const devSketch = './js/sketchBooks/devSketch.js';
-// const codeFilePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
-const codeFilePath = 1 ? devSketch : mainSketch;
+const codeFilePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
+//const codeFilePath = 1 ? devSketch : mainSketch;
 
 
 /* --- editor(View) */
@@ -57,10 +50,7 @@ const editor = createEditorView(editorDiv);
 const reloadSketchHandleEvent = function (e) {
   const toStringDoc = this.targetEditor.viewState.state.doc.toString();
   this.targetSandbox = this.targetSandbox ? this.targetSandbox : e.target;
-
-  this.targetSandbox.src = getBlobURL(createSourceHTML(toStringDoc, addEruda));
-
-  // this.targetSandbox.contentWindow.postMessage(toStringDoc, '*');
+  this.targetSandbox.contentWindow.postMessage(toStringDoc, '*');
 };
 
 /* --- iframe */
@@ -71,7 +61,7 @@ const sandbox = DomFactory.create('iframe', {
     allow:
       'accelerometer; ambient-light-sensor; autoplay; bluetooth; camera; encrypted-media; geolocation; gyroscope;  hid; microphone; magnetometer; midi; payment; usb; serial; vr; xr-spatial-tracking',
     loading: 'lazy',
-    // src: './js/sandboxes/sandbox.html',
+    src: './js/sandboxes/sandbox.html',
   },
   setStyles: {
     width: '100%',
@@ -84,16 +74,16 @@ const sandbox = DomFactory.create('iframe', {
     //'background-color': 'lightgray',
     'background-color': 'darkgray',
   },
-  // addEventListeners: [
-  //   {
-  //     type: 'load',
-  //     listener: {
-  //       targetEditor: editor,
-  //       targetSandbox: null,
-  //       handleEvent: reloadSketchHandleEvent,
-  //     },
-  //   },
-  // ],
+  addEventListeners: [
+    {
+      type: 'load',
+      listener: {
+        targetEditor: editor,
+        targetSandbox: null,
+        handleEvent: reloadSketchHandleEvent,
+      },
+    },
+  ],
 });
 
 /* --- accessory */
@@ -391,10 +381,10 @@ const footerHandleEvent = function () {
   const tOffsetTop =
     visualViewport.offsetTop +
     visualViewport.height -
-    document.documentElement.clientHeight;
+    document.documentElement.clientHeight
   //footer.style.bottom = `${offsetBottom}px`;
   footer.style.transform = `translateY(${tOffsetTop}px)`;
-
+  
 };
 
 /* --- accessory-footer */
@@ -484,8 +474,8 @@ const footer = DomFactory.create('footer', {
             moveCache < headLine
               ? headLine
               : moveCache >= endLine
-                ? endLine
-                : moveCache;
+              ? endLine
+              : moveCache;
 
           this.targetEditor.dispatch({
             selection: EditorSelection.create([
@@ -510,7 +500,7 @@ const setLayout = () => {
       'grid-template-rows': 'auto 1fr auto',
       height: '100%',
       overflow: 'auto',
-
+      
       //'background-color': 'magenta',
       //position: 'relative',
     },
@@ -522,7 +512,7 @@ const setLayout = () => {
   }
   document.body.appendChild(sandbox);
   document.body.appendChild(rootMain);
-
+  
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -530,12 +520,13 @@ document.addEventListener('DOMContentLoaded', () => {
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
     editor.dispatch({
-      changes: {from: editor.state?.doc.length, insert: loadedSource},
+      changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
-    const editorDoc = editor.viewState.state.doc.toString();
-    sandbox.src = getBlobURL(createSourceHTML(editorDoc, addEruda));
+    // const editorDoc = editor.viewState.state.doc.toString();
+    // sandbox.src = getBlobURL(createSourceHTML(addEruda));
     // sandbox.contentWindow.postMessage(editorDoc, '*');
     //sandbox.src = getBlobURL(createSourceHTML(editorDoc, addEruda));
   });
 
 });
+
