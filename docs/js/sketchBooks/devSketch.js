@@ -36,6 +36,7 @@ const sketch = (p) => {
     //toneOsc = new p5.SqrOsc(mFrq);
     
     toneOsc.amp(0.5);
+    toneOsc.start();
     
     //gainValue = toneOsc.output.gain.value
 
