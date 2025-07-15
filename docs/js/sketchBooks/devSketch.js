@@ -17,21 +17,21 @@ const sketch = (p) => {
       s.stop();
       s.disconnect();
     });
-  
+
     // put setup code here
     windowFlexSize(true);
     p.colorMode(p.HSB, 1.0, 1.0, 1.0, 1.0);
     bgColor = p.color(0, 0, 64 / 255);
     p.background(bgColor);
-    
-    
+
+
     const mFrq = Math.trunc(frq + frq * (0.5 - Math.trunc(p.random() * 1000) * 0.001));
 
     toneOsc = new p5.SinOsc(mFrq);
     // toneOsc = new p5.TriOsc(mFrq);
     // toneOsc = new p5.SawOsc(mFrq);
     // toneOsc = new p5.SqrOsc(mFrq);
-    
+
     const oscTypes = new Map([
       ['sine', 0.5],
       ['triangle', 0.4],
@@ -39,7 +39,7 @@ const sketch = (p) => {
       ['square', 0.2]
 
     ]);
-    
+
     //toneOsc.amp(0.1);
     oscTyoe = toneOsc.getType()
     toneOsc.amp(oscTypes.get(oscTypes));
@@ -50,7 +50,7 @@ const sketch = (p) => {
     fft = new p5.FFT();
     p.textAlign(p.CENTER, p.CENTER);
     p.textSize(32);
-    
+
     window._cacheSounds = [toneOsc,];
   };
 
@@ -84,8 +84,8 @@ const sketch = (p) => {
 
     p.text(`${oscTyoe}\n${toneOsc.f}`, p.width / 2, p.height / 2);
   };
-  
-  
+
+
   p.windowResized = (event) => {
     windowFlexSize(true);
   };
