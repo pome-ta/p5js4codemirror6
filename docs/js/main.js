@@ -522,10 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
     editor.dispatch({
       changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
-    // const editorDoc = editor.viewState.state.doc.toString();
-    // sandbox.src = getBlobURL(createSourceHTML(addEruda));
-    // sandbox.contentWindow.postMessage(editorDoc, '*');
-    //sandbox.src = getBlobURL(createSourceHTML(editorDoc, addEruda));
+    
   });
 
 });
