@@ -202,6 +202,7 @@ const header = DomFactory.create('header', {
         handleEvent: headerHandleEvent,
       },
     },
+    /*
     {
       target: sandbox,
       type: 'resize',
@@ -216,6 +217,7 @@ const header = DomFactory.create('header', {
         handleEvent: headerHandleEvent,
       },
     },
+    */
   ],
   appendChildren: [headerControlWrap],
 });
@@ -499,6 +501,7 @@ const setLayout = () => {
       display: 'grid',
       'grid-template-rows': 'auto 1fr auto',
       height: '100%',
+      //height: 'auto',
       overflow: 'auto',
       
       //'background-color': 'magenta',
@@ -506,6 +509,27 @@ const setLayout = () => {
     },
     appendChildren: [header, editorDiv],
   });
+  
+  
+  const config = { attributes: true, subtree: true };
+  const callback = (mutationsList, observer) => {
+    mutationsList.forEach(mutation => {
+      if (mutation.attributeName !== 'open') {
+        return;
+      }
+      rootMain.style.height = mutation.target.open ? '100%' : 'auto';
+      
+      
+      // 変更に対する処理
+      console.log('DOMが変更されました:', mutation);
+      console.log(mutation.attributeName)
+      console.log(mutation.target.open);
+    });
+  };
+  
+  const observer = new MutationObserver(callback);
+  observer.observe(header, config);
+
 
   if (IS_TOUCH_DEVICE) {
     rootMain.appendChild(footer);
