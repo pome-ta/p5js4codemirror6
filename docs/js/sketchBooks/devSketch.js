@@ -20,7 +20,7 @@ const sketch = (p) => {
   let bgColor;
   let sinOsc;
   let toneOsc;
-  
+
   let fft;
 
   const frq = 440;
@@ -69,10 +69,12 @@ const sketch = (p) => {
       this.y = y;
 
     }
+
     taphMoved(x, y) {
       this.x = x;
       this.y = y;
     }
+
     tapEnded() {
       this.pg?.remove();
       this.pg = null;
@@ -80,6 +82,13 @@ const sketch = (p) => {
   };
 
   p.setup = () => {
+
+    // const p5Canvas = p.canvas;
+    p.canvas.addEventListener(eventWrap.move, (e) => e.preventDefault(), {
+      passive: false,
+    });
+    // console.log(p5Canvas);
+
     // put setup code here
     windowFlexSize(true);
     p.colorMode(p.HSB, 1.0, 1.0, 1.0, 1.0);
@@ -91,15 +100,15 @@ const sketch = (p) => {
     //toneOsc = new p5.TriOsc();
     //toneOsc = new p5.SawOsc();
     //toneOsc = new p5.SqrOsc();
-    
-    gainValue = toneOsc.output.gain.value
+
+    gainValue = toneOsc.output.gain.value;
 
     fft = new p5.FFT();
     p.textAlign(p.CENTER, p.CENTER);
     p.textSize(32);
 
     ts = new TapScreen(p);
-    
+
   };
 
   p.draw = () => {
@@ -135,7 +144,7 @@ const sketch = (p) => {
     }
 
   };
-  
+
   p.touchStarted = (e) => {
     getTouchXY();
     toneOsc.freq(frqRatio(touchX));
@@ -163,7 +172,7 @@ const sketch = (p) => {
     ts.tapEnded();
 
   };
-  
+
 
   p.windowResized = (event) => {
     windowFlexSize(true);
@@ -220,7 +229,6 @@ const sketch = (p) => {
     p.resizeCanvas(w, h);
   }
 };
-
 
 
 new p5(sketch);

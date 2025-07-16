@@ -1,7 +1,7 @@
 import DomFactory from './utils/domFactory.js';
 import createEditorView from './editor/index.js';
 
-import { EditorSelection } from './editor/codemirror/state.js';
+import {EditorSelection} from './editor/codemirror/state.js';
 import {
   cursorCharLeft,
   cursorCharRight,
@@ -27,11 +27,10 @@ async function insertFetchDoc(filePath) {
 }
 
 
-
 const mainSketch = './js/sketchBooks/mainSketch.js';
 const devSketch = './js/sketchBooks/devSketch.js';
 const codeFilePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
-//const codeFilePath = 1 ? devSketch : mainSketch;
+// const codeFilePath = 1 ? devSketch : mainSketch;
 
 
 /* --- editor(View) */
@@ -368,7 +367,7 @@ let startX = 0;
 
 const footerHandleEvent = function () {
   const footer = document.querySelector('#footer');
-  if (!this.targetEditor.hasFocus) {
+  if (!this.targetEditor.hasFocus && footer) {
     footer.style.display = 'none';
     return;
   }
@@ -383,10 +382,10 @@ const footerHandleEvent = function () {
   const tOffsetTop =
     visualViewport.offsetTop +
     visualViewport.height -
-    document.documentElement.clientHeight
+    document.documentElement.clientHeight;
   //footer.style.bottom = `${offsetBottom}px`;
   footer.style.transform = `translateY(${tOffsetTop}px)`;
-  
+
 };
 
 /* --- accessory-footer */
@@ -476,8 +475,8 @@ const footer = DomFactory.create('footer', {
             moveCache < headLine
               ? headLine
               : moveCache >= endLine
-              ? endLine
-              : moveCache;
+                ? endLine
+                : moveCache;
 
           this.targetEditor.dispatch({
             selection: EditorSelection.create([
@@ -501,36 +500,11 @@ const setLayout = () => {
       display: 'grid',
       'grid-template-rows': 'auto 1fr auto',
       height: '100%',
-      //height: 'auto',
       overflow: 'auto',
-      //position: 'absolute',
-      //top: '0',
-      
-      //'background-color': 'magenta',
-      //position: 'relative',
+
     },
     appendChildren: [header, editorDiv],
   });
-  
-  
-  const config = { attributes: true, subtree: true };
-  const callback = (mutationsList, observer) => {
-    mutationsList.forEach(mutation => {
-      if (mutation.attributeName !== 'open') {
-        return;
-      }
-      rootMain.style.height = mutation.target.open ? '100%' : 'auto';
-      
-      
-      // 変更に対する処理
-      console.log('DOMが変更されました:', mutation);
-      console.log(mutation.attributeName)
-      console.log(mutation.target.open);
-    });
-  };
-  
-  const observer = new MutationObserver(callback);
-  observer.observe(header, config);
 
 
   if (IS_TOUCH_DEVICE) {
@@ -538,7 +512,7 @@ const setLayout = () => {
   }
   document.body.appendChild(sandbox);
   document.body.appendChild(rootMain);
-  
+
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -546,9 +520,9 @@ document.addEventListener('DOMContentLoaded', () => {
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
     editor.dispatch({
-      changes: { from: editor.state?.doc.length, insert: loadedSource },
+      changes: {from: editor.state?.doc.length, insert: loadedSource},
     });
-    
+
   });
 
 });
