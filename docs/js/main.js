@@ -503,6 +503,8 @@ const setLayout = () => {
       height: '100%',
       //height: 'auto',
       overflow: 'auto',
+      //position: 'absolute',
+      //top: '0',
       
       //'background-color': 'magenta',
       //position: 'relative',
