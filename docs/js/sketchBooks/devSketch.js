@@ -1,275 +1,88 @@
-const title = 'ちゃっぴーの808';
+new p5((p) => {
+  let fft, osc, env;
+  const minFreq = 20;
+  const maxFreq = 20000;
 
-
-class PointerEventMapper {
-  constructor() {
-    [this.click, this.start, this.move, this.end, this.isTouch] =
-      /iPhone|iPad|iPod|Android/.test(navigator.userAgent)
-        ? ['click', 'touchstart', 'touchmove', 'touchend', true,]
-        : ['click', 'mousedown', 'mousemove', 'mouseup', false,];
-  }
-}
-
-const pointerEvents = new PointerEventMapper();
-
-
-const sketch = (p) => {
-  let w, h;
-  let setupWidth, setupHeight, setupRatio;
-
-  let bgColor;
-  let toneOsc;
-  let env;
-  
-  let sFrq = 150;
-  let eFrq = 60;
-  
-
-  let fft;
-
-  let touchX = null;
-  let touchY = null;
-  const delayTime = 0.2;
-
-  let ts;
-
-
-  class TapScreen {
-
-    tapSize = 48;
-    baseColrHSB = [0.0, 0.0, 1.0];
-
-    constructor(mainCanvas) {
-      this.p = mainCanvas;
-      this.pg = null;
-      this.x = null;
-      this.y = null;
-    }
-
-    update() {
-      if (this.pg === null && this.x === null && this.y === null) {
-        return;
-      }
-      this.p.image(this.pg, this.x - (this.tapSize / 2), this.y - (this.tapSize / 2));
-    }
-
-    initTapMark() {
-      this.pg = this.pg ?? this.p.createGraphics(this.tapSize, this.tapSize);
-
-      this.pg.colorMode(this.pg.HSB, 1.0, 1.0, 1.0, 1.0);
-      this.pgColor = this.pg.color(...this.baseColrHSB);
-      this.pgColor.setAlpha(0.5);
-      this.pg.fill(this.pgColor);
-
-      this.pg.noStroke();
-      this.pg.circle(this.tapSize / 2, this.tapSize / 2, this.tapSize);
-    }
-
-    tapStarted(x, y) {
-      this.initTapMark();
-      this.x = x;
-      this.y = y;
-
-    }
-
-    taphMoved(x, y) {
-      this.x = x;
-      this.y = y;
-    }
-
-    tapEnded() {
-      this.pg?.remove();
-      this.pg = null;
-    }
-  };
+  let audioStarted = false;
 
   p.setup = () => {
-    // sound init
-    window._cacheSounds?.forEach((s) => {
-      s.stop();
-      s.disconnect();
-    });
-    p.userStartAudio();
-    
-    p.canvas.addEventListener(pointerEvents.move, (e) => e.preventDefault(), {
-      passive: false,
-    });
+    p.createCanvas(600, 300);
+    fft = new p5.FFT(0.9, 1024);
 
-    // put setup code here
-    windowFlexSize(true);
-    p.colorMode(p.HSB, 1.0, 1.0, 1.0, 1.0);
-    bgColor = p.color(0, 0, 64 / 255);
-    p.background(bgColor);
-
-    
-    env = new p5.Envelope(0.001, 0.1, 0, 0.2);
+    env = new p5.Envelope();
+    env.setADSR(0.001, 0.1, 0, 0.2);
     env.setRange(1, 0);
-    
-    toneOsc = new p5.Oscillator(sFrq, 'sine');
-    toneOsc.amp(env);
-    
-    
-    
 
-    fft = new p5.FFT();
+    osc = new p5.Oscillator('sine');
+    osc.disconnect(); // スピーカー出力はEnvelopeに任せる
+    osc.amp(env);
+
     p.textAlign(p.CENTER, p.CENTER);
-    p.textSize(32);
-
-    ts = new TapScreen(p);
-    
-    window._cacheSounds = [toneOsc,];
-
+    p.textSize(18);
   };
 
   p.draw = () => {
-    // put drawing code here
-    p.background(bgColor);
-    
-    
+    p.background(0);
+    drawLogGrid();
 
+    if (audioStarted) {
+      drawSpectrum();
+    } else {
+      p.fill(255);
+      p.text("Tap to Start Audio", p.width / 2, p.height / 2);
+    }
+  };
+
+  function drawLogGrid() {
+    p.stroke(50);
+    p.fill(100);
+    p.textAlign(p.CENTER, p.TOP);
+    let freqs = [20, 100, 1000, 10000];
+    for (let f of freqs) {
+      let x = p.map(Math.log10(f), Math.log10(minFreq), Math.log10(maxFreq), 0, p.width);
+      p.line(x, 0, x, p.height);
+      p.noStroke();
+      p.text(f + 'Hz', x, 0);
+      p.stroke(50);
+    }
+  }
+
+  function drawSpectrum() {
     let spectrum = fft.analyze();
-    p.noStroke();
-    p.fill(0.2, 0.5, 0.8);
-    for (let i = 0; i < spectrum.length; i++) {
-      let x = p.map(i * 8, 0, spectrum.length, 0, p.width);
-      let h = -p.height + p.map(spectrum[i], 0, 255, p.height, 0);
-      p.rect(x, p.height, p.width / spectrum.length, h);
-    }
-
-    
-    let waveform = fft.waveform();
-    p.noFill();
-    p.beginShape();
-    p.stroke(0.8, 0.5, 0.8);
-    for (let i = 0; i < waveform.length; i++) {
-      let x = p.map(i, 0, waveform.length, 0, p.width);
-      let y = p.map(waveform[i], -1, 1, 0, p.height);
-      p.vertex(x, y);
-    }
-    p.endShape();
+    let nyquist = p.sampleRate() / 2;
+    let lastX = -1;
 
     p.noStroke();
-    p.fill(0.0, 0.0, 0.8);
-    
+    p.fill(0, 255, 100);
 
-    /*
-    if (touchX !== null || touchY !== null) {
-      p.text(`${toneTypes[currentTypeIndex]}\n${toneOsc.f}`, p.width / 2, p.height / 2);
-      ts.update();
+    for (let i = 1; i < spectrum.length; i++) {
+      let freq = i * (nyquist / spectrum.length);
+      if (freq < minFreq || freq > maxFreq) continue;
+
+      let x = p.map(Math.log10(freq), Math.log10(minFreq), Math.log10(maxFreq), 0, p.width);
+      if (Math.floor(x) === Math.floor(lastX)) continue;
+      lastX = x;
+
+      let h = -p.map(spectrum[i], 0, 255, 0, p.height);
+      p.rect(x, p.height, 2, h);
+    }
+  }
+
+  function playKick() {
+    osc.freq(120);
+    osc.start();
+    env.play(osc);
+    p.setTimeout(() => osc.stop(), 150);
+  }
+
+  p.mousePressed = () => {
+    if (!audioStarted) {
+      p.userStartAudio().then(() => {
+        audioStarted = true;
+        console.log("AudioContext started");
+      });
     } else {
-      p.text(`${'osc type'}\n${'frequency'}`, p.width / 2, p.height / 2);
+      playKick();
     }
-    */
-    
   };
-
-  p.touchStarted = (e) => {
-    getTouchXY();
-    
-    toneOsc.amp(0);
-    toneOsc.start();
-    toneOsc.freq(eFrq, 0.15);
-    env.play(toneOsc, 0, 0.01);
-
-    toneOsc.stop(0.5);      
-    
-    
-
-    ts.tapStarted(touchX, touchY);
-
-  };
-
-  /*
-  p.touchMoved = (e) => {
-    getTouchXY();
-    chooseSetType(touchX);
-    toneOsc.freq(frqRatio(touchX));
-    toneOsc.amp(valueRatio(touchY));
-
-    ts.taphMoved(touchX, touchY);
-  };
-  */
-
-  p.touchEnded = (e) => {
-    touchX = null;
-    touchY = null;
-    /*
-    toneOsc.amp(0, delayTime);
-    toneOsc.stop(delayTime + 0.05);
-    */
-
-    ts.tapEnded();
-
-  };
-
-
-  p.windowResized = (event) => {
-    windowFlexSize(true);
-  };
-
-  function getTouchXY() {
-    if (pointerEvents.isTouch) {
-      for (let touch of p.touches) {
-        touchX = 0 <= touch.x && touch.x <= p.width ? touch.x : null;
-        touchY = 0 <= touch.y && touch.y <= p.height ? touch.y : null;
-      }
-    } else {  // xxx: PC 用。。。ダサい
-      touchX = p.mouseIsPressed && 0 <= p.mouseX && p.mouseX <= p.width ? p.mouseX : null;
-      touchY = p.mouseIsPressed && 0 <= p.mouseY && p.mouseY <= p.height ? p.mouseY : null;
-    }
-  }
-  
-  function chooseSetType(x) {
-    const typeIndex = Math.floor(x / xQuarterSize);
-    if (currentTypeIndex === typeIndex) {
-      return;
-    }
-    //console.log(`${currentTypeIndex}`)
-    currentTypeIndex = typeIndex;
-    toneOsc.setType(toneTypes[currentTypeIndex]);
-  }
-  
-
-  function frqRatio(f) {
-    const fr = (f / (p.width / 2)) * frq;
-    return Math.ceil(fr * 1000) / 1000;
-  }
-
-  function valueRatio(v) {
-    const vl = v === null ? 0 : v / p.height - 1;
-    return vl;
-  }
-
-  function windowFlexSize(isFullSize = false) {
-    const isInitialize =
-      typeof setupWidth === 'undefined' ||
-      typeof setupHeight === 'undefined';
-
-    [setupWidth, setupHeight] = isInitialize
-      ? [p.width, p.height]
-      : [setupWidth, setupHeight];
-
-    const sizeRatio = 1;
-    const windowWidth = p.windowWidth * sizeRatio;
-    const windowHeight = p.windowHeight * sizeRatio;
-
-    if (isFullSize) {
-      w = windowWidth;
-      h = windowHeight;
-    } else {
-      const widthRatio =
-        windowWidth < setupWidth ? windowWidth / setupWidth : 1;
-      const heightRatio =
-        windowHeight < setupHeight ? windowHeight / setupHeight : 1;
-
-      setupRatio = Math.min(widthRatio, heightRatio);
-      w = setupWidth * setupRatio;
-      h = setupHeight * setupRatio;
-    }
-    p.resizeCanvas(w, h);
-  }
-};
-
-
-new p5(sketch);
-//window._p5Instance = new p5(sketch);
+});
