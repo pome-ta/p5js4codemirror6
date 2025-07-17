@@ -17,8 +17,10 @@ const sketch = (p) => {
       s.stop();
       s.disconnect();
     });
+    p.userStartAudio();
   
     // put setup code here
+    
     windowFlexSize(true);
     p.colorMode(p.HSB, 1.0, 1.0, 1.0, 1.0);
     bgColor = p.color(0, 0, 64 / 255);
