@@ -1,7 +1,7 @@
-const title = 'ちゃっぴーの808';
+const title = 'spectrum 調整';
 
 
-class PointerEventMapper {
+class EventWrapper {
   constructor() {
     [this.click, this.start, this.move, this.end, this.isTouch] =
       /iPhone|iPad|iPod|Android/.test(navigator.userAgent)
@@ -10,7 +10,7 @@ class PointerEventMapper {
   }
 }
 
-const pointerEvents = new PointerEventMapper();
+const eventWrap = new EventWrapper();
 
 
 const sketch = (p) => {
@@ -19,11 +19,13 @@ const sketch = (p) => {
 
   let bgColor;
   let toneOsc;
-  let env;
-  
-  let sFrq = 150;
-  let eFrq = 60;
-  
+  const frq = 440;
+  const toneTypes = [
+    'sine', 'triangle', 'sawtooth', 'square',
+    'square', 'sawtooth', 'triangle', 'sine',
+  ];
+  let currentTypeIndex = 0;
+  let xQuarterSize = 0;
 
   let fft;
 
@@ -89,27 +91,24 @@ const sketch = (p) => {
       s.stop();
       s.disconnect();
     });
+
     p.userStartAudio();
-    
-    p.canvas.addEventListener(pointerEvents.move, (e) => e.preventDefault(), {
+    p.canvas.addEventListener(eventWrap.move, (e) => e.preventDefault(), {
       passive: false,
     });
 
     // put setup code here
     windowFlexSize(true);
-    p.colorMode(p.HSB, 1.0, 1.0, 1.0, 1.0);
+    //p.colorMode(p.HSB, 1.0, 1.0, 1.0, 1.0);
+    p.colorMode(p.HSB, toneTypes.length, 1.0, 1.0, 1.0);
     bgColor = p.color(0, 0, 64 / 255);
     p.background(bgColor);
 
-    
-    env = new p5.Envelope(0.001, 0.1, 0, 0.2);
-    env.setRange(1, 0);
-    
-    toneOsc = new p5.Oscillator(sFrq, 'sine');
-    toneOsc.amp(env);
-    
-    
-    
+    toneOsc = new p5.Oscillator(frq, toneTypes[currentTypeIndex]);
+    //toneOsc = new p5.SinOsc();
+    //toneOsc = new p5.TriOsc();
+    //toneOsc = new p5.SawOsc();
+    //toneOsc = new p5.SqrOsc();
 
     fft = new p5.FFT();
     p.textAlign(p.CENTER, p.CENTER);
@@ -123,8 +122,13 @@ const sketch = (p) => {
 
   p.draw = () => {
     // put drawing code here
-    p.background(bgColor);
-    
+    //p.background(bgColor);
+    if (touchX !== null || touchY !== null) {
+      p.background(p.color(currentTypeIndex, 0.32, 64 / 255));
+      
+    } else {
+      p.background(bgColor);
+    }
     
 
     let spectrum = fft.analyze();
@@ -152,34 +156,26 @@ const sketch = (p) => {
     p.fill(0.0, 0.0, 0.8);
     
 
-    /*
     if (touchX !== null || touchY !== null) {
       p.text(`${toneTypes[currentTypeIndex]}\n${toneOsc.f}`, p.width / 2, p.height / 2);
       ts.update();
     } else {
       p.text(`${'osc type'}\n${'frequency'}`, p.width / 2, p.height / 2);
     }
-    */
     
   };
 
   p.touchStarted = (e) => {
     getTouchXY();
-    
-    toneOsc.amp(0);
+    chooseSetType(touchX);
+    toneOsc.freq(frqRatio(touchX));
+    toneOsc.amp(valueRatio(touchY));
     toneOsc.start();
-    toneOsc.freq(eFrq, 0.15);
-    env.play(toneOsc, 0, 0.01);
-
-    toneOsc.stop(0.5);      
-    
-    
 
     ts.tapStarted(touchX, touchY);
 
   };
 
-  /*
   p.touchMoved = (e) => {
     getTouchXY();
     chooseSetType(touchX);
@@ -188,15 +184,12 @@ const sketch = (p) => {
 
     ts.taphMoved(touchX, touchY);
   };
-  */
 
   p.touchEnded = (e) => {
     touchX = null;
     touchY = null;
-    /*
     toneOsc.amp(0, delayTime);
     toneOsc.stop(delayTime + 0.05);
-    */
 
     ts.tapEnded();
 
@@ -208,7 +201,7 @@ const sketch = (p) => {
   };
 
   function getTouchXY() {
-    if (pointerEvents.isTouch) {
+    if (eventWrap.isTouch) {
       for (let touch of p.touches) {
         touchX = 0 <= touch.x && touch.x <= p.width ? touch.x : null;
         touchY = 0 <= touch.y && touch.y <= p.height ? touch.y : null;
@@ -266,6 +259,7 @@ const sketch = (p) => {
       w = setupWidth * setupRatio;
       h = setupHeight * setupRatio;
     }
+    xQuarterSize = w / toneTypes.length;
     p.resizeCanvas(w, h);
   }
 };
@@ -273,3 +267,4 @@ const sketch = (p) => {
 
 new p5(sketch);
 //window._p5Instance = new p5(sketch);
+
