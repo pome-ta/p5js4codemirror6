@@ -152,9 +152,11 @@ const chalky = '#e5c07b',
   highlightBackground = '#282c3480', // 元は、`darkBackground` の色
   background = '#282c3400',
   tooltipBackground = '#353a42',
-  selection = '#528bff80',
+  //selection = '#528bff80',
+  selection = '#ff00ff',
   // cursor = '#528bff';
-  cursor = '#fff';
+  //cursor = '#fff';
+  cursor = '#f0f';
 
 const transparentTheme = EditorView.theme(
   {

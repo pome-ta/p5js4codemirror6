@@ -1,4 +1,4 @@
-const title = 'tap mark';
+const title = 'tap selct osc';
 
 
 class EventWrapper {
@@ -18,13 +18,17 @@ const sketch = (p) => {
   let setupWidth, setupHeight, setupRatio;
 
   let bgColor;
-  let sinOsc;
   let toneOsc;
+  const frq = 440;
+  const toneTypes = [
+    //'sine', 'triangle', 'sawtooth', 'square',
+    'square', 'sawtooth', 'triangle', 'sine',
+  ];
+  let currentTypeIndex = 0;
+  let xQuarterSize = 0;
 
   let fft;
 
-  const frq = 440;
-  let gainValue;
   let touchX = null;
   let touchY = null;
   const delayTime = 0.2;
@@ -91,17 +95,15 @@ const sketch = (p) => {
 
     // put setup code here
     windowFlexSize(true);
-    p.colorMode(p.HSB, 1.0, 1.0, 1.0, 1.0);
+    p.colorMode(p.HSB, toneTypes.length, 1.0, 1.0, 1.0);
     bgColor = p.color(0, 0, 64 / 255);
     p.background(bgColor);
 
-    //sinOsc = new p5.SinOsc();
-    toneOsc = new p5.SinOsc();
+    toneOsc = new p5.Oscillator(frq, toneTypes[currentTypeIndex]);
+    //toneOsc = new p5.SinOsc();
     //toneOsc = new p5.TriOsc();
     //toneOsc = new p5.SawOsc();
     //toneOsc = new p5.SqrOsc();
-
-    gainValue = toneOsc.output.gain.value;
 
     fft = new p5.FFT();
     p.textAlign(p.CENTER, p.CENTER);
@@ -113,7 +115,15 @@ const sketch = (p) => {
 
   p.draw = () => {
     // put drawing code here
-    p.background(bgColor);
+    //p.background(bgColor);
+    //p.background(p.color(currentTypeIndex, 0.5, 64 / 255));
+    if (touchX !== null || touchY !== null) {
+      p.background(p.color(currentTypeIndex, 0.32, 64 / 255));
+      
+    } else {
+      p.background(bgColor);
+    }
+    
 
     let spectrum = fft.analyze();
     p.noStroke();
@@ -139,14 +149,17 @@ const sketch = (p) => {
     p.fill(0.0, 0.0, 0.8);
 
     if (touchX !== null || touchY !== null) {
-      p.text(`${toneOsc.f}`, p.width / 2, p.height / 2);
+      p.text(`${toneTypes[currentTypeIndex]}\n${toneOsc.f}`, p.width / 2, p.height / 2);
       ts.update();
+    } else {
+      p.text(`${'osc type'}\n${'frequency'}`, p.width / 2, p.height / 2);
     }
-
+    
   };
 
   p.touchStarted = (e) => {
     getTouchXY();
+    chooseSetType(touchX);
     toneOsc.freq(frqRatio(touchX));
     toneOsc.amp(valueRatio(touchY));
     toneOsc.start();
@@ -157,6 +170,7 @@ const sketch = (p) => {
 
   p.touchMoved = (e) => {
     getTouchXY();
+    chooseSetType(touchX);
     toneOsc.freq(frqRatio(touchX));
     toneOsc.amp(valueRatio(touchY));
 
@@ -189,6 +203,17 @@ const sketch = (p) => {
       touchY = p.mouseIsPressed && 0 <= p.mouseY && p.mouseY <= p.height ? p.mouseY : null;
     }
   }
+  
+  function chooseSetType(x) {
+    const typeIndex = Math.floor(x / xQuarterSize);
+    if (currentTypeIndex === typeIndex) {
+      return;
+    }
+    //console.log(`${currentTypeIndex}`)
+    currentTypeIndex = typeIndex;
+    toneOsc.setType(toneTypes[currentTypeIndex]);
+  }
+  
 
   function frqRatio(f) {
     const fr = (f / (p.width / 2)) * frq;
@@ -226,6 +251,7 @@ const sketch = (p) => {
       w = setupWidth * setupRatio;
       h = setupHeight * setupRatio;
     }
+    xQuarterSize = w / toneTypes.length;
     p.resizeCanvas(w, h);
   }
 };
