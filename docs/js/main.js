@@ -1,7 +1,7 @@
 import DomFactory from './utils/domFactory.js';
 import createEditorView from './editor/index.js';
 
-import {EditorSelection} from './editor/codemirror/state.js';
+import { EditorSelection } from './editor/codemirror/state.js';
 import {
   cursorCharLeft,
   cursorCharRight,
@@ -16,7 +16,6 @@ import {
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
-
 /* --- load Source */
 async function insertFetchDoc(filePath) {
   const fetchFilePath = async (path) => {
@@ -26,12 +25,10 @@ async function insertFetchDoc(filePath) {
   return await fetchFilePath(filePath);
 }
 
-
 const mainSketch = './js/sketchBooks/mainSketch.js';
 const devSketch = './js/sketchBooks/devSketch.js';
 const codeFilePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
 // const codeFilePath = 1 ? devSketch : mainSketch;
-
 
 /* --- editor(View) */
 const editorDiv = DomFactory.create('div', {
@@ -371,6 +368,9 @@ const footerHandleEvent = function () {
     footer.style.display = 'none';
     return;
   }
+  if (!IS_TOUCH_DEVICE) {
+    return;
+  }
   footer.style.display = '';
 
   const offsetTop = window.visualViewport.offsetTop;
@@ -385,7 +385,6 @@ const footerHandleEvent = function () {
     document.documentElement.clientHeight;
   //footer.style.bottom = `${offsetBottom}px`;
   footer.style.transform = `translateY(${tOffsetTop}px)`;
-
 };
 
 /* --- accessory-footer */
@@ -475,8 +474,8 @@ const footer = DomFactory.create('footer', {
             moveCache < headLine
               ? headLine
               : moveCache >= endLine
-                ? endLine
-                : moveCache;
+              ? endLine
+              : moveCache;
 
           this.targetEditor.dispatch({
             selection: EditorSelection.create([
@@ -501,18 +500,15 @@ const setLayout = () => {
       'grid-template-rows': 'auto 1fr auto',
       height: '100%',
       overflow: 'auto',
-
     },
     appendChildren: [header, editorDiv],
   });
-
 
   if (IS_TOUCH_DEVICE) {
     rootMain.appendChild(footer);
   }
   document.body.appendChild(sandbox);
   document.body.appendChild(rootMain);
-
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -520,10 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
     editor.dispatch({
-      changes: {from: editor.state?.doc.length, insert: loadedSource},
+      changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
-
   });
-
 });
-
