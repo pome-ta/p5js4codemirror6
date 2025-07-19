@@ -77,6 +77,7 @@ class TapMarkScreen {
 
 
     this.#setUseHooks();
+    console.log(this.#pg)
   }
 
   #showMark = () => {
@@ -94,8 +95,11 @@ class TapMarkScreen {
     // this.#pg.remove();
     // this.#pg.remove();
     // this.#pg.clear();
+    //console.log(this.#pg)
 
-    this.#pg.clear();
+    //this.#pg.remove();
+    //this.#pg.background(1.0, 1.0, 1.0, 1.0);
+    //this.#pg.background(1.0, 1.0, 1.0, 0.0);
     if (!this.onTap) {
       return;
     }
@@ -109,7 +113,7 @@ class TapMarkScreen {
     this.onTap = true;
 
     this.#pointerEvent.updateXY();
-    this.#pg.clear();
+    //this.#pg.clear();
     // this.#drawHook();
 
   };
@@ -118,7 +122,7 @@ class TapMarkScreen {
     // console.log(e);
     // console.log('touchMovedHook');
     this.#pointerEvent.updateXY();
-    this.#pg.clear();
+    //this.#pg.clear();
     // this.#drawHook();
 
   };
@@ -129,7 +133,7 @@ class TapMarkScreen {
     this.onTap = false;
 
     this.#pointerEvent.updateXY();
-    this.#pg.clear();
+    //this.#pg.clear();
     // this.#showMark();
 
   };
@@ -144,7 +148,7 @@ class TapMarkScreen {
     const originalFunction = instance.#p.draw;
 
     instance.#p.draw = function (...args) {
-      instance.#pg.clear();
+      //instance.#pg.clear();
       const result = originalFunction.apply(this, args);
       instance.#drawHook();
       return result;
@@ -208,16 +212,18 @@ const sketch = (p) => {
     p.frameRate(10);
 
     p.createCanvas(w, h);
+    
     p.colorMode(p.HSL, v, 1, 1);
     p.background(p.frameCount % v, 1, 0.25);
+    
 
 
     tapMark.setup();
   };
   p.draw = () => {
     // put drawing code here
-    // p.background(p.frameCount % v, 1, 0.25);
-    // console.log('draw');
+    p.background(p.frameCount % v, 1, 0.25);
+    //console.log('draw');
   };
 
   p.touchStarted = (e) => {
