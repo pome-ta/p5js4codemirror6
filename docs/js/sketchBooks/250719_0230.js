@@ -44,58 +44,64 @@ class PointerEventMapper {
 
 
 
-class TapMarkScreen {
+class TapMarkOnScreen {
 
   #p;
   #pg;
+  #markSize;
+  #markCenter
+  
+  baseColrHSB = [0.0, 0.0, 1.0];
 
-  constructor(mainInstance) {
-    console.log(0)
+  constructor(mainInstance, markSize=48) {
     this.#p = mainInstance;
     this.#pg = null;
-    this.onTap = false;
-    
-    this.#useDraw();
-    
-    console.log(1)
+    this.#markSize = markSize
+    this.#markCenter = markSize * 0.5;
+    this.x = null;
+    this.y = null;
   }
-  
+
+  draw() {
+    
+    if (this.#pg === null || this.x === null || this.y === null) {
+      return;
+    }
+    //this.#p.image(this.#pg, this.x - this.#markCenter, this.y - this.#markCenter);
+    
+  }
+
   setup() {
-    console.log('TapMarkScreen')
-    this.#pg = this.#p.createGraphics(this.#p.width, this.#p.height);
     
-    this.#p.image(this.#pg, 0, 0);
-    console.log(this.#p)
-    //this.#useTouchStarted();
-  }
-  
+    this.#pg = this.#pg ?? this.#p.createGraphics(this.#markSize, this.#markSize);
+    console.log(this.#pg)
 
-  
-  
-  #useDraw() {
-    console.log('useDraw')
-    const originalFunction = this.#p.draw
-    this.#p.draw = function(...args) {
-      const result = originalFunction.apply(this, args);
-      console.log('後から追加した処理');
-      return result; // 必要なら元の戻り値を返す
-    }
-  }
-  
-  #useTouchStarted() {
-    const originalFunction = this.#p.touchStarted
-    console.log(this.#p)
-    this.#p.touchStarted = function(...args) {
-      const result = originalFunction.apply(this, args);
-      console.log('touchStarted');
-      return result; // 必要なら元の戻り値を返す
-    }
+    this.#pg.colorMode(this.#pg.HSB, 1.0, 1.0, 1.0, 1.0);
+    const pgColor = this.#pg.color(...this.baseColrHSB);
+    pgColor.setAlpha(0.5);
+    this.#pg.fill(pgColor);
+
+    this.#pg.noStroke();
+    this.#pg.circle(this.#markCenter, this.#markCenter, this.#markSize);
+    this.#p.image(this.#pg, this.x - this.#markCenter, this.y - this.#markCenter);
   }
 
-  
-  
+  started(x, y) {
+    this.setup();
+    this.x = x;
+    this.y = y;
 
-  
+  }
+
+  moved(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+
+  ended() {
+    this.#pg?.remove();
+    this.#pg = null;
+  }
 };
 
 
@@ -106,12 +112,11 @@ const sketch = (p) => {
   let h = p.windowHeight
   
   const pointerEvents = new PointerEventMapper(p);
-  const tapMark = new TapMarkScreen(p);
+  const tapMark = new TapMarkOnScreen(p);
   
-  
+  let b= 0;
   
   p.setup = () => {
-    console.log('setup')
     // put setup code here
     p.canvas.addEventListener(pointerEvents.move, (e) => e.preventDefault(), {
       passive: false,
@@ -122,18 +127,40 @@ const sketch = (p) => {
     p.colorMode(p.RGB, 1);
     p.background(0.5);
     
-    
-    tapMark.setup();
-    
   }
   p.draw = () => {
     // put drawing code here
-    //console.log('draw')
     //p.background(p.random());
+    tapMark.draw();
     
   }
   
+  
   p.touchStarted = (e) => {
+    if (b) {
+      return
+    }
+    b = 1
+    pointerEvents.updateXY();
+    tapMark.started(pointerEvents.x, pointerEvents.y);
+
+  };
+
+  p.touchMoved = (e) => {
+    if (b) {
+      return
+    }
+    pointerEvents.updateXY();
+    tapMark.moved(pointerEvents.x, pointerEvents.y);
+  };
+
+  p.touchEnded = (e) => {
+    if (b) {
+      return
+    }
+    pointerEvents.updateXY();
+    tapMark.ended();
+
   };
   
   p.windowResized = (event) => {
