@@ -20,7 +20,7 @@ class PointerTracker {
   }
 
   #touchUpdate() {
-    // xxx: 最初の指だけなら`[0]`、マルチなら座標並列
+    // xxx: 最初の指だけなら`[0]`、マルチなら座標並列
     for (let touch of this.#p.touches) {
       this.x = 0 <= touch.x && touch.x <= this.#p.width ? touch.x : null;
       this.y = 0 <= touch.y && touch.y <= this.#p.height ? touch.y : null;
@@ -108,7 +108,7 @@ class TapIndicator {
   };
   #touchEndedHook = (e) => {
     this.isTapped = false;
-    // xxx: `ended` 判定で`null` が取れるが必要か？
+    // xxx: `ended` 判定で`null` が取れるが必要か?
     this.#pointerTracker.updateXY();
   };
 
@@ -214,3 +214,4 @@ const sketch = (p) => {
 };
 
 new p5(sketch);
+
