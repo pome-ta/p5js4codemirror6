@@ -27,8 +27,8 @@ async function insertFetchDoc(filePath) {
 
 const mainSketch = './js/sketchBooks/mainSketch.js';
 const devSketch = './js/sketchBooks/devSketch.js';
-const codeFilePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
-// const codeFilePath = 1 ? devSketch : mainSketch;
+// const codeFilePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
+const codeFilePath = 1 ? devSketch : mainSketch;
 
 /* --- editor(View) */
 const editorDiv = DomFactory.create('div', {
