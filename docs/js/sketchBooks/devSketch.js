@@ -49,7 +49,7 @@ class TapMarkScreen {
   #markSize;
   #pgColor;
 
-  baseColorHSB = [0.0, 0.0, 1.0];
+  baseColorHSB = [0.5, 0.7, 0.6];
 
 
   constructor(mainInstance, markSize = 48) {
@@ -71,19 +71,18 @@ class TapMarkScreen {
     this.#pg.noStroke();
 
     this.#pg.ellipseMode(this.#pg.CENTER);
+    this.#pg.rectMode(this.#pg.RADIUS);
+
 
     // this.#p.image(this.#pg, 0, 0);
     this.onTap = false;
-
-
     this.#setUseHooks();
-    console.log(this.#pg)
   }
 
   #showMark = () => {
-
-    // this.#pg.clear();
+    // this.#pg.erase();
     this.#pg.circle(this.#pointerEvent.x, this.#pointerEvent.y, this.#markSize);
+    // this.#pg.noErase();
     this.#p.image(this.#pg, 0, 0);
 
   };
@@ -94,15 +93,25 @@ class TapMarkScreen {
     // console.log(this.#pg)
     // this.#pg.remove();
     // this.#pg.remove();
-    // this.#pg.clear();
+    this.#pg.clear();
+    this.#pg.reset();
     //console.log(this.#pg)
 
     //this.#pg.remove();
     //this.#pg.background(1.0, 1.0, 1.0, 1.0);
     //this.#pg.background(1.0, 1.0, 1.0, 0.0);
+    // console.log(this.#pg.canvas)
+    // this.#p.image(this.#fb, 0, 0);
+    this.#pg.erase(255,255);
+    this.#pg.rect(this.#p.width/2, this.#p.height/2, this.#p.width/2, this.#p.height/2);
+    this.#pg.noErase();
+
+
     if (!this.onTap) {
       return;
     }
+    // this.#pg.clear();
+    // this.#pg = this.#p.createGraphics(this.#p.width, this.#p.height);
     // console.log('d');
     this.#showMark();
 
@@ -212,18 +221,18 @@ const sketch = (p) => {
     p.frameRate(10);
 
     p.createCanvas(w, h);
-    
+
     p.colorMode(p.HSL, v, 1, 1);
-    p.background(p.frameCount % v, 1, 0.25);
-    
+    // p.background(p.frameCount % v, 1, 0.25);
+
 
 
     tapMark.setup();
   };
   p.draw = () => {
     // put drawing code here
-    p.background(p.frameCount % v, 1, 0.25);
-    //console.log('draw');
+    // p.background(p.frameCount % v, 1, 0.25);
+    // console.log('draw');
   };
 
   p.touchStarted = (e) => {
