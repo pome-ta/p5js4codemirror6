@@ -27,6 +27,7 @@ async function insertFetchDoc(filePath) {
 
 const mainSketch = './js/sketchBooks/mainSketch.js';
 const devSketch = './js/sketchBooks/devSketch.js';
+console.log(location)
 // const codeFilePath = `${location.protocol}` === 'file:' ? devSketch : mainSketch;
 const codeFilePath = 1 ? devSketch : mainSketch;
 
