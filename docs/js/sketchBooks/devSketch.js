@@ -187,13 +187,12 @@ const sketch = (p) => {
 
   const pointerTracker = new PointerTracker(p);
   const tapIndicator = new TapIndicator(p);
-  
-  
-  
+
+
   let osc;
   let lfo;
-  let actx;
-  
+  let fft;
+
   const baseFreq = 440;
   const depth = 100;
   const lfoFreq = 0.5; // 0.5Hz = 2秒周期
@@ -208,38 +207,78 @@ const sketch = (p) => {
     p.createCanvas(w, h);
     p.colorMode(p.HSL, v, 1, 1);
     p.background(p.frameCount % v, 1, 0.25);
-    
+
     // sound
     osc = new p5.Oscillator(baseFreq, 'sine');
     osc.amp(0.4);
     osc.start();
-    
-    lfo = new p5.Oscillator(5, 'sine');
-    lfo.amp(150);
+
+    lfo = new p5.Oscillator(0.5, 'sine');
+    lfo.amp(360);
     lfo.start();
-    
+
     lfo.disconnect();
     lfo.connect(osc.freqNode);
-    
-    // todo: どれを格納するか要精査
-    window._cacheSounds = [osc, lfo, ];
-    
+
+    // todo: どれを格納するか要精査
+    window._cacheSounds = [osc, lfo,];
+    fft = new p5.FFT();
+
     // label
     p.textAlign(p.CENTER, p.CENTER);
     p.textSize(32);
-    
+
     tapIndicator.setup();
-    
+
   };
 
   p.draw = () => {
     // put drawing code here
+
+    let spectrum = fft.analyze();
+
     p.background(p.frameCount % v, 1, 0.25);
     p.text(`${lfo.f}`, p.width / 2, p.height / 2);
+
+    if (p.frameCount < 5) {
+      // console.log(osc);
+      // console.log(lfo);
+//       console.log(spectrum);
+//       let bins = spectrum.length;
+//
+//
+// // サンプリング周波数
+//       let sampleRate = p.getAudioContext().sampleRate; // 通常 44100Hz
+//
+// // 各インデックスに対応する周波数を計算
+//       for (let i = 0; i < bins; i++) {
+//         let freq = i * (sampleRate / 2) / bins;
+//         console.log(`Bin ${i}: ${freq.toFixed(1)} Hz → 強度 ${spectrum[i]}`);
+//       }
+
+      let nyquist = p.sampleRate() / 2;
+      let binWidth = nyquist / spectrum.length;
+
+      let sumEnergy = 0;
+      let weightedSum = 0;
+
+      for (let i = 0; i < spectrum.length; i++) {
+        let freq = i * binWidth;
+        let energy = spectrum[i];
+        sumEnergy += energy;
+        weightedSum += freq * energy;
+      }
+
+      let centroid = sumEnergy > 0 ? weightedSum / sumEnergy : 0;
+      console.log(centroid);
+
+
+    }
+
+
   };
-  
-  
-  
+
+
   function soundReset() {
     window._cacheSounds?.forEach((s) => {
       s.stop();
