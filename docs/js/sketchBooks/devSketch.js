@@ -191,9 +191,10 @@ const sketch = (p) => {
   
   
   let osc;
+  let lfo;
   let actx;
   
-  const baseFreq = 200;
+  const baseFreq = 440;
   const depth = 100;
   const lfoFreq = 0.5; // 0.5Hz = 2秒周期
 
@@ -208,24 +209,33 @@ const sketch = (p) => {
     p.colorMode(p.HSL, v, 1, 1);
     p.background(p.frameCount % v, 1, 0.25);
     
-    actx = p.getAudioContext();
-    console.log(actx.currentTime)
-    
-    osc = new p5.Oscillator('sine');
+    // sound
+    osc = new p5.Oscillator(baseFreq, 'sine');
     osc.amp(0.4);
     osc.start();
     
+    lfo = new p5.Oscillator(5, 'sine');
+    lfo.amp(150);
+    lfo.start();
     
+    lfo.disconnect();
+    lfo.connect(osc.freqNode);
     
+    // todo: どれを格納するか要精査
+    window._cacheSounds = [osc, lfo, ];
     
-
+    // label
+    p.textAlign(p.CENTER, p.CENTER);
+    p.textSize(32);
+    
     tapIndicator.setup();
-    window._cacheSounds = [osc,];
+    
   };
 
   p.draw = () => {
     // put drawing code here
     p.background(p.frameCount % v, 1, 0.25);
+    p.text(`${lfo.f}`, p.width / 2, p.height / 2);
   };
   
   
@@ -235,7 +245,6 @@ const sketch = (p) => {
       s.stop();
       s.disconnect();
     });
-
     p.userStartAudio();
   }
 
