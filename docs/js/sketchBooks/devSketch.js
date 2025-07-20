@@ -187,9 +187,18 @@ const sketch = (p) => {
 
   const pointerTracker = new PointerTracker(p);
   const tapIndicator = new TapIndicator(p);
+  
+  
+  
+  let osc;
+  
+  const baseFreq = 200;
+  const depth = 100;
+  const lfoFreq = 0.5; // 0.5Hz = 2秒周期
 
   p.setup = () => {
     // put setup code here
+    soundReset();
     p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
       passive: false,
     });
@@ -197,14 +206,55 @@ const sketch = (p) => {
     p.createCanvas(w, h);
     p.colorMode(p.HSL, v, 1, 1);
     p.background(p.frameCount % v, 1, 0.25);
+    
+    osc = new p5.Oscillator('sine');
+    osc.amp(0.4);
+    osc.start();
+    
+    scheduleLFO();
+    
 
     tapIndicator.setup();
+    window._cacheSounds = [osc,];
   };
 
   p.draw = () => {
     // put drawing code here
     p.background(p.frameCount % v, 1, 0.25);
   };
+  
+  
+  function scheduleLFO() {
+    const ac = p.getAudioContext();
+    const now = ac.currentTime;
+
+    const lfoPeriod = 1 / lfoFreq;
+
+    for (let i = 0; i < 5; i++) {
+      const t1 = now + i * lfoPeriod;
+      const t2 = t1 + lfoPeriod / 2;
+
+      const f1 = baseFreq + depth;
+      const f2 = baseFreq - depth;
+
+      osc.freq(f1, 0, t1); // すぐ変更
+      osc.freq().linearRampToValueAtTime(f2, t2); // 半周期後に滑らかに下げる
+    }
+
+    // ループ的に続けたい場合は setTimeout で再帰
+    setTimeout(scheduleLFO, 5000); // 5周期分だけ先に予約して、また呼ぶ
+  }
+
+  
+  
+  function soundReset() {
+    window._cacheSounds?.forEach((s) => {
+      s.stop();
+      s.disconnect();
+    });
+
+    p.userStartAudio();
+  }
 
   p.windowResized = (e) => {
     w = p.windowWidth;
