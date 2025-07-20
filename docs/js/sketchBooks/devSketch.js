@@ -191,6 +191,7 @@ const sketch = (p) => {
   
   
   let osc;
+  let actx;
   
   const baseFreq = 200;
   const depth = 100;
@@ -207,11 +208,15 @@ const sketch = (p) => {
     p.colorMode(p.HSL, v, 1, 1);
     p.background(p.frameCount % v, 1, 0.25);
     
+    actx = p.getAudioContext();
+    console.log(actx.currentTime)
+    
     osc = new p5.Oscillator('sine');
     osc.amp(0.4);
     osc.start();
     
-    scheduleLFO();
+    
+    
     
 
     tapIndicator.setup();
@@ -223,28 +228,6 @@ const sketch = (p) => {
     p.background(p.frameCount % v, 1, 0.25);
   };
   
-  
-  function scheduleLFO() {
-    const ac = p.getAudioContext();
-    const now = ac.currentTime;
-
-    const lfoPeriod = 1 / lfoFreq;
-
-    for (let i = 0; i < 5; i++) {
-      const t1 = now + i * lfoPeriod;
-      const t2 = t1 + lfoPeriod / 2;
-
-      const f1 = baseFreq + depth;
-      const f2 = baseFreq - depth;
-
-      osc.freq(f1, 0, t1); // すぐ変更
-      osc.freq().linearRampToValueAtTime(f2, t2); // 半周期後に滑らかに下げる
-    }
-
-    // ループ的に続けたい場合は setTimeout で再帰
-    setTimeout(scheduleLFO, 5000); // 5周期分だけ先に予約して、また呼ぶ
-  }
-
   
   
   function soundReset() {
