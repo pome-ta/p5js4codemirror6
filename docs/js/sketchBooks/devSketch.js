@@ -1,4 +1,4 @@
-//const title = 'TapIndicator';
+//const title = 'LFO';
 
 class PointerTracker {
   #p;
@@ -205,7 +205,8 @@ const sketch = (p) => {
 
     p.createCanvas(w, h);
     p.colorMode(p.HSL, v, 1, 1);
-    p.background(p.frameCount % v, 1, 0.25);
+    //p.background(p.frameCount % v, 1, 0.25);
+    p.background(0, 0, 0.25);
     p.frameRate(23);
 
     // sound
@@ -213,8 +214,8 @@ const sketch = (p) => {
     osc.amp(0.4);
     osc.start();
 
-    lfo = new p5.Oscillator(0.1, 'sine'); // 速さ
-    lfo.amp(700); // 幅
+    lfo = new p5.Oscillator(0.5, 'sine'); // 速さ
+    lfo.amp(120); // 幅
     lfo.start();
 
     lfo.disconnect();
@@ -237,7 +238,8 @@ const sketch = (p) => {
     let spectrum = fft.analyze();
     const centroid = calcSpectralCentroid(spectrum);
 
-    p.background(p.frameCount % v, 1, 0.25);
+    //p.background(p.frameCount % v, 1, 0.25);
+    p.background(0, 0, 0.25);
     p.fill(0.0, 0.0, 0.8);
     p.text(`${centroid.toFixed(2)}`, p.width / 2, p.height / 2);
   };
