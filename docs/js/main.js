@@ -1,7 +1,7 @@
 import DomFactory from './utils/domFactory.js';
 import createEditorView from './editor/index.js';
 
-import {EditorSelection} from './editor/codemirror/state.js';
+import { EditorSelection } from './editor/codemirror/state.js';
 import {
   cursorCharLeft,
   cursorCharRight,
@@ -27,7 +27,13 @@ async function insertFetchDoc(filePath) {
 
 const mainSketch = './js/sketchBooks/mainSketch.js';
 const devSketch = './js/sketchBooks/devSketch.js';
-const codeFilePath = `${location.protocol}` === 'file:' || `${location.hostname}` === 'localhost' ? devSketch : mainSketch;
+
+const codeFilePath =
+  `${location.protocol}` === 'file:' ||
+  `${location.protocol}` === 'http:' ||
+  `${location.hostname}` === 'localhost'
+    ? devSketch
+    : mainSketch;
 // const codeFilePath = 1 ? devSketch : mainSketch;
 
 /* --- editor(View) */
@@ -474,8 +480,8 @@ const footer = DomFactory.create('footer', {
             moveCache < headLine
               ? headLine
               : moveCache >= endLine
-                ? endLine
-                : moveCache;
+              ? endLine
+              : moveCache;
 
           this.targetEditor.dispatch({
             selection: EditorSelection.create([
@@ -516,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
     editor.dispatch({
-      changes: {from: editor.state?.doc.length, insert: loadedSource},
+      changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
   });
 });

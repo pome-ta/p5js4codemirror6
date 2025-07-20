@@ -83,7 +83,11 @@ class TapIndicator {
   };
 
   #showMark = () => {
-    this.#pg.circle(this.#pointerTracker.x, this.#pointerTracker.y, this.#markSize);
+    this.#pg.circle(
+      this.#pointerTracker.x,
+      this.#pointerTracker.y,
+      this.#markSize
+    );
     this.#p.image(this.#pg, 0, 0);
   };
 
@@ -135,8 +139,7 @@ class TapIndicator {
     // touchStarted
     const touchStartedFunction =
       instance.#p.touchStarted === void 0
-        ? (e) => {
-        }
+        ? (e) => {}
         : instance.#p.touchStarted;
     instance.#p.touchStarted = function (...args) {
       const result = touchStartedFunction.apply(this, args);
@@ -146,8 +149,7 @@ class TapIndicator {
 
     // touchMoved
     const touchMovedFunction =
-      instance.#p.touchMoved === void 0 ? (e) => {
-      } : instance.#p.touchMoved;
+      instance.#p.touchMoved === void 0 ? (e) => {} : instance.#p.touchMoved;
     instance.#p.touchMoved = function (...args) {
       const result = touchMovedFunction.apply(this, args);
       instance.#touchMovedHook(args);
@@ -156,8 +158,7 @@ class TapIndicator {
 
     // touchEnded
     const touchEndedFunction =
-      instance.#p.touchEnded === void 0 ? (e) => {
-      } : instance.#p.touchEnded;
+      instance.#p.touchEnded === void 0 ? (e) => {} : instance.#p.touchEnded;
     instance.#p.touchEnded = function (...args) {
       const result = touchEndedFunction.apply(this, args);
       instance.#touchEndedHook(args);
@@ -169,8 +170,7 @@ class TapIndicator {
     const instance = this;
     const originalFunction =
       instance.#p.windowResized === void 0
-        ? (e) => {
-        }
+        ? (e) => {}
         : instance.#p.windowResized;
     instance.#p.windowResized = function (...args) {
       const result = originalFunction.apply(this, args);
@@ -188,14 +188,13 @@ const sketch = (p) => {
   const pointerTracker = new PointerTracker(p);
   const tapIndicator = new TapIndicator(p);
 
-
   let osc;
   let lfo;
   let fft;
 
   const baseFreq = 440;
-  const depth = 100;
-  const lfoFreq = 0.5; // 0.5Hz = 2秒周期
+
+  const sampleRate = p.sampleRate();
 
   p.setup = () => {
     // put setup code here
@@ -207,21 +206,22 @@ const sketch = (p) => {
     p.createCanvas(w, h);
     p.colorMode(p.HSL, v, 1, 1);
     p.background(p.frameCount % v, 1, 0.25);
+    p.frameRate(23);
 
     // sound
     osc = new p5.Oscillator(baseFreq, 'sine');
     osc.amp(0.4);
     osc.start();
 
-    lfo = new p5.Oscillator(0.5, 'sine');
-    lfo.amp(360);
+    lfo = new p5.Oscillator(0.1, 'sine'); // 速さ
+    lfo.amp(700); // 幅
     lfo.start();
 
     lfo.disconnect();
     lfo.connect(osc.freqNode);
 
     // todo: どれを格納するか要精査
-    window._cacheSounds = [osc, lfo,];
+    window._cacheSounds = [osc, lfo];
     fft = new p5.FFT();
 
     // label
@@ -229,55 +229,33 @@ const sketch = (p) => {
     p.textSize(32);
 
     tapIndicator.setup();
-
   };
 
   p.draw = () => {
     // put drawing code here
 
     let spectrum = fft.analyze();
+    const centroid = calcSpectralCentroid(spectrum);
 
     p.background(p.frameCount % v, 1, 0.25);
-    p.text(`${lfo.f}`, p.width / 2, p.height / 2);
-
-    if (p.frameCount < 5) {
-      // console.log(osc);
-      // console.log(lfo);
-//       console.log(spectrum);
-//       let bins = spectrum.length;
-//
-//
-// // サンプリング周波数
-//       let sampleRate = p.getAudioContext().sampleRate; // 通常 44100Hz
-//
-// // 各インデックスに対応する周波数を計算
-//       for (let i = 0; i < bins; i++) {
-//         let freq = i * (sampleRate / 2) / bins;
-//         console.log(`Bin ${i}: ${freq.toFixed(1)} Hz → 強度 ${spectrum[i]}`);
-//       }
-
-      let nyquist = p.sampleRate() / 2;
-      let binWidth = nyquist / spectrum.length;
-
-      let sumEnergy = 0;
-      let weightedSum = 0;
-
-      for (let i = 0; i < spectrum.length; i++) {
-        let freq = i * binWidth;
-        let energy = spectrum[i];
-        sumEnergy += energy;
-        weightedSum += freq * energy;
-      }
-
-      let centroid = sumEnergy > 0 ? weightedSum / sumEnergy : 0;
-      console.log(centroid);
-
-
-    }
-
-
+    p.fill(0.0, 0.0, 0.8);
+    p.text(`${centroid.toFixed(2)}`, p.width / 2, p.height / 2);
   };
 
+  function calcSpectralCentroid(spectrumArray) {
+    const binWidth = sampleRate / 2 / spectrumArray.length;
+
+    let sumEnergy = 0;
+    let weightedSum = 0;
+
+    spectrumArray.forEach((energy, idx) => {
+      const freq = idx * binWidth;
+      sumEnergy += energy;
+      weightedSum += freq * energy;
+    });
+
+    return sumEnergy > 0 ? weightedSum / sumEnergy : 0;
+  }
 
   function soundReset() {
     window._cacheSounds?.forEach((s) => {
