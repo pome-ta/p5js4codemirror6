@@ -11,8 +11,10 @@ const sketch = (p) => {
     // put setup code here
     soundReset();
     
+
     p.createCanvas(w, h);
     p.colorMode(p.HSL, 1, 1, 1);
+    //p.background(p.frameCount % v, 1, 0.25);
     p.background(0, 0, 0.25);
     
     // sound
@@ -24,6 +26,9 @@ const sketch = (p) => {
     osc.start();
     
     window._cacheSounds = [osc, ];
+    
+    //console.log(p.soundOut.output.gain)
+
     
   };
 
@@ -41,43 +46,31 @@ const sketch = (p) => {
   
 
   function soundReset() {
-    
-    
     let currentTime;
-    
-    
-    
+    const buf = 2;  // 30fps
     const actx = p.getAudioContext();
+    
+    //const output = p.soundOut.output;
+    //const defaultValue = output.gain.defaultValue
+    
     const gain = p.soundOut.output.gain;
     const defaultValue = gain.defaultValue;
     
-    const msBuf = 33;
-    //33  // 30fps
+    const setTime = actx.currentTime + buf;
+    gain.exponentialRampToValueAtTime(-1.0, setTime);
+    //gain.exponentialRampToValueAtTime(-1.0, actx.currentTime);
     
-    //const setTime = actx.currentTime + (msBuf / 1000);
-    const timeWait = (ms) => actx.currentTime + (ms / 1000);
-    gain.exponentialRampToValueAtTime(-1.0, timeWait(msBuf));
-    
-    const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-    
-    wait(msBuf).then(result => {
-      window._cacheSounds?.forEach((s) => {
-        s.stop();
-        s.disconnect();
-      });
-      
-      gain.value = defaultValue;
-    
+   
+    //console.log(gain)
+    window._cacheSounds?.forEach((s) => {
+      s.stop(buf);
+      s.disconnect();
     });
     
-    /*
-    wait(msBuf).then(result => {
-      gain.exponentialRampToValueAtTime(defaultValue, timeWait(msBuf));
-    
-    });
-    */
     
     
+    
+    gain.exponentialRampToValueAtTime(defaultValue, setTime + buf);
     
     
     p.userStartAudio();
