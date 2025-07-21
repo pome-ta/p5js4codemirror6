@@ -191,8 +191,8 @@ const header = DomFactory.create('header', {
     id: 'header',
   },
   setStyles: {
-    //background: `var(--accessory-backGround-color-scheme)`,
-    //'background-blend-mode': `var(--accessory-backGround-background-blend-mode)`,
+    background: `var(--accessory-backGround-color-scheme)`,
+    'background-blend-mode': `var(--accessory-backGround-background-blend-mode)`,
     //'backdrop-filter': `var(--accessory-backGround-backdrop-filter)`,
     position: 'sticky',
     width: '100%',
