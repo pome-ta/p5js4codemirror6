@@ -34,6 +34,7 @@ function runSketch(code) {
 window.addEventListener('message', (e) => {
   const sourceCode = e.data;
   runSketch(sourceCode);
+  
 });
 
 
