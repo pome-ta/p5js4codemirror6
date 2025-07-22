@@ -3,9 +3,10 @@ const sketch = (p) => {
   let h = p.windowHeight;
   
   let osc;
-  
   const baseFreq = 440;
-
+  
+  let fft;
+  
 
   p.setup = () => {
     // put setup code here
@@ -24,12 +25,28 @@ const sketch = (p) => {
     osc.start();
     
     window._cacheSounds = [osc, ];
-
     
+    fft = new p5.FFT();
   };
 
   p.draw = () => {
     // put drawing code here
+    p.background(0, 0, 0.25);
+    
+    const spectrum = fft.analyze();
+    //p.noFill();
+    p.beginShape();
+    // 今後break したい為
+    for (const [index, amplitude] of Object.entries(spectrum)) {
+      const x = p.map(Math.log10(index), 0, Math.log10(spectrum.length), 0, w);
+      const y = p.map(amplitude, 0, 255, h, 0);
+      p.vertex(x, y);
+    }
+    p.vertex(0, h);
+    
+    
+    
+    p.endShape();
 
     
   };
@@ -42,50 +59,17 @@ const sketch = (p) => {
   
 
   function soundReset() {
-    
     const actx = p.getAudioContext();
     const gain = p.soundOut.output.gain;
-    
     const defaultValue = gain.defaultValue;
-    
-    
-    const msBuf = 500;
-    //33  // 30fps
-    
-    const buf = 1;
-    const targetTime = actx.currentTime + buf;
-    
-    
-    
-
-    //gain.exponentialRampToValueAtTime(-1.0, targetTime);
-    
-    
-    while (1) {
-      console.log(targetTime)
-    console.log(actx.currentTime)
-    
-      if (actx.currentTime >= targetTime) {
-        break;
-      }
-      p.background(1, 0.5, 0.25);
-      console.log(actx.currentTime)
-    }
-    p.background(0, 0, 0.25);
-    
+    // todo: クリップノイズ対策
+    gain.value = -1;
     window._cacheSounds?.forEach((s) => {
       s.stop();
       s.disconnect();
     });
       
-      
     gain.value = defaultValue;
-      
-    
-    
-    
-    
-    
     p.userStartAudio();
   }
 
