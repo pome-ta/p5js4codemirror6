@@ -38,11 +38,11 @@ const sketch = (p) => {
     p.beginShape();
     // 今後break したい為
     for (const [index, amplitude] of Object.entries(spectrum)) {
-      const x = p.map(Math.log10(index), 0, Math.log10(spectrum.length), 0, w);
+      const x = p.map(Math.log10(index), 0, Math.log10(spectrum.length), 0, w, true);
       const y = p.map(amplitude, 0, 255, h, 0);
       p.vertex(x, y);
     }
-    p.vertex(0, h);
+    //p.vertex(0, h);
     
     
     
