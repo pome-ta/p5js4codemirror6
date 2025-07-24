@@ -12,7 +12,9 @@ class GridAndLabels {
     let w = this.#p.windowWidth;
     let h = this.#p.windowHeight;
     
-    const xLabel = [];
+    const xLabel = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
+    const yLabel = Array.from({ length: 13 }, (_, i) => -60 + i * 6);
+    
     
     this.#labelsLayer = this.#p.createGraphics(w * ratio, h*ratio);
     let lw = this.#labelsLayer.width;
@@ -21,18 +23,32 @@ class GridAndLabels {
     let lx = (w - lw) / 2;
     let ly = (h - lh) / 2;
     
+    
+    
     this.#gridLayer = this.#p.createGraphics(lw * ratio, lh*ratio);
     let gw = this.#gridLayer.width;
     let gh = this.#gridLayer.height;
     
+    
+    
+    
+    
+    
     let gx = (w - gw) / 2;
     let gy = (h - gh) / 2;
     
+    
+    this.#labelsLayer.fill(255);
+    xLabel.forEach((hz) => {
+      const x = this.#p.map(Math.log10(hz), Math.log10(xLabel[0]), Math.log10(xLabel.slice(-1)[0]), gx, gw);
+      console.log(x)
+      this.#labelsLayer.text(hz >= 1000 ? `${hz / 1000}k` : `${hz}`, x, lh - 45);
+    });
+    
+    
     const c = this.#p.color(0,0,0,0);
     
-    this.#labelsLayer.noFill();
-    this.#labelsLayer.stroke(255,0,255);
-    this.#labelsLayer.rect(0, 0, lw-1, lh-1);
+    
     
     this.#gridLayer.noFill();
     this.#gridLayer.stroke(0,255,255);
@@ -41,7 +57,7 @@ class GridAndLabels {
     //this.#labelsLayer.fill(c);
     
     
-    this.#labelsLayer.background(c);
+    //this.#labelsLayer.background(c);
     this.#gridLayer.background(c);
     
     this.lSize = [lx, ly];
@@ -126,8 +142,7 @@ const sketch = (p) => {
     p.endShape();
     
     
-    p.rect(0,0,w,h);
-    p.fill(1,1,1,0.01);
+    
     
   };
 
