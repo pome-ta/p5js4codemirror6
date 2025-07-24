@@ -25,7 +25,7 @@ class GridAndLabels {
     
     
     
-    this.#gridLayer = this.#p.createGraphics(lw * ratio, lh*ratio);
+    this.#gridLayer = this.#p.createGraphics(lw * ratio, lh * ratio);
     let gw = this.#gridLayer.width;
     let gh = this.#gridLayer.height;
     
@@ -34,12 +34,19 @@ class GridAndLabels {
     let gy = (h - gh) / 2;
     
     this.#labelsLayer.textFont('monospace');
-    this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.TOP);
+    this.#labelsLayer.textSize(8);
     this.#labelsLayer.fill(255);
+    
+    this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
+    
     xLabel.forEach((hz) => {
       const x = this.#p.map(Math.log10(hz), Math.log10(xLabel[0]), Math.log10(xLabel.slice(-1)[0]), gx, gw);
-      //console.log(x)
-      this.#labelsLayer.text(hz >= 1000 ? `${hz / 1000}k` : `${hz}`, x, lh-gx);
+      this.#labelsLayer.text(hz >= 1000 ? `${hz / 1000}k` : `${hz}`, x, lh);
+    });
+    
+    yLabel.forEach((db) => {
+      const y = this.#p.map(Math.log10(db), Math.log10(yLabel[0]), Math.log10(yLabel.slice(-1)[0]), gy, gh);
+      this.#labelsLayer.text(`${db}`, gx, y);
     });
     
     
