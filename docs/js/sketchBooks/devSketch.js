@@ -12,6 +12,8 @@ class GridAndLabels {
     let w = this.#p.windowWidth;
     let h = this.#p.windowHeight;
     
+    const xLabel = [];
+    
     this.#labelsLayer = this.#p.createGraphics(w * ratio, h*ratio);
     let lw = this.#labelsLayer.width;
     let lh = this.#labelsLayer.height;
@@ -47,7 +49,10 @@ class GridAndLabels {
     this.#p.image(this.#labelsLayer, ...this.lSize);
     this.#p.image(this.#gridLayer, ...this.gSize);
     
-    
+    this.gridX = gx;
+    this.gridY = gy;
+    this.gridW = gw;
+    this.gridH = gh;
     
   }
   
