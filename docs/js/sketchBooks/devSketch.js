@@ -30,23 +30,20 @@ class GridAndLabels {
     let gh = this.#gridLayer.height;
     
     
-    
-    
-    
-    
     let gx = (w - gw) / 2;
     let gy = (h - gh) / 2;
     
-    
+    this.#labelsLayer.textFont('monospace');
+    this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.TOP);
     this.#labelsLayer.fill(255);
     xLabel.forEach((hz) => {
       const x = this.#p.map(Math.log10(hz), Math.log10(xLabel[0]), Math.log10(xLabel.slice(-1)[0]), gx, gw);
-      console.log(x)
-      this.#labelsLayer.text(hz >= 1000 ? `${hz / 1000}k` : `${hz}`, x, lh - 45);
+      //console.log(x)
+      this.#labelsLayer.text(hz >= 1000 ? `${hz / 1000}k` : `${hz}`, x, lh-gx);
     });
     
     
-    const c = this.#p.color(0,0,0,0);
+    const c = this.#p.color(0,0,0,255);
     
     
     
@@ -54,11 +51,15 @@ class GridAndLabels {
     this.#gridLayer.stroke(0,255,255);
     this.#gridLayer.rect(0, 0, gw-1, gh-1);
     
+    this.#labelsLayer.noFill();
+    this.#labelsLayer.stroke(255,0,255);
+    this.#labelsLayer.rect(0, 0, lw-1, lh-1);
+    
     //this.#labelsLayer.fill(c);
     
     
     //this.#labelsLayer.background(c);
-    this.#gridLayer.background(c);
+    //this.#gridLayer.background(c);
     
     this.lSize = [lx, ly];
     this.gSize = [gx, gy];
