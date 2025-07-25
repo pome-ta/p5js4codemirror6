@@ -8,11 +8,12 @@ class GridAndLabels {
     this.#gridLayer = null;
   }
   setup() {
-    const ratio = 0.9;
+    const ratio = 0.8;
     let w = this.#p.windowWidth;
     let h = this.#p.windowHeight;
     
-    
+    const xLabel = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
+    const yLabel = Array.from({ length: 13 }, (_, i) => -60 + i * 6);
     
     
     this.#labelsLayer = this.#p.createGraphics(w * ratio, h*ratio);
@@ -36,47 +37,30 @@ class GridAndLabels {
     this.#labelsLayer.textSize(8);
     this.#labelsLayer.fill(255);
     
-    this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.CENTER);
-    //this.#labelsLayer.textAlign(this.#p.RIGHT, this.#p.BOTTOM);
-    
-    //this.#gridLayer.strokeWeight(4);
-    
-    
-    const xLabel = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
-    const xLabelFirst = xLabel[0];
-    const xLabelLast = xLabel.slice(-1)[0];
-    
-  
-    const yLabel = Array.from({ length: 13 }, (_, i) => -60 + i * 6);
-    const yLabelFirst = yLabel[0];
-    const yLabelLast = yLabel.slice(-1)[0];
+    //this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
+    this.#labelsLayer.textAlign(this.#p.RIGHT, this.#p.BOTTOM);
     
     xLabel.forEach((hz) => {
-      const x = this.#p.map(Math.log10(hz), Math.log10(xLabelFirst), Math.log10(xLabelLast), 0, gw);
+      const x = this.#p.map(Math.log10(hz), Math.log10(xLabel[0]), Math.log10(xLabel.slice(-1)[0]), gx, gw);
       
-      if (hz !== xLabelFirst && hz !== xLabelLast) {
-        this.#gridLayer.line(x, 0, x, gh);
-      }
       
-      this.#labelsLayer.text(hz >= 1000 ? `${hz / 1000}k` : `${hz}`, x + gx - lx, lh - (gy - ly * 1.25));
+      this.#gridLayer.line(x, 0, x, gh);
+      
+      // todo: これだとズレる?
+      this.#labelsLayer.text(hz >= 1000 ? `${hz / 1000}k` : `${hz}`, x, lh);
     });
     
     
     this.#labelsLayer.textAlign(this.#p.RIGHT, this.#p.CENTER);
     yLabel.forEach((db) => {
       //const y = this.#p.map(db, yLabel[0], yLabel.slice(-1)[0], gh+gy, gy);
-      const y = this.#p.map(db, yLabelFirst, yLabelLast, gh, 0);
+      const y = this.#p.map(db, yLabel[0], yLabel.slice(-1)[0], gh+gy, gy);
       
-      if (db !== yLabelFirst && db !== yLabelLast) {
-        this.#gridLayer.line(0, y, gw, y);
-      }
+      this.#gridLayer.line(0, y -gy, gw, y - gy);
       
-      
-      
-      // todo: 左位置大丈夫か？
-      this.#labelsLayer.text(`${db}`, gx - lx * 1.25, y + gy -ly);
+      // todo: 左位置大丈夫か?
+      this.#labelsLayer.text(`${db}`, lx/2, y - ly);
     });
-    
     
     
     const c = this.#p.color(0,0,0,255);
@@ -89,7 +73,7 @@ class GridAndLabels {
     
     this.#labelsLayer.noFill();
     this.#labelsLayer.stroke(255,0,255);
-    //this.#labelsLayer.rect(0, 0, lw-1, lh-1);
+    this.#labelsLayer.rect(0, 0, lw-1, lh-1);
     
     //this.#labelsLayer.fill(c);
     
@@ -167,7 +151,7 @@ const sketch = (p) => {
     //p.blendMode(p.BLEND);
     
     const spectrum = fft.analyze();
-    p.noFill();
+    //p.noFill();
     p.beginShape();
     // 今後break したい為
     for (const [index, amplitude] of Object.entries(spectrum)) {
@@ -196,7 +180,7 @@ const sketch = (p) => {
     const actx = p.getAudioContext();
     const gain = p.soundOut.output.gain;
     const defaultValue = gain.defaultValue;
-    // todo: クリップノイズ対策
+    // todo: クリップノイズ対策
     gain.value = -1;
     window._cacheSounds?.forEach((s) => {
       s.stop();
@@ -211,3 +195,4 @@ const sketch = (p) => {
 };
 
 new p5(sketch);
+
