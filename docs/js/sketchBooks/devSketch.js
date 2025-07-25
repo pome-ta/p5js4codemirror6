@@ -85,21 +85,21 @@ class GridAndLabels {
     //this.#labelsLayer.background(c);
     //this.#gridLayer.background(c);
     
-    this.lSize = [lx, ly];
-    this.gSize = [gx, gy];
-    this.#p.image(this.#labelsLayer, ...this.lSize);
-    this.#p.image(this.#gridLayer, ...this.gSize);
+    this.lPos = [lx, ly];
+    this.lSize = [lw, lh];
+    this.gPos = [gx, gy];
+    this.gSize = [gw, gh];
     
-    this.gridX = gx;
-    this.gridY = gy;
-    this.gridW = gw;
-    this.gridH = gh;
+    this.#p.image(this.#labelsLayer, ...this.lPos);
+    this.#p.image(this.#gridLayer, ...this.gPos);
+    
+    
     
   }
   
   draw() {
-    this.#p.image(this.#labelsLayer, ...this.lSize);
-    this.#p.image(this.#gridLayer, ...this.gSize);
+    this.#p.image(this.#labelsLayer, ...this.lPos);
+    this.#p.image(this.#gridLayer, ...this.gPos);
     
   }
 }
@@ -117,6 +117,7 @@ const sketch = (p) => {
   let bgDrawColor;
   
   const pg = new GridAndLabels(p);
+  let pgX, pgY, pgW, pgH;
   
 
   p.setup = () => {
@@ -142,7 +143,11 @@ const sketch = (p) => {
     window._cacheSounds = [osc, ];
     
     fft = new p5.FFT();
-    pg.setup()
+    pg.setup();
+    [pgX, pgY] = pg.gPos;
+    [pgW, pgH] = pg.gSize;
+    
+    
   };
 
   p.draw = () => {
@@ -153,15 +158,17 @@ const sketch = (p) => {
     //p.blendMode(p.BLEND);
     
     const spectrum = fft.analyze();
-    p.noFill();
+    console.log(spectrum.length)
+    //p.noFill();
     p.beginShape();
     // 今後break したい為
     for (const [index, amplitude] of Object.entries(spectrum)) {
-      const x = p.map(Math.log10(index), 0, Math.log10(spectrum.length), 0, w, true);
-      const y = p.map(amplitude, 0, 255, h, 0);
+      const db =20 * Math.log10(Math.max(amplitude, minAmp) / 255)
+      const x = p.map(Math.log10(index), 0, Math.log10(spectrum.length), pgX, pgW + pgX);
+      const y = p.map(amplitude, 0, 255, pgH + pgY, pgY);
       p.vertex(x, y);
     }
-    p.vertex(0, h);
+    p.vertex(pgX, pgH + pgY);
     p.endShape();
     
     pg.draw();
