@@ -12,16 +12,12 @@ class GridAndLabels {
     let w = this.#p.windowWidth;
     let h = this.#p.windowHeight;
     
-    
-    
-    
     this.#labelsLayer = this.#p.createGraphics(w * ratio, h*ratio);
     let lw = this.#labelsLayer.width;
     let lh = this.#labelsLayer.height;
     
     let lx = (w - lw) / 2;
     let ly = (h - lh) / 2;
-    
     
     
     this.#gridLayer = this.#p.createGraphics(lw * ratio, lh * ratio);
@@ -71,17 +67,10 @@ class GridAndLabels {
         this.#gridLayer.line(0, y, gw, y);
       }
       
-      
-      
-      // todo: 左位置大丈夫か？
       this.#labelsLayer.text(`${db}`, gx - lx * 1.25, y + gy -ly);
     });
     
-    
-    
     const c = this.#p.color(0,0,0,255);
-    
-    
     
     this.#gridLayer.noFill();
     this.#gridLayer.stroke(0,255,255);
@@ -92,7 +81,6 @@ class GridAndLabels {
     //this.#labelsLayer.rect(0, 0, lw-1, lh-1);
     
     //this.#labelsLayer.fill(c);
-    
     
     //this.#labelsLayer.background(c);
     //this.#gridLayer.background(c);
@@ -129,8 +117,6 @@ const sketch = (p) => {
   let bgDrawColor;
   
   const pg = new GridAndLabels(p);
-  
-  
   
 
   p.setup = () => {
