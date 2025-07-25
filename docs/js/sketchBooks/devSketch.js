@@ -41,12 +41,17 @@ class GridAndLabels {
     
     xLabel.forEach((hz) => {
       const x = this.#p.map(Math.log10(hz), Math.log10(xLabel[0]), Math.log10(xLabel.slice(-1)[0]), gx, gw);
+      
+      // todo: これだとズレる？
       this.#labelsLayer.text(hz >= 1000 ? `${hz / 1000}k` : `${hz}`, x, lh);
     });
     
+    
+    this.#labelsLayer.textAlign(this.#p.RIGHT, this.#p.CENTER);
     yLabel.forEach((db) => {
-      const y = this.#p.map(Math.log10(db), Math.log10(yLabel[0]), Math.log10(yLabel.slice(-1)[0]), gy, gh);
-      this.#labelsLayer.text(`${db}`, gx, y);
+      const y = this.#p.map(db, yLabel[0], yLabel.slice(-1)[0], gh+gy, gy);
+      // todo: 左位置大丈夫か？
+      this.#labelsLayer.text(`${db}`, lx/2, y - ly);
     });
     
     
@@ -134,7 +139,7 @@ const sketch = (p) => {
     // put drawing code here
     //p.blendMode(p.SCREEN);
     p.background(...bgColor);
-    pg.draw();
+    
     //p.blendMode(p.BLEND);
     
     const spectrum = fft.analyze();
@@ -148,6 +153,8 @@ const sketch = (p) => {
     }
     p.vertex(0, h);
     p.endShape();
+    
+    pg.draw();
     
     
     
