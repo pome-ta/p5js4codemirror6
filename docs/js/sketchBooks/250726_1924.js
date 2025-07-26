@@ -1,4 +1,4 @@
-// すぺあな
+// リニアでやる
 
 class GridAndLabels {
   #p;
@@ -196,7 +196,7 @@ const sketch = (p) => {
     const actx = p.getAudioContext();
     const gain = p.soundOut.output.gain;
     const defaultValue = gain.defaultValue;
-    // todo: クリップノイズ対策
+    // todo: クリップノイズ対策
     gain.value = -1;
     window._cacheSounds?.forEach((s) => {
       s.stop();
@@ -211,3 +211,4 @@ const sketch = (p) => {
 };
 
 new p5(sketch);
+
