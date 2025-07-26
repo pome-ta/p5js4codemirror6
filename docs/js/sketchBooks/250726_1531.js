@@ -29,9 +29,6 @@ class GridAndLabels {
     let gy = (h - gh) / 2;
     
     
-    const xLabelSpan = Array.from({ length: 10 }, (_, i) => 10 + i * 10);
-    
-    
     const xLabel = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
     const xLabelFirst = xLabel[0];
     const xLabelLast = xLabel.slice(-1)[0];
@@ -207,7 +204,7 @@ const sketch = (p) => {
     const actx = p.getAudioContext();
     const gain = p.soundOut.output.gain;
     const defaultValue = gain.defaultValue;
-    // todo: クリップノイズ対策
+    // todo: クリップノイズ対策
     gain.value = -1;
     window._cacheSounds?.forEach((s) => {
       s.stop();
@@ -222,3 +219,4 @@ const sketch = (p) => {
 };
 
 new p5(sketch);
+
