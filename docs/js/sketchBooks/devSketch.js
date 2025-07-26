@@ -15,130 +15,99 @@ class GridAndLabels {
     this.#labelsLayer = null;
     this.#gridLayer = null;
     this.#spectrumLayer = null;
-    
+
     this.ratio = 0.92;
   }
-  
+
+  #setLabelsLayer() {
+    const [w, h] = this.#labelsSize;
+    const [x, y] = this.#labelsPosition;
+
+    this.#labelsLayer.fill(0, 255, 255);
+    this.#labelsLayer.rect(0, 0, w, h);
+  }
+
+  #setGridLayer() {
+    const [w, h] = this.#gridSize;
+    const [x, y] = this.#gridPosition;
+
+    this.#gridLayer.fill(255, 0, 255);
+    this.#gridLayer.rect(0, 0, w, h);
+  }
+
+  setup() {
+    this.#setBaseGraphics();
+    this.#useWindowResized();
+  }
+
+  draw() {}
+
+  drawSpectrum(spectrum) {
+    this.#drawBaseGraphics();
+  }
+
+  get #sampleRate() {
+    return this.#p.sampleRate();
+  }
+
+  #setBaseGraphics() {
+    this.#setSize();
+    this.#setLabelsLayer();
+    this.#setGridLayer();
+    this.#drawBaseGraphics();
+  }
+
+  #drawBaseGraphics() {
+    const [lx, ly] = this.#labelsPosition;
+    const [gx, gy] = this.#gridPosition;
+    this.#p.image(this.#labelsLayer, lx, ly);
+    this.#p.image(this.#gridLayer, gx, gy);
+  }
+
   #setSize() {
-    let w = this.#p.windowWidth;
-    let h = this.#p.windowHeight;
-    
     this.#labelsLayer && this.#labelsLayer.remove();
     this.#gridLayer && this.#gridLayer.remove();
     this.#spectrumLayer && this.#spectrumLayer.remove();
-    
-    this.#labelsLayer = this.#p.createGraphics(w * this.ratio, h * this.ratio);
-    let lw = this.#labelsLayer.width;
-    let lh = this.#labelsLayer.height;
-    
-    this.#gridLayer = this.#p.createGraphics(lw * this.ratio, lh * this.ratio);
-    let gw = this.#gridLayer.width;
-    let gh = this.#gridLayer.height;
-    
-    this.#spectrumLayer = this.#p.createGraphics(lw * this.ratio, lh * this.ratio);
-    
-    this.#labelsSize = [lw, lh];
-    this.#labelsPosition = [(w - lw) / 2, (h - lh) / 2];
-    this.#gridSize = [gw, gh];
-    this.#gridPosition = [(w - gw) / 2, (h - gh) / 2];
-  }
-  
-  
-  #createLabels() {
-  }
 
-  
+    this.#labelsLayer = this.#p.createGraphics(
+      this.#p.windowWidth * this.ratio,
+      this.#p.windowHeight * this.ratio
+    );
 
-  setup() {
-    const ratio = 0.92;
-    let w = this.#p.windowWidth;
-    let h = this.#p.windowHeight;
+    this.#gridLayer = this.#p.createGraphics(
+      this.#labelsLayer.width * this.ratio,
+      this.#labelsLayer.height * this.ratio
+    );
 
-    this.#labelsLayer = this.#p.createGraphics(w * ratio, h * ratio);
-    let lw = this.#labelsLayer.width;
-    let lh = this.#labelsLayer.height;
+    this.#spectrumLayer = this.#p.createGraphics(
+      this.#labelsLayer.width * this.ratio,
+      this.#labelsLayer.height * this.ratio
+    );
 
-    let lx = (w - lw) / 2;
-    let ly = (h - lh) / 2;
+    this.#labelsSize = [this.#labelsLayer.width, this.#labelsLayer.height];
+    this.#labelsPosition = [
+      (this.#p.windowWidth - this.#labelsLayer.width) / 2,
+      (this.#p.windowHeight - this.#labelsLayer.height) / 2,
+    ];
 
-    this.#gridLayer = this.#p.createGraphics(lw * ratio, lh * ratio);
-    let gw = this.#gridLayer.width;
-    let gh = this.#gridLayer.height;
-
-    let gx = (w - gw) / 2;
-    let gy = (h - gh) / 2;
-    // console.log(this.#p)
-
-    const nyquist = this.#p.sampleRate() / 2;
-    const divStep = 10;
-
-    console.log(this.#sampleRate);
-
-    console.log(nyquist / divStep);
-    const xGridSteps = Array.from({ length: 220 }, (_, i) => 10 + i * 10);
-    const xStepFirst = xGridSteps[0];
-    const xStepLast = xGridSteps.slice(-1)[0];
-
-    function getHighestDigit(n) {
-      if (n === 0) {
-        return 0;
-      }
-      const digits = Math.floor(Math.log10(n));
-      return Math.floor(n / 10 ** digits);
-    }
-
-    this.#labelsLayer.textFont('monospace');
-    this.#labelsLayer.textSize(8);
-    this.#labelsLayer.fill(255);
-
-    //this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.CENTER);
-    //this.#labelsLayer.textAlign(this.#p.RIGHT, this.#p.BOTTOM);
-    this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
-
-    this.#gridLayer.strokeWeight(0.5);
-
-    xGridSteps.forEach((hz, idx) => {
-      // if (hz === xStepFirst || hz === xStepLast) {
-      //   return;
-      // }
-      const x = this.#p.map(
-        Math.log10(hz),
-        Math.log10(xStepFirst),
-        Math.log10(nyquist),
-        0,
-        gw
-      );
-      //const x = this.#p.map(hz, xStepFirst, xStepLast, 0, gw);
-      if ((idx + 1) % 10 === 0) {
-        //console.log(idx);
-        this.#gridLayer.strokeWeight(1);
-        this.#labelsLayer.text(`${hz}`, x + gx - lx, lh - gy);
-      } else {
-        this.#gridLayer.strokeWeight(0.5);
-      }
-      this.#gridLayer.line(x, 0, x, gh);
-      // this.#labelsLayer.text(`${hz}`, x + gx - lx, lh - gy);
-    });
-
-    this.lPos = [lx, ly];
-    this.lSize = [lw, lh];
-    this.gPos = [gx, gy];
-    this.gSize = [gw, gh];
-
-    this.#p.image(this.#gridLayer, ...this.gPos);
-    this.#p.image(this.#labelsLayer, ...this.lPos);
+    this.#gridSize = [this.#gridLayer.width, this.#gridLayer.height];
+    this.#gridPosition = [
+      (this.#p.windowWidth - this.#gridLayer.width) / 2,
+      (this.#p.windowHeight - this.#gridLayer.height) / 2,
+    ];
   }
 
-  draw() {
-    this.#p.image(this.#gridLayer, ...this.gPos);
-    this.#p.image(this.#labelsLayer, ...this.lPos);
-  }
-  
-  drawSpectrum(spectrum) {
-  }
-  
-  get #sampleRate() {
-    return this.#p.sampleRate();
+  #useWindowResized() {
+    const instance = this;
+    const originalFunction =
+      instance.#p.windowResized === void 0
+        ? (e) => {}
+        : instance.#p.windowResized;
+    instance.#p.windowResized = function (...args) {
+      const result = originalFunction.apply(this, args);
+      instance.#setBaseGraphics();
+      return result;
+    };
   }
 }
 
@@ -190,6 +159,7 @@ const sketch = (p) => {
     // put drawing code here
     p.background(...bgColor);
     const spectrum = fft.analyze();
+    gridGraph.drawSpectrum(spectrum);
   };
 
   p.windowResized = (e) => {

@@ -230,7 +230,7 @@ const sketch = (p) => {
     p.textSize(32);
 
     tapIndicator.setup();
-    console.log(p.soundOut.output)
+    console.log(p.soundOut.output);
   };
 
   p.draw = () => {

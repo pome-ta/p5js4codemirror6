@@ -23,22 +23,18 @@ class GridAndLabels {
     let lx = (w - lw) / 2;
     let ly = (h - lh) / 2;
 
-
     this.#gridLayer = this.#p.createGraphics(lw * ratio, lh * ratio);
     let gw = this.#gridLayer.width;
     let gh = this.#gridLayer.height;
 
-
     let gx = (w - gw) / 2;
     let gy = (h - gh) / 2;
-
 
     const nyquist = this.#p.sampleRate() / 2;
     const divStep = 10;
 
-
-    console.log(nyquist / divStep)
-    const xGridSteps = Array.from({length: 220}, (_, i) => 10 + i * 10);
+    console.log(nyquist / divStep);
+    const xGridSteps = Array.from({ length: 220 }, (_, i) => 10 + i * 10);
     const xStepFirst = xGridSteps[0];
     const xStepLast = xGridSteps.slice(-1)[0];
 
@@ -64,7 +60,13 @@ class GridAndLabels {
       // if (hz === xStepFirst || hz === xStepLast) {
       //   return;
       // }
-      const x = this.#p.map(Math.log10(hz), Math.log10(xStepFirst), Math.log10(nyquist), 0, gw);
+      const x = this.#p.map(
+        Math.log10(hz),
+        Math.log10(xStepFirst),
+        Math.log10(nyquist),
+        0,
+        gw
+      );
       //const x = this.#p.map(hz, xStepFirst, xStepLast, 0, gw);
       if ((idx + 1) % 10 === 0) {
         //console.log(idx);
@@ -76,8 +78,6 @@ class GridAndLabels {
       this.#gridLayer.line(x, 0, x, gh);
       // this.#labelsLayer.text(`${hz}`, x + gx - lx, lh - gy);
     });
-
-    
 
     this.lPos = [lx, ly];
     this.lSize = [lw, lh];
@@ -91,11 +91,8 @@ class GridAndLabels {
   draw() {
     this.#p.image(this.#gridLayer, ...this.gPos);
     this.#p.image(this.#labelsLayer, ...this.lPos);
-
-
   }
 }
-
 
 const sketch = (p) => {
   let w = p.windowWidth;
@@ -113,7 +110,6 @@ const sketch = (p) => {
   const pg = new GridAndLabels(p);
   let pgX, pgY, pgW, pgH;
 
-
   p.setup = () => {
     // put setup code here
     soundReset();
@@ -125,9 +121,8 @@ const sketch = (p) => {
     bgDrawColor = [...bgColor, 0.05];
     p.background(...bgColor);
 
-
     // sound
-    const types = ['sine', 'triangle', 'sawtooth', 'square',];
+    const types = ['sine', 'triangle', 'sawtooth', 'square'];
     osc = new p5.Oscillator();
     osc.setType(types[0]);
     const rFrq = baseFreq * p.random();
@@ -143,15 +138,13 @@ const sketch = (p) => {
     // lfo.disconnect();
     // lfo.connect(osc.freqNode);
 
-    window._cacheSounds = [osc, /*lfo,*/];
+    window._cacheSounds = [osc /*lfo,*/];
 
     fft = new p5.FFT();
     amp = new p5.Amplitude();
     pg.setup();
     [pgX, pgY] = pg.gPos;
     [pgW, pgH] = pg.gSize;
-
-
   };
 
   p.draw = () => {
@@ -169,8 +162,13 @@ const sketch = (p) => {
     p.beginShape();
     // 今後break したい為
     for (const [index, amplitude] of Object.entries(spectrum)) {
-
-      const x = p.map(Math.log10(index), 0, Math.log10(spectrum.length), pgX, pgW + pgX);
+      const x = p.map(
+        Math.log10(index),
+        0,
+        Math.log10(spectrum.length),
+        pgX,
+        pgW + pgX
+      );
 
       //const db = 20 * Math.log10(amplitude === 0 ? 1e-8 : amplitude / 255);
       const db = amplitude > 0 ? 20 * Math.log10(amplitude / 255) : -60;
@@ -181,8 +179,6 @@ const sketch = (p) => {
     p.endShape();
 
     pg.draw();
-
-
   };
 
   p.windowResized = (e) => {
@@ -190,7 +186,6 @@ const sketch = (p) => {
     h = p.windowHeight;
     p.resizeCanvas(w, h);
   };
-
 
   function soundReset() {
     const actx = p.getAudioContext();
@@ -206,9 +201,6 @@ const sketch = (p) => {
     gain.value = defaultValue;
     p.userStartAudio();
   }
-
-
 };
 
 new p5(sketch);
-
