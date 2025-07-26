@@ -136,14 +136,14 @@ const sketch = (p) => {
     // sound
     const types = ['sine', 'triangle', 'sawtooth', 'square', ];
     osc = new p5.Oscillator();
-    osc.setType(types[2]);
+    osc.setType(types[3]);
     const rFrq = baseFreq * p.random();
     osc.freq(baseFreq + rFrq);
     osc.amp(0.4);
     osc.start();
     
-    lfo = new p5.Oscillator(0.25, 'sine'); // 速さ
-    lfo.amp(220); // 幅
+    lfo = new p5.Oscillator(0.25, types[2]); // 速さ
+    lfo.amp(440); // 幅
     lfo.start();
     
     lfo.disconnect();
@@ -170,6 +170,8 @@ const sketch = (p) => {
     const spectrum = fft.analyze();
     //console.log(amp.getLevel())
     //p.noFill();
+    p.noStroke();
+    p.fill(0.5, 0.8, 0.8, 0.3);
     p.beginShape();
     // 今後break したい為
     for (const [index, amplitude] of Object.entries(spectrum)) {
