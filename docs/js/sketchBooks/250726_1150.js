@@ -29,6 +29,8 @@ class GridAndLabels {
     let gy = (h - gh) / 2;
     
     
+    
+    
     const xLabel = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
     const xLabelFirst = xLabel[0];
     const xLabelLast = xLabel.slice(-1)[0];
@@ -93,6 +95,10 @@ class GridAndLabels {
     
     this.#p.image(this.#gridLayer, ...this.gPos);
     this.#p.image(this.#labelsLayer, ...this.lPos);
+    
+    
+    
+    
   }
   
   draw() {
@@ -112,7 +118,6 @@ const sketch = (p) => {
   const baseFreq = 440;
   
   let fft;
-  let lfo;
   let amp;
   let bgColor;
   let bgDrawColor;
@@ -134,22 +139,14 @@ const sketch = (p) => {
     
     
     // sound
-    const types = ['sine', 'triangle', 'sawtooth', 'square', ];
     osc = new p5.Oscillator();
-    osc.setType(types[2]);
+    osc.setType('sine');
     const rFrq = baseFreq * p.random();
     osc.freq(baseFreq + rFrq);
-    osc.amp(0.4);
+    //osc.amp(0.4);
     osc.start();
     
-    lfo = new p5.Oscillator(0.25, 'sine'); // 速さ
-    lfo.amp(220); // 幅
-    lfo.start();
-    
-    lfo.disconnect();
-    lfo.connect(osc.freqNode);
-    
-    window._cacheSounds = [osc,lfo, ];
+    window._cacheSounds = [osc, ];
     
     fft = new p5.FFT();
     amp = new p5.Amplitude();
@@ -202,7 +199,7 @@ const sketch = (p) => {
     const actx = p.getAudioContext();
     const gain = p.soundOut.output.gain;
     const defaultValue = gain.defaultValue;
-    // todo: クリップノイズ対策
+    // todo: クリップノイズ対策
     gain.value = -1;
     window._cacheSounds?.forEach((s) => {
       s.stop();
