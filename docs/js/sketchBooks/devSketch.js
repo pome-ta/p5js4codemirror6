@@ -8,7 +8,7 @@ class GridAndLabels {
     this.#gridLayer = null;
   }
   setup() {
-    const ratio = 0.88;
+    const ratio = 0.92;
     let w = this.#p.windowWidth;
     let h = this.#p.windowHeight;
     
@@ -29,10 +29,10 @@ class GridAndLabels {
     let gy = (h - gh) / 2;
     
     
-    const xLabelSpan = Array.from({ length: 10 }, (_, i) => 10 + i * 10);
     
     
-    const xLabel = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
+    
+    const xLabel = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 22000];
     const xLabelFirst = xLabel[0];
     const xLabelLast = xLabel.slice(-1)[0];
     
@@ -41,6 +41,19 @@ class GridAndLabels {
     const yLabelFirst = yLabel[0];
     const yLabelLast = yLabel.slice(-1)[0];
     
+    
+    const xGridSteps = Array.from({ length: 220 }, (_, i) => 10 + i * 10);
+    console.log(xGridSteps)
+    const xStepFirst = xGridSteps[0];
+    const xStepLast = xGridSteps.slice(-1)[0];
+    
+    function getHighestDigit(n) {
+      if (n === 0) {
+        return 0;
+      }
+      const digits = Math.floor(Math.log10(n));
+      return Math.floor(n / 10 ** digits);
+    }
     
     this.#labelsLayer.textFont('monospace');
     this.#labelsLayer.textSize(8);
@@ -51,15 +64,34 @@ class GridAndLabels {
     this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
     
     this.#gridLayer.strokeWeight(0.5);
+    
+    xGridSteps.forEach((hz, idx) => {
+      if (hz === xStepFirst  || hz === xStepLast) {
+        return;
+      }
+      const x = this.#p.map(Math.log10(hz), Math.log10(xStepFirst), Math.log10(xStepLast), 0, gw);
+      
+      if ((idx + 1) % 10 === 0) {
+        console.log(idx)
+        this.#gridLayer.strokeWeight(1);
+      } else {
+        this.#gridLayer.strokeWeight(0.1);
+      }
+      this.#gridLayer.line(x, 0, x, gh);
+    });
+    
+    this.#gridLayer.strokeWeight(0.5);
+    this.#gridLayer.stroke(0,255,255);
     xLabel.forEach((hz) => {
       const x = this.#p.map(Math.log10(hz), Math.log10(xLabelFirst), Math.log10(xLabelLast), 0, gw);
       
       if (hz !== xLabelFirst && hz !== xLabelLast) {
-        this.#gridLayer.line(x, 0, x, gh);
+        //this.#gridLayer.line(x, 0, x, gh);
       }
       
       this.#labelsLayer.text(hz >= 1000 ? `${hz / 1000}k` : `${hz}`, x + gx - lx, lh);
     });
+    
     
     
     this.#labelsLayer.textAlign(this.#p.RIGHT, this.#p.CENTER);
