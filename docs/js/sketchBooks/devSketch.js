@@ -4,16 +4,50 @@ class GridAndLabels {
   #p;
   #labelsLayer;
   #gridLayer;
+  #spectrumLayer;
+  #labelsSize;
+  #labelsPosition;
+  #gridSize;
+  #gridPosition;
 
   constructor(mainInstance) {
     this.#p = mainInstance;
     this.#labelsLayer = null;
     this.#gridLayer = null;
+    this.#spectrumLayer = null;
+    
+    this.ratio = 0.92;
+  }
+  
+  #setSize() {
+    let w = this.#p.windowWidth;
+    let h = this.#p.windowHeight;
+    
+    this.#labelsLayer && this.#labelsLayer.remove();
+    this.#gridLayer && this.#gridLayer.remove();
+    this.#spectrumLayer && this.#spectrumLayer.remove();
+    
+    this.#labelsLayer = this.#p.createGraphics(w * this.ratio, h * this.ratio);
+    let lw = this.#labelsLayer.width;
+    let lh = this.#labelsLayer.height;
+    
+    this.#gridLayer = this.#p.createGraphics(lw * this.ratio, lh * this.ratio);
+    let gw = this.#gridLayer.width;
+    let gh = this.#gridLayer.height;
+    
+    this.#spectrumLayer = this.#p.createGraphics(lw * this.ratio, lh * this.ratio);
+    
+    this.#labelsSize = [lw, lh];
+    this.#labelsPosition = [(w - lw) / 2, (h - lh) / 2];
+    this.#gridSize = [gw, gh];
+    this.#gridPosition = [(w - gw) / 2, (h - gh) / 2];
+  }
+  
+  
+  #createLabels() {
   }
 
-  get #sampleRate() {
-    return this.#p.sampleRate();
-  }
+  
 
   setup() {
     const ratio = 0.92;
@@ -98,6 +132,13 @@ class GridAndLabels {
   draw() {
     this.#p.image(this.#gridLayer, ...this.gPos);
     this.#p.image(this.#labelsLayer, ...this.lPos);
+  }
+  
+  drawSpectrum(spectrum) {
+  }
+  
+  get #sampleRate() {
+    return this.#p.sampleRate();
   }
 }
 
