@@ -18,6 +18,28 @@ class GridAndLabels {
 
     this.ratio = 0.92;
   }
+  
+  drawSpectrum(spectrum) {
+    this.#drawBaseGraphics();
+    this.#spectrumLayer.clear();
+    
+    const [gw, gh] = this.#gridSize;
+    const [gx, gy] = this.#gridPosition;
+    
+    this.#spectrumLayer.noFill();
+    this.#spectrumLayer.beginShape();
+    this.#spectrumLayer.vertex(gx, gh);
+    // 今後break するかも?で、`for`
+    for (const [index, amplitude] of Object.entries(spectrum)) {
+      const x = this.#p.map(index, 0, spectrum.length, gx, gw);
+      const y = this.#p.map(amplitude, 0, 255, gh, gy);
+      this.#spectrumLayer.vertex(x, y);
+    }
+    this.#spectrumLayer.vertex(gw, gh);
+    //p.vertex(pgX, pgH + pgY);
+    this.#spectrumLayer.endShape();
+    this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
+  }
 
   #setLabelsLayer() {
     const [w, h] = this.#labelsSize;
@@ -39,17 +61,7 @@ class GridAndLabels {
     this.#setBaseGraphics();
     this.#useWindowResized();
   }
-
-  draw() {}
-
-  drawSpectrum(spectrum) {
-    this.#drawBaseGraphics();
-  }
-
-  get #sampleRate() {
-    return this.#p.sampleRate();
-  }
-
+  
   #setBaseGraphics() {
     this.#setSize();
     this.#setLabelsLayer();
@@ -60,8 +72,8 @@ class GridAndLabels {
   #drawBaseGraphics() {
     const [lx, ly] = this.#labelsPosition;
     const [gx, gy] = this.#gridPosition;
-    this.#p.image(this.#labelsLayer, lx, ly);
-    this.#p.image(this.#gridLayer, gx, gy);
+    this.#p.image(this.#labelsLayer, ...this.#labelsPosition);
+    this.#p.image(this.#gridLayer, ...this.#gridPosition);
   }
 
   #setSize() {
@@ -136,7 +148,7 @@ const sketch = (p) => {
     // sound
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
     osc = new p5.Oscillator();
-    osc.setType(types[0]);
+    osc.setType(types[1]);
     const rFrq = baseFreq * p.random();
     // osc.freq(baseFreq + rFrq);
     osc.freq(baseFreq);
@@ -144,11 +156,13 @@ const sketch = (p) => {
     osc.start();
 
     lfo = new p5.Oscillator(0.25, types[0]); // 速さ
-    lfo.amp(440); // 幅
+    lfo.amp(880); // 幅
+    
     lfo.start();
 
     lfo.disconnect();
     lfo.connect(osc.freqNode);
+    
 
     window._cacheSounds = [osc, lfo];
 
