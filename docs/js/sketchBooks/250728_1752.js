@@ -9,10 +9,6 @@ class GridAndLabels {
   #labelsPosition;
   #gridSize;
   #gridPosition;
-  
-  #nyquist;
-  #bandWidth;
-
 
   constructor(mainInstance) {
     this.#p = mainInstance;
@@ -35,8 +31,11 @@ class GridAndLabels {
     console.log(hzPerBinList);
     */
     
-    this.#nyquist = this.#sampleRate / 2;
-    this.#bandWidth = this.#nyquist / fft.bins;
+    const maxHz = this.#sampleRate / 2;
+    //const divHz = 
+    const xSteps = [200, 400, 440, 500, 800, 880];
+    //this.xGrids = 
+    
     
     this.#setBaseGraphics();
     this.#useWindowResized();
@@ -55,10 +54,6 @@ class GridAndLabels {
     // 今後break するかも?で、`for`
     for (const [index, amplitude] of Object.entries(spectrum)) {
       const x = this.#p.map(index, 0, spectrum.length, gx, gw);
-      //const x = this.#p.map(Math.log10(index), Math.log10(this.#bandWidth), Math.log10(this.#nyquist), gx, gw);
-      const hz = this.#p.map(index, 0, 255, 0, this.#nyquist);
-      console.log(hz)
-      
       const y = this.#p.map(amplitude, 0, 255, gh, gy);
       this.#spectrumLayer.vertex(x, y);
     }
@@ -88,9 +83,7 @@ class GridAndLabels {
       リニアで
     */
     const maxHz = this.#sampleRate / 2;
-    //const tHzs = [110, 220, 440, 880];
-    const tHzs = [440, ];
-    
+    const tHzs = [110, 220, 440, 880];
     //const tHz = 880;
     this.#gridLayer.stroke(0, 255, 0);
     this.#gridLayer.strokeWeight(0.5);
@@ -105,6 +98,12 @@ class GridAndLabels {
 
     //console.log(hz);
     //console.log(x);
+    
+    
+
+    
+    
+    
   }
   
   get #sampleRate() {
@@ -206,13 +205,12 @@ const sketch = (p) => {
     osc.amp(0.5);
     osc.start();
     
-    /*
+    
     lfo = new p5.Oscillator(0.1, types[0]); // 速さ
     lfo.amp(440); // 幅
     lfo.start();
     lfo.disconnect();
     lfo.connect(osc.freqNode);
-    */
     
     
     window._cacheSounds = [osc, lfo];
