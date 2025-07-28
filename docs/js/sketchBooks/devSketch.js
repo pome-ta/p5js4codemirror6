@@ -19,6 +19,18 @@ class GridAndLabels {
     this.ratio = 0.92;
   }
   
+  setup(fft) {
+    /*
+    const bandWidth = this.#sampleRate / 2 / fft.bins;
+    const hzPerBinList = Array.from({ length: fft.bins }, (_, idx) => idx * bandWidth);
+    console.log(this.#sampleRate);
+    console.log(hzPerBinList);
+    */
+    
+    this.#setBaseGraphics();
+    this.#useWindowResized();
+  }
+  
   drawSpectrum(spectrum) {
     this.#drawBaseGraphics();
     this.#spectrumLayer.clear();
@@ -36,12 +48,12 @@ class GridAndLabels {
       this.#spectrumLayer.vertex(x, y);
     }
     this.#spectrumLayer.vertex(gw, gh);
-    //p.vertex(pgX, pgH + pgY);
     this.#spectrumLayer.endShape();
     this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
   }
 
   #setLabelsLayer() {
+    this.#labelsLayer.clear();
     const [w, h] = this.#labelsSize;
     const [x, y] = this.#labelsPosition;
 
@@ -50,16 +62,16 @@ class GridAndLabels {
   }
 
   #setGridLayer() {
+    this.#gridLayer.clear();
     const [w, h] = this.#gridSize;
     const [x, y] = this.#gridPosition;
 
     this.#gridLayer.fill(255, 0, 255);
     this.#gridLayer.rect(0, 0, w, h);
   }
-
-  setup() {
-    this.#setBaseGraphics();
-    this.#useWindowResized();
+  
+  get #sampleRate() {
+    return this.#p.sampleRate();
   }
   
   #setBaseGraphics() {
@@ -128,7 +140,7 @@ const sketch = (p) => {
   let h = p.windowHeight;
   let bgColor;
 
-  let osc;
+  let osc, lfo;
   let fft;
   const baseFreq = 440;
 
@@ -148,25 +160,28 @@ const sketch = (p) => {
     // sound
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
     osc = new p5.Oscillator();
-    osc.setType(types[1]);
+    osc.setType(types[0]);
     const rFrq = baseFreq * p.random();
     // osc.freq(baseFreq + rFrq);
     osc.freq(baseFreq);
-    osc.amp(0.2);
+    osc.amp(0.5);
     osc.start();
-
-    lfo = new p5.Oscillator(0.25, types[0]); // 速さ
-    lfo.amp(880); // 幅
+    
+    /*
+    lfo = new p5.Oscillator(0.0, types[0]); // 速さ
+    lfo.amp(220); // 幅
     
     lfo.start();
 
     lfo.disconnect();
     lfo.connect(osc.freqNode);
+    */
     
 
     window._cacheSounds = [osc, lfo];
+    
 
-    gridGraph.setup();
+    gridGraph.setup(fft);
   };
 
   p.draw = () => {
@@ -189,8 +204,8 @@ const sketch = (p) => {
     // todo: クリップノイズ対策
     gain.value = -1;
     window._cacheSounds?.forEach((s) => {
-      s.stop();
-      s.disconnect();
+      s?.stop();
+      s?.disconnect();
     });
 
     gain.value = defaultValue;
