@@ -152,7 +152,7 @@ const sketch = (p) => {
     const rFrq = baseFreq * p.random();
     // osc.freq(baseFreq + rFrq);
     osc.freq(baseFreq);
-    osc.amp(0.4);
+    osc.amp(0.2);
     osc.start();
 
     lfo = new p5.Oscillator(0.25, types[0]); // 速さ
