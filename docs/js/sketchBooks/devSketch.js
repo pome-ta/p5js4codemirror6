@@ -1,10 +1,10 @@
 // すぺあな
-
 class GridAndLabels {
   #p;
   #labelsLayer;
   #gridLayer;
   #spectrumLayer;
+  
   #labelsSize;
   #labelsPosition;
   #gridSize;
@@ -22,10 +22,20 @@ class GridAndLabels {
   setup(fft) {
     /*
     const bandWidth = this.#sampleRate / 2 / fft.bins;
-    const hzPerBinList = Array.from({ length: fft.bins }, (_, idx) => idx * bandWidth);
+    //const hzPerBinList = Array.from({ length: fft.bins }, (_, idx) => idx * bandWidth);
+    const hzPerBinList = Array.from({ length: fft.bins }, (_, idx) => {
+      let a = idx * bandWidth;
+      return 1;
+    });
     console.log(this.#sampleRate);
     console.log(hzPerBinList);
     */
+    
+    const maxHz = this.#sampleRate / 2;
+    //const divHz = 
+    const xSteps = [200, 400, 440, 500, 800, 880];
+    //this.xGrids = 
+    
     
     this.#setBaseGraphics();
     this.#useWindowResized();
@@ -63,11 +73,27 @@ class GridAndLabels {
 
   #setGridLayer() {
     this.#gridLayer.clear();
-    const [w, h] = this.#gridSize;
-    const [x, y] = this.#gridPosition;
+    const [pgw, pgh] = this.#gridSize;
+    const [pgx, pgy] = this.#gridPosition;
+    
+    /* 440hz に線を引く
+      リニアで
+    */
+    const maxHz = this.#sampleRate / 2;
+    const tHz = 880;
+    
+    const hz = this.#p.map(tHz, 0, maxHz, 0, 255);
+    const x = this.#p.map(hz, 0, 255, pgx, pgw);
+
+    //console.log(hz);
+    //console.log(x);
+    
+    
 
     this.#gridLayer.fill(255, 0, 255);
-    this.#gridLayer.rect(0, 0, w, h);
+    this.#gridLayer.rect(0, 0, pgw, pgh);
+    
+    this.#gridLayer.line(x, 0, x, pgh);
   }
   
   get #sampleRate() {
@@ -135,6 +161,8 @@ class GridAndLabels {
   }
 }
 
+
+
 const sketch = (p) => {
   let w = p.windowWidth;
   let h = p.windowHeight;
@@ -168,14 +196,15 @@ const sketch = (p) => {
     osc.start();
     
     /*
-    lfo = new p5.Oscillator(0.0, types[0]); // 速さ
-    lfo.amp(220); // 幅
+    lfo = new p5.Oscillator(1, types[0]); // 速さ
+    lfo.amp(440); // 幅
     
     lfo.start();
 
     lfo.disconnect();
     lfo.connect(osc.freqNode);
     */
+    
     
 
     window._cacheSounds = [osc, lfo];
@@ -212,5 +241,7 @@ const sketch = (p) => {
     p.userStartAudio();
   }
 };
+
+
 
 new p5(sketch);
