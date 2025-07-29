@@ -14,11 +14,12 @@ class GridAndLabels {
   #bandWidth;
 
 
-  constructor(mainInstance) {
+  constructor(mainInstance, isLinear=false) {
     this.#p = mainInstance;
     this.#labelsLayer = null;
     this.#gridLayer = null;
     this.#spectrumLayer = null;
+    this.isLinear = isLinear;
 
     this.ratio = 0.92;
   }
@@ -54,10 +55,13 @@ class GridAndLabels {
     this.#spectrumLayer.vertex(gx, gh);
     // 今後break するかも?で、`for`
     for (const [index, amplitude] of Object.entries(spectrum)) {
-      const x = this.#p.map(index, 0, spectrum.length, gx, gw);
-      //const x = this.#p.map(Math.log10(index), Math.log10(this.#bandWidth), Math.log10(this.#nyquist), gx, gw);
-      const hz = this.#p.map(index, 0, 255, 0, this.#nyquist);
-      console.log(hz)
+      //const x = this.#p.map(index, 0, spectrum.length, gx, gw);
+      const bin = index * this.#bandWidth;
+     
+      const x = this.#p.map(Math.log10(bin ? bin : 1e-8), Math.log10(this.#bandWidth), Math.log10(this.#nyquist), gx, gw);
+      //const x = this.#p.map(Math.log10(bin), Math.log10(this.#bandWidth), Math.log10(this.#nyquist), gx, gw);
+      //const hz = this.#p.map(index, 0, 255, 0, this.#nyquist);
+      //console.log(hz)
       
       const y = this.#p.map(amplitude, 0, 255, gh, gy);
       this.#spectrumLayer.vertex(x, y);
@@ -206,19 +210,20 @@ const sketch = (p) => {
     osc.amp(0.5);
     osc.start();
     
-    /*
+    
     lfo = new p5.Oscillator(0.1, types[0]); // 速さ
     lfo.amp(440); // 幅
     lfo.start();
     lfo.disconnect();
     lfo.connect(osc.freqNode);
-    */
+    
     
     
     window._cacheSounds = [osc, lfo];
     
 
     gridGraph.setup(fft);
+    //p.frameRate(10);
   };
 
   p.draw = () => {
