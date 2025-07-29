@@ -26,14 +26,6 @@ class GridAndLabels {
   
   setup(fft) {
     /*
-    const bandWidth = this.#sampleRate / 2 / fft.bins;
-    //const hzPerBinList = Array.from({ length: fft.bins }, (_, idx) => idx * bandWidth);
-    const hzPerBinList = Array.from({ length: fft.bins }, (_, idx) => {
-      let a = idx * bandWidth;
-      return 1;
-    });
-    console.log(this.#sampleRate);
-    console.log(hzPerBinList);
     */
     
     this.#nyquist = this.#sampleRate / 2;
@@ -55,13 +47,9 @@ class GridAndLabels {
     this.#spectrumLayer.vertex(gx, gh);
     // 今後break するかも?で、`for`
     for (const [index, amplitude] of Object.entries(spectrum)) {
-      //const x = this.#p.map(index, 0, spectrum.length, gx, gw);
       const bin = index * this.#bandWidth;
      
       const x = this.#p.map(Math.log10(bin ? bin : 1e-8), Math.log10(this.#bandWidth), Math.log10(this.#nyquist), gx, gw);
-      //const x = this.#p.map(Math.log10(bin), Math.log10(this.#bandWidth), Math.log10(this.#nyquist), gx, gw);
-      //const hz = this.#p.map(index, 0, 255, 0, this.#nyquist);
-      //console.log(hz)
       
       const y = this.#p.map(amplitude, 0, 255, gh, gy);
       this.#spectrumLayer.vertex(x, y);
@@ -88,54 +76,65 @@ class GridAndLabels {
     this.#gridLayer.rect(0, 0, pgw, pgh);
     
     
-    /* 440hz に線を引く
-      logスケールで
+    /* 
+      log スケールとlinear スケールの切り替え？
     */
-    const maxHz = this.#sampleRate / 2;
-    //const tHzs = [110, 220, 440, 880];
-    const tHzs = [540, ];
-    const start = 20;
-    const stop = 20000;
-    const num = 500;
-    const step = (stop - start) / (num - 1);
     
-    //const tHzs = Array.from({ length: num }, (_, i) => start + step * i);
-    
-    //const tHz = 880;
     const minFreq = this.#bandWidth;
     const maxFreq = this.#nyquist;
-    
-    const decadeMin = Math.pow(10, Math.ceil(Math.log10(minFreq)));
-    const decadeMax = Math.pow(10, Math.floor(Math.log10(maxFreq)));
   
     this.#gridLayer.stroke(0, 255, 0);
     this.#gridLayer.strokeWeight(0.5);
-    /*
-    tHzs.forEach((tHz, idx) => {
-      
-      const hz = this.#p.map(tHz, 0, maxHz, 0, 255);
-      //const x = this.#p.map(hz, 0, 255, pgx, pgw);
-      const x = this.#p.map(Math.log10(tHz), Math.log10(this.#bandWidth), Math.log10(this.#nyquist), pgx, pgw);
-      this.#gridLayer.line(x, 0, x, pgh);
-      
-    });
-    */
-    for (let decade = decadeMin; decade <= decadeMax; decade *= 10) {
-      for (let i=1; i < 10; i++) {
-        const freq = i * decade;
+    
+    
+    const minLog = Math.log10(minFreq);
+    const maxLog = Math.log10(maxFreq);
+
+    const numDecades = Math.floor(maxLog) - Math.ceil(minLog) + 1;
+
+    for (let d = Math.ceil(minLog); d <= Math.floor(maxLog); d++) {
+      for (let i = 1; i < 10; i++) {
+        const freq = i * 10 ** d;
         if (freq < minFreq || freq > maxFreq) {
           continue;
-        }
-        const x = this.#p.map(Math.log10(freq), Math.log10(minFreq), Math.log10(maxFreq), pgx, pgw);
+        } 
+
+        const x = this.#p.map(Math.log10(freq), minLog, maxLog, pgx, pgw);
+
+    
         this.#gridLayer.line(x, 0, x, pgh);
-        
       }
     }
     
     
-
-    //console.log(hz);
-    //console.log(x);
+    
+    /*
+    const decadeMin = Math.pow(10, Math.ceil(Math.log10(minFreq)));
+    const decadeMax = Math.pow(10, Math.floor(Math.log10(maxFreq)));
+    
+    for (let decade = decadeMin; decade <= decadeMax; decade *= 10) {
+      for (let i=1; i < 10; i++) {
+        const freq = i * decade;
+        
+        if (freq < minFreq || freq > maxFreq) {
+          continue;
+        }
+        
+        const x = this.#p.map(Math.log10(freq), Math.log10(minFreq), Math.log10(maxFreq), pgx, pgw);
+        
+        if (i === 1) {
+          this.#gridLayer.strokeWeight(1);
+          this.#gridLayer.stroke(180);
+        } else {
+          this.#gridLayer.strokeWeight(0.5);
+          this.#gridLayer.stroke(100);
+        }
+        
+        this.#gridLayer.line(x, 0, x, pgh);
+      }
+      
+    }*/
+    
   }
   
   get #sampleRate() {
