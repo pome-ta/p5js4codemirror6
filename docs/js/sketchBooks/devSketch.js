@@ -89,21 +89,48 @@ class GridAndLabels {
     
     
     /* 440hz に線を引く
-      リニアで
+      logスケールで
     */
     const maxHz = this.#sampleRate / 2;
     //const tHzs = [110, 220, 440, 880];
-    const tHzs = [440, ];
+    const tHzs = [540, ];
+    const start = 20;
+    const stop = 20000;
+    const num = 500;
+    const step = (stop - start) / (num - 1);
+    
+    //const tHzs = Array.from({ length: num }, (_, i) => start + step * i);
     
     //const tHz = 880;
+    const minFreq = this.#bandWidth;
+    const maxFreq = this.#nyquist;
+    
+    const decadeMin = Math.pow(10, Math.ceil(Math.log10(minFreq)));
+    const decadeMax = Math.pow(10, Math.floor(Math.log10(maxFreq)));
+  
     this.#gridLayer.stroke(0, 255, 0);
     this.#gridLayer.strokeWeight(0.5);
-    tHzs.forEach((tHz) => {
+    /*
+    tHzs.forEach((tHz, idx) => {
+      
       const hz = this.#p.map(tHz, 0, maxHz, 0, 255);
-      const x = this.#p.map(hz, 0, 255, pgx, pgw);
+      //const x = this.#p.map(hz, 0, 255, pgx, pgw);
+      const x = this.#p.map(Math.log10(tHz), Math.log10(this.#bandWidth), Math.log10(this.#nyquist), pgx, pgw);
       this.#gridLayer.line(x, 0, x, pgh);
       
     });
+    */
+    for (let decade = decadeMin; decade <= decadeMax; decade *= 10) {
+      for (let i=1; i < 10; i++) {
+        const freq = i * decade;
+        if (freq < minFreq || freq > maxFreq) {
+          continue;
+        }
+        const x = this.#p.map(Math.log10(freq), Math.log10(minFreq), Math.log10(maxFreq), pgx, pgw);
+        this.#gridLayer.line(x, 0, x, pgh);
+        
+      }
+    }
     
     
 
@@ -185,7 +212,7 @@ const sketch = (p) => {
 
   let osc, lfo;
   let fft;
-  const baseFreq = 440;
+  const baseFreq = 500;
 
   const gridGraph = new GridAndLabels(p);
 
@@ -210,12 +237,13 @@ const sketch = (p) => {
     osc.amp(0.5);
     osc.start();
     
-    
+    /*
     lfo = new p5.Oscillator(0.1, types[0]); // 速さ
     lfo.amp(440); // 幅
     lfo.start();
     lfo.disconnect();
     lfo.connect(osc.freqNode);
+    */
     
     
     
