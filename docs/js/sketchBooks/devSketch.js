@@ -212,7 +212,7 @@ const sketch = (p) => {
 
   let osc, lfo;
   let fft;
-  const baseFreq = 500;
+  const baseFreq = 440;
 
   const gridGraph = new GridAndLabels(p);
 
