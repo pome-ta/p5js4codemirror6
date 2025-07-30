@@ -22,6 +22,10 @@ class GridAndLabels {
     this.isLinear = isLinear;
 
     this.ratio = 0.92;
+    
+    this.minDb = -60;
+    this.maxDb = +6;
+    this.dbStep = 6;
   }
   
   setup(fft) {
@@ -44,20 +48,20 @@ class GridAndLabels {
     
     this.#spectrumLayer.noFill();
     this.#spectrumLayer.beginShape();
-    this.#spectrumLayer.vertex(gx, gh);
+    this.#spectrumLayer.vertex(0, gh);
     // 今後break するかも?で、`for`
     for (const [index, amplitude] of Object.entries(spectrum)) {
       const bin = index * this.#bandWidth;
      
       const x = this.#p.map(Math.log10(bin ? bin : 1e-8), Math.log10(this.#bandWidth), Math.log10(this.#nyquist), 0, gw);
-      /*
-      if (amplitude > 200) {
-        console.log(amplitude)
-      }
-      */
-      const y = this.#p.map(amplitude, 0, 255, gh, gy);
+      
+      const amplitudeRatio = amplitude / 255;
+      const logDb = 20 * Math.log10(amplitudeRatio || 1e-10);
+      const y = this.#p.map(logDb, this.minDb, this.maxDb, gh, 0);
+      
       
       this.#spectrumLayer.vertex(x, y);
+      //this.#spectrumLayer.curveVertex(x, y);
     }
     this.#spectrumLayer.vertex(gw, gh);
     this.#spectrumLayer.endShape();
@@ -69,16 +73,16 @@ class GridAndLabels {
     const [w, h] = this.#labelsSize;
     const [x, y] = this.#labelsPosition;
 
-    this.#labelsLayer.fill(0, 255, 255);
-    this.#labelsLayer.rect(0, 0, w, h);
+    //this.#labelsLayer.fill(0, 255, 255);
+    //this.#labelsLayer.rect(0, 0, w, h);
   }
 
   #setGridLayer() {
     this.#gridLayer.clear();
     const [pgw, pgh] = this.#gridSize;
     const [pgx, pgy] = this.#gridPosition;
-    this.#gridLayer.fill(255, 0, 255);
-    this.#gridLayer.rect(0, 0, pgw, pgh);
+    //this.#gridLayer.fill(255, 0, 255);
+    //this.#gridLayer.rect(0, 0, pgw, pgh);
     
     
     /* 
@@ -115,19 +119,17 @@ class GridAndLabels {
       });
     });
     
-    const minDb = -60;
-    const maxDb = +6;
-    const dbStep = 6;
+    
 
     const dbTicks = Array.from(
-      { length: Math.floor((maxDb - minDb) / dbStep) + 1 },
-      (_, i) => minDb + i * dbStep
+      { length: Math.floor((this.maxDb - this.minDb) / this.dbStep) + 1 },
+      (_, i) => this.minDb + i * this.dbStep
     );
 
     dbTicks.forEach((db) => {
-      const y = this.#p.map(db, minDb, maxDb, pgh, 0);
+      const y = this.#p.map(db, this.minDb, this.maxDb, pgh, 0);
       const isMajor = db % 12 === 0;
-      console.log(db)
+      
     
       this.#gridLayer.stroke(isMajor ? 100 : 50);
       this.#gridLayer.strokeWeight(db === 0 ? 4 : isMajor ? 2 : 0.1);
@@ -210,7 +212,7 @@ const sketch = (p) => {
 
   let osc, lfo;
   let fft;
-  const baseFreq = 1000;
+  const baseFreq = 220;
 
   const gridGraph = new GridAndLabels(p);
 
@@ -228,20 +230,20 @@ const sketch = (p) => {
     // sound
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
     osc = new p5.Oscillator();
-    osc.setType(types[0]);
+    osc.setType(types[3]);
     const rFrq = baseFreq * p.random();
     // osc.freq(baseFreq + rFrq);
     osc.freq(baseFreq);
-    //osc.amp(0.01);
+    osc.amp(0.1);
     osc.start();
     
-    /*
+    
     lfo = new p5.Oscillator(0.1, types[0]); // 速さ
     lfo.amp(440); // 幅
     lfo.start();
     lfo.disconnect();
     lfo.connect(osc.freqNode);
-    */
+    
     
     
     
