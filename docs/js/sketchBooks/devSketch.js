@@ -49,9 +49,14 @@ class GridAndLabels {
     for (const [index, amplitude] of Object.entries(spectrum)) {
       const bin = index * this.#bandWidth;
      
-      const x = this.#p.map(Math.log10(bin ? bin : 1e-8), Math.log10(this.#bandWidth), Math.log10(this.#nyquist), gx, gw);
-      
+      const x = this.#p.map(Math.log10(bin ? bin : 1e-8), Math.log10(this.#bandWidth), Math.log10(this.#nyquist), 0, gw);
+      /*
+      if (amplitude > 200) {
+        console.log(amplitude)
+      }
+      */
       const y = this.#p.map(amplitude, 0, 255, gh, gy);
+      
       this.#spectrumLayer.vertex(x, y);
     }
     this.#spectrumLayer.vertex(gw, gh);
@@ -82,58 +87,52 @@ class GridAndLabels {
     
     const minFreq = this.#bandWidth;
     const maxFreq = this.#nyquist;
-  
-    this.#gridLayer.stroke(0, 255, 0);
-    this.#gridLayer.strokeWeight(0.5);
-    
     
     const minLog = Math.log10(minFreq);
     const maxLog = Math.log10(maxFreq);
 
-    const numDecades = Math.floor(maxLog) - Math.ceil(minLog) + 1;
 
-    for (let d = Math.ceil(minLog); d <= Math.floor(maxLog); d++) {
-      for (let i = 1; i < 10; i++) {
+    const decades = Array.from(
+      { length: Math.floor(maxLog) - Math.floor(minLog) + 1 },
+      (_, d) => d + Math.floor(minLog)
+    );
+
+    const ticks = [...Array(9)].map((_, i) => i + 1);
+
+    decades.forEach((d) => {
+      ticks.forEach((i) => {
         const freq = i * 10 ** d;
-        if (freq < minFreq || freq > maxFreq) {
-          continue;
+        if (freq < minFreq || freq > maxFreq){
+          return;
         } 
-
-        const x = this.#p.map(Math.log10(freq), minLog, maxLog, pgx, pgw);
-
     
+        const x = this.#p.map(Math.log10(freq), minLog, maxLog, 0, pgw);
+        const isMajor = i === 1;
+    
+        this.#gridLayer.stroke(isMajor ? 100 : 50);
+        this.#gridLayer.strokeWeight(isMajor ? 1 : 0.5);
         this.#gridLayer.line(x, 0, x, pgh);
-      }
-    }
+      });
+    });
     
+    const minDb = -60;
+    const maxDb = +6;
+    const dbStep = 6;
+
+    const dbTicks = Array.from(
+      { length: Math.floor((maxDb - minDb) / dbStep) + 1 },
+      (_, i) => minDb + i * dbStep
+    );
+
+    dbTicks.forEach((db) => {
+      const y = this.#p.map(db, minDb, maxDb, pgh, 0);
+      const isMajor = db % 12 === 0;
+      console.log(db)
     
-    
-    /*
-    const decadeMin = Math.pow(10, Math.ceil(Math.log10(minFreq)));
-    const decadeMax = Math.pow(10, Math.floor(Math.log10(maxFreq)));
-    
-    for (let decade = decadeMin; decade <= decadeMax; decade *= 10) {
-      for (let i=1; i < 10; i++) {
-        const freq = i * decade;
-        
-        if (freq < minFreq || freq > maxFreq) {
-          continue;
-        }
-        
-        const x = this.#p.map(Math.log10(freq), Math.log10(minFreq), Math.log10(maxFreq), pgx, pgw);
-        
-        if (i === 1) {
-          this.#gridLayer.strokeWeight(1);
-          this.#gridLayer.stroke(180);
-        } else {
-          this.#gridLayer.strokeWeight(0.5);
-          this.#gridLayer.stroke(100);
-        }
-        
-        this.#gridLayer.line(x, 0, x, pgh);
-      }
-      
-    }*/
+      this.#gridLayer.stroke(isMajor ? 100 : 50);
+      this.#gridLayer.strokeWeight(db === 0 ? 4 : isMajor ? 2 : 0.1);
+      this.#gridLayer.line(0, y, pgw, y);
+    });
     
   }
   
@@ -171,8 +170,8 @@ class GridAndLabels {
     );
 
     this.#spectrumLayer = this.#p.createGraphics(
-      this.#labelsLayer.width * this.ratio,
-      this.#labelsLayer.height * this.ratio
+      this.#gridLayer.width,
+      this.#gridLayer.height
     );
 
     this.#labelsSize = [this.#labelsLayer.width, this.#labelsLayer.height];
@@ -211,7 +210,7 @@ const sketch = (p) => {
 
   let osc, lfo;
   let fft;
-  const baseFreq = 440;
+  const baseFreq = 1000;
 
   const gridGraph = new GridAndLabels(p);
 
@@ -233,7 +232,7 @@ const sketch = (p) => {
     const rFrq = baseFreq * p.random();
     // osc.freq(baseFreq + rFrq);
     osc.freq(baseFreq);
-    osc.amp(0.5);
+    //osc.amp(0.01);
     osc.start();
     
     /*
