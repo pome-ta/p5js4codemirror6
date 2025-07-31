@@ -68,21 +68,26 @@ class GridAndLabels {
     this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
   }
 
-
-  get #sampleRate() {
-    return this.#p.sampleRate();
-  }
-  
-  
-  #createBase() {
+  #setLabelsLayer() {
     this.#labelsLayer.clear();
+    const [w, h] = this.#labelsSize;
+    const [x, y] = this.#labelsPosition;
+
+    //this.#labelsLayer.fill(0, 255, 255);
+    //this.#labelsLayer.rect(0, 0, w, h);
+  }
+
+  #setGridLayer() {
     this.#gridLayer.clear();
+    const [pgw, pgh] = this.#gridSize;
+    const [pgx, pgy] = this.#gridPosition;
+    //this.#gridLayer.fill(255, 0, 255);
+    //this.#gridLayer.rect(0, 0, pgw, pgh);
     
-    const [lw, lh] = this.#labelsSize;
-    const [lx, ly] = this.#labelsPosition;
-    const [gw, gh] = this.#gridSize;
-    const [gx, gy] = this.#gridPosition;
     
+    /* 
+      log スケールとlinear スケールの切り替え？
+    */
     
     const minFreq = this.#bandWidth;
     const maxFreq = this.#nyquist;
@@ -90,54 +95,54 @@ class GridAndLabels {
     const minLog = Math.log10(minFreq);
     const maxLog = Math.log10(maxFreq);
 
-    // x: hz
+
     const decades = Array.from(
       { length: Math.floor(maxLog) - Math.floor(minLog) + 1 },
       (_, d) => d + Math.floor(minLog)
     );
 
     const ticks = [...Array(9)].map((_, i) => i + 1);
-    
+
     decades.forEach((d) => {
       ticks.forEach((i) => {
         const freq = i * 10 ** d;
-        if (freq <= minFreq || freq >= maxFreq){
+        if (freq < minFreq || freq > maxFreq){
           return;
         } 
     
-        const x = this.#p.map(Math.log10(freq), minLog, maxLog, 0, gw);
+        const x = this.#p.map(Math.log10(freq), minLog, maxLog, 0, pgw);
         const isMajor = i === 1;
-        
+        if (isMajor) {
+          console.log(freq)
+        }
     
         this.#gridLayer.stroke(isMajor ? 100 : 50);
-        this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
-        this.#gridLayer.line(x, 0, x, gh);
+        this.#gridLayer.strokeWeight(isMajor ? 1 : 0.5);
+        this.#gridLayer.line(x, 0, x, pgh);
       });
     });
     
-    // y: db
+    
+
     const dbTicks = Array.from(
       { length: Math.floor((this.maxDb - this.minDb) / this.dbStep) + 1 },
       (_, i) => this.minDb + i * this.dbStep
     );
 
     dbTicks.forEach((db) => {
-      console.log(db)
-      if (db <= this.minDb || db >= this.maxDb) {
-        return;
-      }
-      const y = this.#p.map(db, this.minDb, this.maxDb, gh, 0);
+      const y = this.#p.map(db, this.minDb, this.maxDb, pgh, 0);
       const isMajor = db % 12 === 0;
       
     
       this.#gridLayer.stroke(isMajor ? 100 : 50);
-      this.#gridLayer.strokeWeight(db === 0 ? 2 : isMajor ? 1 : 0.8);
-      this.#gridLayer.line(0, y, gw, y);
+      this.#gridLayer.strokeWeight(db === 0 ? 2 : isMajor ? 2 : 0.1);
+      this.#gridLayer.line(0, y, pgw, y);
     });
-
     
-    
-    
+  }
+  
+  get #sampleRate() {
+    return this.#p.sampleRate();
   }
   
   #setBaseGraphics() {
@@ -145,9 +150,8 @@ class GridAndLabels {
     this.#bandWidth = this.#nyquist / this.#fft.bins;
     
     this.#setSize();
-    //this.#setLabelsLayer();
-    //this.#setGridLayer();
-    this.#createBase();
+    this.#setLabelsLayer();
+    this.#setGridLayer();
     this.#drawBaseGraphics();
   }
 
@@ -236,16 +240,16 @@ const sketch = (p) => {
     const rFrq = baseFreq * p.random();
     // osc.freq(baseFreq + rFrq);
     osc.freq(baseFreq);
-    //osc.amp(0.5);
+    osc.amp(0.5);
     osc.start();
     
-    
+    /*
     lfo = new p5.Oscillator(0.1, types[0]); // 速さ
     lfo.amp(440); // 幅
     lfo.start();
     lfo.disconnect();
     lfo.connect(osc.freqNode);
-    
+    */
     
     
     
