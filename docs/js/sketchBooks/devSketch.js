@@ -1,6 +1,11 @@
 // すぺあな
 class GridAndLabels {
   #p;
+  
+  #fft;
+  #nyquist;
+  #bandWidth;
+  
   #labelsLayer;
   #gridLayer;
   #spectrumLayer;
@@ -10,12 +15,13 @@ class GridAndLabels {
   #gridSize;
   #gridPosition;
   
-  #nyquist;
-  #bandWidth;
+
 
 
   constructor(mainInstance, isLinear=false) {
     this.#p = mainInstance;
+    this.#fft = null;
+    
     this.#labelsLayer = null;
     this.#gridLayer = null;
     this.#spectrumLayer = null;
@@ -29,12 +35,7 @@ class GridAndLabels {
   }
   
   setup(fft) {
-    /*
-    */
-    
-    this.#nyquist = this.#sampleRate / 2;
-    this.#bandWidth = this.#nyquist / fft.bins;
-    
+    this.#fft = fft;
     this.#setBaseGraphics();
     this.#useWindowResized();
   }
@@ -58,6 +59,7 @@ class GridAndLabels {
       const amplitudeRatio = amplitude / 255;
       const logDb = 20 * Math.log10(amplitudeRatio || 1e-10);
       const y = this.#p.map(logDb, this.minDb, this.maxDb, gh, 0);
+      //const y = this.#p.map(amplitude, 0, 225, gh, 0);
       
       
       this.#spectrumLayer.vertex(x, y);
@@ -112,6 +114,9 @@ class GridAndLabels {
     
         const x = this.#p.map(Math.log10(freq), minLog, maxLog, 0, pgw);
         const isMajor = i === 1;
+        if (isMajor) {
+          console.log(freq)
+        }
     
         this.#gridLayer.stroke(isMajor ? 100 : 50);
         this.#gridLayer.strokeWeight(isMajor ? 1 : 0.5);
@@ -132,7 +137,7 @@ class GridAndLabels {
       
     
       this.#gridLayer.stroke(isMajor ? 100 : 50);
-      this.#gridLayer.strokeWeight(db === 0 ? 4 : isMajor ? 2 : 0.1);
+      this.#gridLayer.strokeWeight(db === 0 ? 2 : isMajor ? 2 : 0.1);
       this.#gridLayer.line(0, y, pgw, y);
     });
     
@@ -143,6 +148,9 @@ class GridAndLabels {
   }
   
   #setBaseGraphics() {
+    this.#nyquist = this.#sampleRate / 2;
+    this.#bandWidth = this.#nyquist / this.#fft.bins;
+    
     this.#setSize();
     this.#setLabelsLayer();
     this.#setGridLayer();
@@ -234,15 +242,16 @@ const sketch = (p) => {
     const rFrq = baseFreq * p.random();
     // osc.freq(baseFreq + rFrq);
     osc.freq(baseFreq);
-    osc.amp(0.1);
+    osc.amp(0.5);
     osc.start();
     
-    
+    /*
     lfo = new p5.Oscillator(0.1, types[0]); // 速さ
     lfo.amp(440); // 幅
     lfo.start();
     lfo.disconnect();
     lfo.connect(osc.freqNode);
+    */
     
     
     
