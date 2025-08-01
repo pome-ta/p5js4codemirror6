@@ -25,8 +25,10 @@ class GridAndLabels {
     this.#spectrumLayer = null;
     this.isLinear = isLinear;
 
+    // todo: マージン設定方法要検討
     this.ratio = 0.92;
     
+    // todo: どこで定義するか要検討
     this.minDb = -60;
     this.maxDb = +6;
     this.dbStep = 6;
@@ -42,28 +44,27 @@ class GridAndLabels {
     this.#drawBaseGraphics();
     this.#spectrumLayer.clear();
     
-    const [gw, gh] = this.#gridSize;
-    const [gx, gy] = this.#gridPosition;
+    const [pgw, pgh] = this.#gridSize;
+    const [pgx, pgy] = this.#gridPosition;
     
     this.#spectrumLayer.noFill();
     this.#spectrumLayer.beginShape();
-    this.#spectrumLayer.vertex(0, gh);
+    this.#spectrumLayer.vertex(0, pgh);
     // 今後break するかも?で、`for`
     for (const [index, amplitude] of Object.entries(spectrum)) {
       const bin = index * this.#bandWidth;
      
-      const x = this.#p.map(Math.log10(bin ? bin : 1e-8), Math.log10(this.#bandWidth), Math.log10(this.#nyquist), 0, gw);
+      const x = this.#p.map(Math.log10(bin ? bin : 1e-8), Math.log10(this.#bandWidth), Math.log10(this.#nyquist), 0, pgw);
       
       const amplitudeRatio = amplitude / 255;
       const logDb = 20 * Math.log10(amplitudeRatio || 1e-10);
-      const y = this.#p.map(logDb, this.minDb, this.maxDb, gh, 0);
+      const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
       //const y = this.#p.map(amplitude, 0, 225, gh, 0);
-      
       
       this.#spectrumLayer.vertex(x, y);
       //this.#spectrumLayer.curveVertex(x, y);
     }
-    this.#spectrumLayer.vertex(gw, gh);
+    this.#spectrumLayer.vertex(pgw, pgh);
     this.#spectrumLayer.endShape();
     this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
   }
@@ -83,7 +84,18 @@ class GridAndLabels {
     const [gw, gh] = this.#gridSize;
     const [gx, gy] = this.#gridPosition;
     
+    const xDistance = (lw - gw) / 2;
+    const yDistance = (lh - gh) / 2;
     
+    
+    //this.#labelsLayer.fill(255, 0, 255);
+    //this.#labelsLayer.rect(0, 0, lw, lh);
+    
+    this.#labelsLayer.textFont('monospace');
+    this.#labelsLayer.textSize(8);
+    this.#labelsLayer.fill(255);
+    
+    // xxx: ここの変数は、別で`this.` として取り回せるはず
     const minFreq = this.#bandWidth;
     const maxFreq = this.#nyquist;
     
@@ -98,12 +110,20 @@ class GridAndLabels {
 
     const ticks = [...Array(9)].map((_, i) => i + 1);
     
-    decades.forEach((d) => {
+    const digits = Math.floor(Math.log10(minFreq));
+    const minimumFreq = Math.floor(minFreq / 10 ** digits) * 10 ** digits;
+    
+    this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
+    this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.TOP);
+    this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.CENTER);
+    decades.forEach((d, idx) => {
       ticks.forEach((i) => {
         const freq = i * 10 ** d;
-        if (freq <= minFreq || freq >= maxFreq){
+        
+        if (freq < minimumFreq || freq >= maxFreq){
+          console.log(freq)
           return;
-        } 
+        }
     
         const x = this.#p.map(Math.log10(freq), minLog, maxLog, 0, gw);
         const isMajor = i === 1;
@@ -112,27 +132,32 @@ class GridAndLabels {
         this.#gridLayer.stroke(isMajor ? 100 : 50);
         this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
         this.#gridLayer.line(x, 0, x, gh);
+        //i % 2 === 0 || idx % 2 === 1 ? this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.TOP): this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
+        i % 2 === 0 || isMajor?
+        this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` :`${freq}`, x + xDistance, lh - (yDistance / 2))
+        : null;
       });
     });
     
+
     // y: db
     const dbTicks = Array.from(
       { length: Math.floor((this.maxDb - this.minDb) / this.dbStep) + 1 },
       (_, i) => this.minDb + i * this.dbStep
     );
 
+    this.#labelsLayer.textAlign(this.#p.RIGHT, this.#p.CENTER);
     dbTicks.forEach((db) => {
-      console.log(db)
       if (db <= this.minDb || db >= this.maxDb) {
         return;
       }
       const y = this.#p.map(db, this.minDb, this.maxDb, gh, 0);
       const isMajor = db % 12 === 0;
-      
-    
+
       this.#gridLayer.stroke(isMajor ? 100 : 50);
       this.#gridLayer.strokeWeight(db === 0 ? 2 : isMajor ? 1 : 0.8);
       this.#gridLayer.line(0, y, gw, y);
+      this.#labelsLayer.text(`${db}`, lx, y + yDistance);
     });
 
     
