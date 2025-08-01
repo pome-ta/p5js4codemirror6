@@ -26,7 +26,7 @@ class GridAndLabels {
     this.isLinear = isLinear;
 
     // todo: マージン設定方法要検討
-    this.ratio = 0.92;
+    this.ratio = 0.96;
     
     // todo: どこで定義するか要検討
     this.minDb = -60;
@@ -113,9 +113,9 @@ class GridAndLabels {
     const digits = Math.floor(Math.log10(minFreq));
     const minimumFreq = Math.floor(minFreq / 10 ** digits) * 10 ** digits;
     
-    this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
-    this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.TOP);
-    this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.CENTER);
+    //this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
+    //this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.TOP);
+    //this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.CENTER);
     decades.forEach((d, idx) => {
       ticks.forEach((i) => {
         const freq = i * 10 ** d;
@@ -133,6 +133,7 @@ class GridAndLabels {
         this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
         this.#gridLayer.line(x, 0, x, gh);
         //i % 2 === 0 || idx % 2 === 1 ? this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.TOP): this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
+        isMajor? this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM) : this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.TOP);
         i % 2 === 0 || isMajor?
         this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` :`${freq}`, x + xDistance, lh - (yDistance / 2))
         : null;
