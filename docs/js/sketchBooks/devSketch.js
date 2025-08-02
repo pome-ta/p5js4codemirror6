@@ -26,7 +26,7 @@ class GridAndLabels {
     this.isLinear = isLinear;
 
     // todo: マージン設定方法要検討
-    this.ratio = 0.96;
+    this.ratio = 0.88;
     
     // todo: どこで定義するか要検討
     this.minDb = -60;
@@ -88,8 +88,8 @@ class GridAndLabels {
     const yDistance = (lh - gh) / 2;
     
     
-    //this.#labelsLayer.fill(255, 0, 255);
-    //this.#labelsLayer.rect(0, 0, lw, lh);
+    this.#labelsLayer.fill(255, 0, 255);
+    this.#labelsLayer.rect(0, 0, lw, lh);
     
     this.#labelsLayer.textFont('monospace');
     this.#labelsLayer.textSize(8);
@@ -113,15 +113,11 @@ class GridAndLabels {
     const digits = Math.floor(Math.log10(minFreq));
     const minimumFreq = Math.floor(minFreq / 10 ** digits) * 10 ** digits;
     
-    //this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
-    //this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.TOP);
-    //this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.CENTER);
     decades.forEach((d, idx) => {
       ticks.forEach((i) => {
         const freq = i * 10 ** d;
         
-        if (freq < minimumFreq || freq >= maxFreq){
-          console.log(freq)
+        if (freq <= minimumFreq || freq >= maxFreq){
           return;
         }
     
@@ -129,14 +125,23 @@ class GridAndLabels {
         const isMajor = i === 1;
         
     
-        this.#gridLayer.stroke(isMajor ? 100 : 50);
-        this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
+        
+        if (i % 2 === 0 || isMajor) {
+          this.#gridLayer.stroke(isMajor ? 100 : 50);
+          this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
+          //this.#gridLayer.line(x, 0, x, gh);
+          
+          isMajor? this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM) : this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.TOP);
+          this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` :`${freq}`, x + xDistance, lh - yDistance /2);
+          
+        } else {
+          this.#gridLayer.stroke(25);
+          this.#gridLayer.strokeWeight(0.4);
+          //this.#gridLayer.line(x, 0, x, gh);
+        }
+        
         this.#gridLayer.line(x, 0, x, gh);
-        //i % 2 === 0 || idx % 2 === 1 ? this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.TOP): this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
-        isMajor? this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM) : this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.TOP);
-        i % 2 === 0 || isMajor?
-        this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` :`${freq}`, x + xDistance, lh - (yDistance / 2))
-        : null;
+        
       });
     });
     
