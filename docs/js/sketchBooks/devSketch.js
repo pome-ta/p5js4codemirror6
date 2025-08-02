@@ -26,7 +26,7 @@ class GridAndLabels {
     this.isLinear = isLinear;
 
     // todo: マージン設定方法要検討
-    this.ratio = 0.88;
+    this.ratio = 0.96;
     
     // todo: どこで定義するか要検討
     this.minDb = -60;
@@ -62,7 +62,6 @@ class GridAndLabels {
       //const y = this.#p.map(amplitude, 0, 225, gh, 0);
       
       this.#spectrumLayer.vertex(x, y);
-      //this.#spectrumLayer.curveVertex(x, y);
     }
     this.#spectrumLayer.vertex(pgw, pgh);
     this.#spectrumLayer.endShape();
@@ -84,12 +83,17 @@ class GridAndLabels {
     const [gw, gh] = this.#gridSize;
     const [gx, gy] = this.#gridPosition;
     
-    const xDistance = (lw - gw) / 2;
-    const yDistance = (lh - gh) / 2;
-    
     
     this.#labelsLayer.fill(255, 0, 255);
     this.#labelsLayer.rect(0, 0, lw, lh);
+    
+    this.#gridLayer.fill(0, 255, 255);
+    this.#gridLayer.rect(0, 0, gw, gh);
+    
+    
+    const xDistance = (lw - gw) / 2;
+    const yDistance = (lh - gh) / 2;
+    
     
     this.#labelsLayer.textFont('monospace');
     this.#labelsLayer.textSize(8);
@@ -111,33 +115,32 @@ class GridAndLabels {
     const ticks = [...Array(9)].map((_, i) => i + 1);
     
     const digits = Math.floor(Math.log10(minFreq));
+    // 20hz 用
     const minimumFreq = Math.floor(minFreq / 10 ** digits) * 10 ** digits;
     
     decades.forEach((d, idx) => {
       ticks.forEach((i) => {
         const freq = i * 10 ** d;
         
-        if (freq <= minimumFreq || freq >= maxFreq){
+        if (freq < minimumFreq || freq >= maxFreq){
           return;
         }
     
         const x = this.#p.map(Math.log10(freq), minLog, maxLog, 0, gw);
         const isMajor = i === 1;
-        
     
-        
+        //BOTTOM
         if (i % 2 === 0 || isMajor) {
           this.#gridLayer.stroke(isMajor ? 100 : 50);
           this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
-          //this.#gridLayer.line(x, 0, x, gh);
           
-          isMajor? this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM) : this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.TOP);
-          this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` :`${freq}`, x + xDistance, lh - yDistance /2);
+          isMajor? this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.TOP) : this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
+          const ty = isMajor ? lh - yDistance : lh;
+          this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` :`${freq}`, x + xDistance, ty);
           
         } else {
           this.#gridLayer.stroke(25);
           this.#gridLayer.strokeWeight(0.4);
-          //this.#gridLayer.line(x, 0, x, gh);
         }
         
         this.#gridLayer.line(x, 0, x, gh);
@@ -152,7 +155,9 @@ class GridAndLabels {
       (_, i) => this.minDb + i * this.dbStep
     );
 
+
     this.#labelsLayer.textAlign(this.#p.RIGHT, this.#p.CENTER);
+    //this.#labelsLayer.textAlign(this.#p.LEFT, this.#p.CENTER);
     dbTicks.forEach((db) => {
       if (db <= this.minDb || db >= this.maxDb) {
         return;
@@ -163,7 +168,7 @@ class GridAndLabels {
       this.#gridLayer.stroke(isMajor ? 100 : 50);
       this.#gridLayer.strokeWeight(db === 0 ? 2 : isMajor ? 1 : 0.8);
       this.#gridLayer.line(0, y, gw, y);
-      this.#labelsLayer.text(`${db}`, lx, y + yDistance);
+      this.#labelsLayer.text(`${db}`, lw, y + yDistance);
     });
 
     
@@ -176,8 +181,6 @@ class GridAndLabels {
     this.#bandWidth = this.#nyquist / this.#fft.bins;
     
     this.#setSize();
-    //this.#setLabelsLayer();
-    //this.#setGridLayer();
     this.#createBase();
     this.#drawBaseGraphics();
   }
@@ -245,7 +248,7 @@ const sketch = (p) => {
 
   let osc, lfo;
   let fft;
-  const baseFreq = 220;
+  const baseFreq = 1000;
 
   const gridGraph = new GridAndLabels(p);
 
@@ -263,19 +266,20 @@ const sketch = (p) => {
     // sound
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
     osc = new p5.Oscillator();
-    osc.setType(types[3]);
+    osc.setType(types[0]);
     const rFrq = baseFreq * p.random();
     // osc.freq(baseFreq + rFrq);
     osc.freq(baseFreq);
-    //osc.amp(0.5);
+    osc.amp(0.5);
     osc.start();
     
-    
+    /*
     lfo = new p5.Oscillator(0.1, types[0]); // 速さ
     lfo.amp(440); // 幅
     lfo.start();
     lfo.disconnect();
     lfo.connect(osc.freqNode);
+    */
     
     
     
@@ -283,7 +287,6 @@ const sketch = (p) => {
     
     window._cacheSounds = [osc, lfo];
     
-
     gridGraph.setup(fft);
     //p.frameRate(10);
   };
