@@ -15,8 +15,6 @@ class GridAndLabels {
   #gridSize;
   #gridPosition;
   
-  #xyListOld;
-  
 
   constructor(mainInstance, isLinear=false) {
     this.#p = mainInstance;
@@ -34,8 +32,6 @@ class GridAndLabels {
     this.minDb = -60;
     this.maxDb = +6;
     this.dbStep = 6;
-    
-    this.#xyListOld = [];
   }
   
   setup(fft) {
@@ -51,72 +47,14 @@ class GridAndLabels {
     const [pgw, pgh] = this.#gridSize;
     const [pgx, pgy] = this.#gridPosition;
     
-    const xyList = spectrum.map((amplitude, index) => {
-      const bin = index * this.#minFreq;
-     
-      const x = this.#p.map(Math.log10(bin ? bin : 1e-12), Math.log10(this.#minFreq), Math.log10(this.#maxFreq), 0, pgw);
-      
-      const amplitudeRatio = amplitude / 255;
-      const logDb = 20 * Math.log10(amplitudeRatio || 1e-10);
-      const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
-      return [x, y];
-    });
-    
-    // xxx: 今後の場合分け用？
-    
-    //this.#spectrumLayer.noFill();
-    this.#spectrumLayer.noStroke();
-    this.#spectrumLayer.fill(0, 255, 255, 64);
-    this.#spectrumLayer.beginShape();
-    this.#spectrumLayer.vertex(0, pgh);
-    
-    [...xyList].forEach((xy) => {
-      this.#spectrumLayer.vertex(...xy);
-    });
-    
-    this.#spectrumLayer.vertex(pgw, pgh);
-    this.#spectrumLayer.endShape();
-    
     this.#spectrumLayer.noFill();
-    if (this.#xyListOld?.length) {
-      this.#spectrumLayer.stroke(255, 0, 255);
-      this.#spectrumLayer.beginShape();
-      this.#spectrumLayer.vertex(0, pgh);
-      
-      [...this.#xyListOld].forEach((xy) => {
-        this.#spectrumLayer.vertex(...xy);
-      });
-      
-      this.#spectrumLayer.vertex(pgw, pgh);
-      this.#spectrumLayer.endShape();
-    }
-    
-    
-    
-    
-    //this.#spectrumLayer.noStroke();
-    this.#spectrumLayer.stroke(0, 255, 255);
     this.#spectrumLayer.beginShape();
     this.#spectrumLayer.vertex(0, pgh);
-    
-    [...xyList].forEach((xy) => {
-      this.#spectrumLayer.vertex(...xy);
-    });
-    
-    this.#spectrumLayer.vertex(pgw, pgh);
-    this.#spectrumLayer.endShape();
-    
-    this.#xyListOld = xyList;
-    
-    
-    
-    
-    /*
     // 今後break するかも?で、`for`
     for (const [index, amplitude] of Object.entries(spectrum)) {
       const bin = index * this.#minFreq;
      
-      const x = this.#p.map(Math.log10(bin ? bin : 1e-12), Math.log10(this.#minFreq), Math.log10(this.#maxFreq), 0, pgw);
+      const x = this.#p.map(Math.log10(bin ? bin : 1e-8), Math.log10(this.#minFreq), Math.log10(this.#maxFreq), 0, pgw);
       
       const amplitudeRatio = amplitude / 255;
       const logDb = 20 * Math.log10(amplitudeRatio || 1e-10);
@@ -124,10 +62,8 @@ class GridAndLabels {
       
       this.#spectrumLayer.vertex(x, y);
     }
-    */
-    
-    
-    
+    this.#spectrumLayer.vertex(pgw, pgh);
+    this.#spectrumLayer.endShape();
     this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
   }
 
@@ -295,7 +231,7 @@ const sketch = (p) => {
 
   let osc, lfo;
   let fft;
-  const baseFreq = 220;
+  const baseFreq = 1000;
 
   const gridGraph = new GridAndLabels(p);
 
@@ -313,20 +249,20 @@ const sketch = (p) => {
     // sound
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
     osc = new p5.Oscillator();
-    osc.setType(types[3]);
+    osc.setType(types[0]);
     const rFrq = baseFreq * p.random();
     // osc.freq(baseFreq + rFrq);
     osc.freq(baseFreq);
     osc.amp(0.5);
     osc.start();
     
-    
+    /*
     lfo = new p5.Oscillator(0.1, types[0]); // 速さ
     lfo.amp(440); // 幅
     lfo.start();
     lfo.disconnect();
     lfo.connect(osc.freqNode);
-    
+    */
     
     
     
