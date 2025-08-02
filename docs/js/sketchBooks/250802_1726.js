@@ -91,6 +91,10 @@ class GridAndLabels {
       this.#spectrumLayer.endShape();
     }
     
+    
+    
+    
+    //this.#spectrumLayer.noStroke();
     this.#spectrumLayer.stroke(0, 255, 255, 192);
     this.#spectrumLayer.beginShape();
     this.#spectrumLayer.vertex(0, pgh);
@@ -103,6 +107,26 @@ class GridAndLabels {
     this.#spectrumLayer.endShape();
     
     this.#xyListOld = xyList;
+    
+    
+    
+    
+    /*
+    // 今後break するかも?で、`for`
+    for (const [index, amplitude] of Object.entries(spectrum)) {
+      const bin = index * this.#minFreq;
+     
+      const x = this.#p.map(Math.log10(bin ? bin : 1e-12), Math.log10(this.#minFreq), Math.log10(this.#maxFreq), 0, pgw);
+      
+      const amplitudeRatio = amplitude / 255;
+      const logDb = 20 * Math.log10(amplitudeRatio || 1e-10);
+      const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
+      
+      this.#spectrumLayer.vertex(x, y);
+    }
+    */
+    
+    
     
     this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
   }
@@ -302,6 +326,11 @@ const sketch = (p) => {
     lfo.start();
     lfo.disconnect();
     lfo.connect(osc.freqNode);
+    
+    
+    
+    
+    
     
     window._cacheSounds = [osc, lfo];
     
