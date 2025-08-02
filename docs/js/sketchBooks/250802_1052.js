@@ -3,8 +3,8 @@ class GridAndLabels {
   #p;
   
   #fft;
-  #minFreq;
-  #maxFreq;
+  #nyquist;
+  #bandWidth;
   
   #labelsLayer;
   #gridLayer;
@@ -52,13 +52,14 @@ class GridAndLabels {
     this.#spectrumLayer.vertex(0, pgh);
     // 今後break するかも?で、`for`
     for (const [index, amplitude] of Object.entries(spectrum)) {
-      const bin = index * this.#minFreq;
+      const bin = index * this.#bandWidth;
      
-      const x = this.#p.map(Math.log10(bin ? bin : 1e-8), Math.log10(this.#minFreq), Math.log10(this.#maxFreq), 0, pgw);
+      const x = this.#p.map(Math.log10(bin ? bin : 1e-8), Math.log10(this.#bandWidth), Math.log10(this.#nyquist), 0, pgw);
       
       const amplitudeRatio = amplitude / 255;
       const logDb = 20 * Math.log10(amplitudeRatio || 1e-10);
       const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
+      //const y = this.#p.map(amplitude, 0, 225, gh, 0);
       
       this.#spectrumLayer.vertex(x, y);
     }
@@ -82,12 +83,29 @@ class GridAndLabels {
     const [gw, gh] = this.#gridSize;
     const [gx, gy] = this.#gridPosition;
     
+    /*
+    this.#labelsLayer.fill(255, 0, 255);
+    this.#labelsLayer.rect(0, 0, lw, lh);
+    
+    this.#gridLayer.fill(0, 255, 255);
+    this.#gridLayer.rect(0, 0, gw, gh);
+    */
+    
+    
     const xDistance = (lw - gw) / 2;
     const yDistance = (lh - gh) / 2;
     
     
-    const minLog = Math.log10(this.#minFreq);
-    const maxLog = Math.log10(this.#maxFreq);
+    this.#labelsLayer.textFont('monospace');
+    this.#labelsLayer.textSize(8);
+    this.#labelsLayer.fill(255);
+    
+    // xxx: ここの変数は、別で`this.` として取り回せるはず
+    const minFreq = this.#bandWidth;
+    const maxFreq = this.#nyquist;
+    
+    const minLog = Math.log10(minFreq);
+    const maxLog = Math.log10(maxFreq);
 
     // x: hz
     const decades = Array.from(
@@ -97,31 +115,28 @@ class GridAndLabels {
 
     const ticks = [...Array(9)].map((_, i) => i + 1);
     
-    const digits = Math.floor(Math.log10(this.#minFreq));
+    const digits = Math.floor(Math.log10(minFreq));
     // 20hz 用
-    const minimumFreq = Math.floor(this.#minFreq / 10 ** digits) * 10 ** digits;
+    const minimumFreq = Math.floor(minFreq / 10 ** digits) * 10 ** digits;
     
-    this.#labelsLayer.textFont('monospace');
-    this.#labelsLayer.textSize(8);
-    this.#labelsLayer.fill(255);
-    
-    this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
     decades.forEach((d, idx) => {
       ticks.forEach((i) => {
         const freq = i * 10 ** d;
         
-        if (freq < minimumFreq || freq >= this.#maxFreq){
+        if (freq < minimumFreq || freq >= maxFreq){
           return;
         }
     
         const x = this.#p.map(Math.log10(freq), minLog, maxLog, 0, gw);
         const isMajor = i === 1;
     
+        //BOTTOM
         if (i % 2 === 0 || isMajor) {
           this.#gridLayer.stroke(isMajor ? 100 : 50);
           this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
           
-          const ty = isMajor ? gh + ly : lh - yDistance / 2;
+          isMajor? this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.TOP) : this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
+          const ty = isMajor ? lh - yDistance : lh;
           this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` :`${freq}`, x + xDistance, ty);
           
         } else {
@@ -143,6 +158,7 @@ class GridAndLabels {
 
 
     this.#labelsLayer.textAlign(this.#p.RIGHT, this.#p.CENTER);
+    //this.#labelsLayer.textAlign(this.#p.LEFT, this.#p.CENTER);
     dbTicks.forEach((db) => {
       if (db <= this.minDb || db >= this.maxDb) {
         return;
@@ -155,15 +171,15 @@ class GridAndLabels {
       this.#gridLayer.line(0, y, gw, y);
       this.#labelsLayer.text(`${db}`, lw, y + yDistance);
     });
+
+    
+    
     
   }
   
   #setBaseGraphics() {
-    this.nyquist = this.#sampleRate / 2;
-    this.bandWidth = this.nyquist / this.#fft.bins;
-    
-    this.#minFreq = this.bandWidth;
-    this.#maxFreq = this.nyquist;
+    this.#nyquist = this.#sampleRate / 2;
+    this.#bandWidth = this.#nyquist / this.#fft.bins;
     
     this.#setSize();
     this.#createBase();
@@ -171,6 +187,8 @@ class GridAndLabels {
   }
 
   #drawBaseGraphics() {
+    const [lx, ly] = this.#labelsPosition;
+    const [gx, gy] = this.#gridPosition;
     this.#p.image(this.#labelsLayer, ...this.#labelsPosition);
     this.#p.image(this.#gridLayer, ...this.#gridPosition);
   }
