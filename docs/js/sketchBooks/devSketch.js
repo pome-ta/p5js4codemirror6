@@ -269,9 +269,10 @@ const sketch = (p) => {
   let h = p.windowHeight;
   let bgColor;
 
-  let osc, lfo;
+  let osc;
+  let part, phrase;
   let fft;
-  const baseFreq = 220;
+  
 
   const gridGraph = new GridAndLabels(p);
 
@@ -289,21 +290,26 @@ const sketch = (p) => {
     // sound
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
     osc = new p5.Oscillator();
-    osc.setType(types[3]);
-    const rFrq = baseFreq * p.random();
-    // osc.freq(baseFreq + rFrq);
-    osc.freq(baseFreq);
-    osc.amp(0.5);
+    osc.setType(types[0]);
     osc.start();
+    osc.amp(0.0);
     
     
-    lfo = new p5.Oscillator(0.1, types[0]); // 速さ
-    lfo.amp(440); // 幅
-    lfo.start();
-    lfo.disconnect();
-    lfo.connect(osc.freqNode);
+    const callback = (time, playbackRate) => {
+      osc.freq(playbackRate);
+      osc.amp(1.0);
+    };
     
-    window._cacheSounds = [osc, lfo];
+    
+    
+    phrase = new p5.Phrase('metronom', callback, [880, 0, 440, 0]);
+    
+    part = new p5.Part();
+    part.setBPM(120);
+    part.addPhrase(phrase);
+    part.loop();
+    
+    window._cacheSounds = [osc];
     
     gridGraph.setup(fft);
     //p.frameRate(10);
