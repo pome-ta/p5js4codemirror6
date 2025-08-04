@@ -12,7 +12,7 @@ function runSketch(code) {
     setAttrs: {
       // id: 'p5SourceScript',
       type: 'text/javascript',
-      //type: 'module',
+      //type: 'defer',
       
     },
     // xxx: スコープを切る

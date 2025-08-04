@@ -1,11 +1,14 @@
 //import { Engine } from "https://esm.sh/@babylonjs/core/Engines/engine";
-
+/*
 (async() => {
   const { dayjs } = await import("https://esm.sh/dayjs");
   console.log(dayjs)
 })();
+*/
+const dayjsURLPath = 'https://esm.sh/dayjs';
+let dayjs;
 
-
+let noise2D;
 
 
 // Metronom
@@ -300,6 +303,15 @@ const sketch = (p) => {
   
 
   const gridGraph = new GridAndLabels(p);
+  
+  p.preload = () => {
+    console.log('p');
+    
+    const { createNoise2D } = await import('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/dist/esm/simplex-noise.js');
+    //noise2D = createNoise2D();
+    //console.log(noise2D);
+    
+  }
 
   p.setup = () => {
     // put setup code here
@@ -358,7 +370,7 @@ const sketch = (p) => {
     
     part = new p5.Part();
     part.setBPM(BPM);
-    //part.addPhrase(metrPhrase);
+    part.addPhrase(metrPhrase);
     part.addPhrase(kickPhrase);
     
     part.loop();
@@ -368,6 +380,7 @@ const sketch = (p) => {
     
     gridGraph.setup(fft);
     //p.frameRate(10);
+    //console.log(noise2D);
   };
 
   p.draw = () => {
@@ -399,5 +412,25 @@ const sketch = (p) => {
   }
 };
 
+
 new p5(sketch);
 
+/*
+(async () => {
+  dayjs = (await import(dayjsURLPath)).default;
+
+  //console.log(dayjs().format()); // 現在日時のISO文字列
+  //console.log(dayjs); // 現在日時のISO文字列
+  new p5(sketch);
+})();
+*/
+
+
+/*
+import(dayjsURLPath).then((module) => {
+  dayjs = module.default;
+}).then(() => {
+  new p5(sketch);
+});
+
+*/
