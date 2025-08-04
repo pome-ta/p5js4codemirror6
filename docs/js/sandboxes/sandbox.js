@@ -11,8 +11,8 @@ function runSketch(code) {
   const script = DomFactory.create('script', {
     setAttrs: {
       // id: 'p5SourceScript',
-      //type: 'text/javascript',
-      type: 'module',
+      type: 'text/javascript',
+      //type: 'module',
       
     },
     // xxx: スコープを切る

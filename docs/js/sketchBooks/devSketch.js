@@ -1,4 +1,11 @@
-import { Engine } from "https://esm.sh/@babylonjs/core/Engines/engine";
+//import { Engine } from "https://esm.sh/@babylonjs/core/Engines/engine";
+
+(async() => {
+  const { dayjs } = await import("https://esm.sh/dayjs");
+  console.log(dayjs)
+})();
+
+
 
 
 // Metronom
