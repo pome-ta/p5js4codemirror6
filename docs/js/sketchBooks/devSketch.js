@@ -1,3 +1,6 @@
+import { Engine } from "https://esm.sh/@babylonjs/core/Engines/engine";
+
+
 // Metronom
 class GridAndLabels {
   #p;
@@ -276,9 +279,14 @@ const sketch = (p) => {
   let h = p.windowHeight;
   let bgColor;
   
-  const BPM = 120;
+  const BPM = 98;
+  let metrTone, metrEnv, metrPhrase;
 
-  let osc, metronom;
+  let kickTone, kickEnv, kickPhrase;
+  let osc;
+  
+  
+  
   let part;
   let phrase;
   let fft;
@@ -297,40 +305,58 @@ const sketch = (p) => {
     p.background(...bgColor);
 
     fft = new p5.FFT();
-    // sound
+    
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
-    osc = new p5.Oscillator();
-    osc.setType(types[0]);
-    osc.start();
-    osc.amp(0.0);
+    // metronom
+    metrTone = new p5.Oscillator(types[1]);
+    metrTone.start();
+    metrTone.amp(0.0);
     
-    metronom = new p5.Oscillator('sine');
-    metronom.start();
-    metronom.amp(0.0);
+    metrEnv = new p5.Envelope();
+    metrEnv.setADSR(0.001, 0.05, 0.01, 0.1);
+    metrEnv.setRange(1, 0);
     
-    const callback = (time, playbackRate) => {
-      
+    metrPhrase = new p5.Phrase('metr', (time, playbackRate) => {
       if (!playbackRate) {
-        metronom.amp(0.0);
+        //metrTone.amp(0.0);
         return
       }
-      metronom.freq(playbackRate);
-      metronom.amp(1.0);
+      metrTone.freq(playbackRate);
+      //metrTone.amp(1.0);
+      metrEnv.play(metrTone);
       
-    };
+    }, [...Array(4)].flatMap((_, idx) => [idx ? 440 : 800, ...Array(3).fill(null)]));
     
-    const sequence = [...Array(4)].flatMap((_, idx) => [idx ? 440 : 800, ...Array(3).fill(null)]);
     
-    phrase = new p5.Phrase('m880', callback, sequence);
+    // sound
+    
+    kickTone = new p5.Oscillator(types[0]);
+    kickTone.start();
+    kickTone.amp(0.0);
+    
+    kickEnv = new p5.Envelope(0.001, 0.1, 0, 0.2);
+    kickEnv.setRange(1, 0);
+    
+    
+    
+    kickPhrase = new p5.Phrase('kick', (time, playbackRate) => {
+      kickTone.freq(220);
+      kickTone.amp(0);
+    
+      kickTone.freq(24, 0.15);
+      kickEnv.play(kickTone, 0, 0.01);
+      
+    }, [1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,1,0]);
     
     
     part = new p5.Part();
     part.setBPM(BPM);
-    part.addPhrase(phrase);
+    //part.addPhrase(metrPhrase);
+    part.addPhrase(kickPhrase);
     
     part.loop();
     
-    window._cacheSounds = [osc, metronom, part,];
+    window._cacheSounds = [kickTone, kickEnv, metrTone, metrEnv, part,];
     
     
     gridGraph.setup(fft);
@@ -357,7 +383,7 @@ const sketch = (p) => {
     // todo: クリップノイズ対策
     gain.value = -1;
     window._cacheSounds?.forEach((s) => {
-      s?.stop();
+      s?.stop && s?.stop();
       s?.disconnect && s?.disconnect();
     });
 
