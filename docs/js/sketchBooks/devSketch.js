@@ -9,6 +9,7 @@ const dayjsURLPath = 'https://esm.sh/dayjs';
 let dayjs;
 
 let noise2D;
+//console.log(window);
 
 
 // Metronom
@@ -304,10 +305,18 @@ const sketch = (p) => {
 
   const gridGraph = new GridAndLabels(p);
   
-  p.preload = async () => {
+  p.preload = () => {
     console.log('p');
-    dayjs = loadModule(dayjsURLPath);
-    console.log(dayjs);
+    /*
+    p.loadModule(dayjsURLPath, (mod) => {
+      dayjs = mod.default;
+    });
+    */
+  
+    console.log(p);
+    
+    //dayjs = p.loadModule(dayjsURLPath);
+    
     /*
     import(dayjsURLPath).then((module) => {
       
@@ -400,7 +409,8 @@ const sketch = (p) => {
     //p.frameRate(10);
     //console.log(noise2D);
     console.log('s');
-    console.log(dayjs);
+    //dayjs.then(m=>console.log(m.format()))
+    //console.log(dayjs);
   };
 
   p.draw = () => {

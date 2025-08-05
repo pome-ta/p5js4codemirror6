@@ -1,77 +1,61 @@
 // loadModule.js
 
-(function (root) {
-  /**
-   * preload フェーズで実行される関数の登録用
-   * p5.js 実行時に自動で呼び出される
-   */
-  function registerPreloadMethod() {
-    if (typeof p5 !== 'undefined' && typeof p5.prototype.registerMethod === 'function') {
-      p5.prototype.registerMethod('preload', preloadModulesFromQueue);
-    }
-  }
-
-  // モジュール読み込み待ちのキュー
-  const moduleLoadQueue = [];
-
-  // preload 時に呼び出される：順番に直列読み込み
-  async function preloadModulesFromQueue() {
-    for (const task of moduleLoadQueue) {
-      try {
-        const mod = await import(task.url);
-        task.resolve(task.extract(mod));
-      } catch (err) {
-        task.reject(err);
-      }
-    }
-    moduleLoadQueue.length = 0; // 消去
-  }
+(function () {
+  let _timestamp = Date.now();
+  const _loadedModules = new Map();
 
   /**
-   * モジュールを読み込み、preload 中に待機させる。
-   * preload 外で呼ばれた場合は即 import 実行。
-   *
-   * @param {string} url - ESM モジュールの URL（例: 'https://esm.sh/dayjs'）
-   * @param {(mod: any) => any} [extract] - 取得後の加工関数（default export を返すなど）
-   * @returns {any} - preload 中は undefined、preload 後は同期的に取得できる
-   *
-   * @example
-   * // preload 時に書く
-   * function preload() {
-   *   dayjs = loadModule('https://esm.sh/dayjs');
-   * }
+   * ESMモジュールを動的に読み込む
+   * @param {string} path
+   * @returns {Promise<any>}
    */
-  function loadModule(url, extract = m => m.default ?? m) {
-    let result;
-    const isPreloading = typeof window._isPreloading === 'boolean' ? window._isPreloading : true;
+  const _dynamicImportModule = async function (path) {
+    const url = `${path}?ts=${_timestamp}`;
+    if (_loadedModules.has(url)) {
+      return _loadedModules.get(url);
+    }
+    const module = await import(url);
+    _loadedModules.set(url, module);
+    return module;
+  };
 
-    if (isPreloading && typeof p5 !== 'undefined') {
-      // p5 の preload フェーズ中であれば defer 処理
-      moduleLoadQueue.push({
-        url,
-        extract,
-        resolve: value => result = value,
-        reject: err => {
-          console.error(`Failed to load module: ${url}`, err);
+  /**
+   * preload 相当の loadModule()
+   * @param {string|string[]} urls
+   * @param {function(any|any[]):void} [callback]
+   */
+  const loadModule = function (urls, callback) {
+    const urlList = Array.isArray(urls) ? urls : [urls];
+    const self = this;
+
+    const promises = urlList.map((url) => _dynamicImportModule(url));
+    Promise.all(promises)
+      .then((modules) => {
+        const result = modules.length === 1 ? modules[0] : modules;
+        if (typeof callback === 'function') {
+          callback(result);
+        }
+      })
+      .finally(() => {
+        if (typeof self._decrementPreload === 'function') {
+          self._decrementPreload();
         }
       });
-    } else {
-      // preload 外なら即時読み込み（async）
-      import(url)
-        .then(mod => {
-          result = extract(mod);
-        })
-        .catch(err => {
-          console.error(`Failed to load module: ${url}`, err);
-        });
-    }
+  };
 
-    return result; // preload 中は undefined（p5 が preload 後に自動で更新）
+  // preload用の初期化フック
+  p5.prototype.registerMethod('init', function () {
+    _timestamp = Date.now(); // キャッシュバスターの更新
+  });
+
+  // preloadメソッドとして登録(p5.sound 互換)
+  if (typeof p5.prototype.registerPreloadMethod === 'function') {
+    p5.prototype.registerPreloadMethod('loadModule', p5.prototype);
   }
 
-  // グローバルへ export（p5 global / instance mode 両対応）
-  root.loadModule = loadModule;
+  // global mode 用
+  if (typeof window !== 'undefined') {
+    window.loadModule = loadModule;
+  }
+})();
 
-  registerPreloadMethod();
-
-})(typeof window !== 'undefined' ? window : this);
