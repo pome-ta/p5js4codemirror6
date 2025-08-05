@@ -304,12 +304,30 @@ const sketch = (p) => {
 
   const gridGraph = new GridAndLabels(p);
   
-  p.preload = () => {
+  p.preload = async () => {
     console.log('p');
+    dayjs = loadModule(dayjsURLPath);
+    console.log(dayjs);
+    /*
+    import(dayjsURLPath).then((module) => {
+      
+      dayjs = module.default;
+      //console.log(dayjs);
+    }).then(()=>{
+      console.log('then');
+      console.log(dayjs);
+    });
+    */
+
+
+    /*
     
     const { createNoise2D } = await import('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/dist/esm/simplex-noise.js');
+    */
     //noise2D = createNoise2D();
     //console.log(noise2D);
+    
+    //console.log(dayjs);
     
   }
 
@@ -381,6 +399,8 @@ const sketch = (p) => {
     gridGraph.setup(fft);
     //p.frameRate(10);
     //console.log(noise2D);
+    console.log('s');
+    console.log(dayjs);
   };
 
   p.draw = () => {
