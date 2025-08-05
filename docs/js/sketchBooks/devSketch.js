@@ -307,12 +307,12 @@ const sketch = (p) => {
   
   p.preload = () => {
     console.log('p');
-    p.loadModule('dummy');
-    /*
+    //p.loadModule('dummy');
+    
     p.loadModule(dayjsURLPath, (mod) => {
       dayjs = mod.default;
     });
-    */
+    
   
     console.log(p);
     
@@ -411,11 +411,12 @@ const sketch = (p) => {
     //console.log(noise2D);
     console.log('s');
     //dayjs.then(m=>console.log(m.format()))
-    //console.log(dayjs);
+    console.log(dayjs);
   };
 
   p.draw = () => {
     // put drawing code here
+    
     p.background(...bgColor);
     const spectrum = fft.analyze();
     gridGraph.drawSpectrum(spectrum);

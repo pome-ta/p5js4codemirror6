@@ -1,21 +1,35 @@
-// loadModule.js
-(function () {
-  /**
-   * preload 互換の空関数(何もしない)
-   */
-  function loadModule(path, callback) {
-    // ここではまだ何もしないが、
-    // p5.js に「これは preload 対象だよ」と伝えるために必要
-    console.log(`loadModule: ${path}`)
+(function (root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    define('loadModule', ['p5'], factory);
+  } else if (typeof exports === 'object') {
+    module.exports = factory(require('p5'));
+  } else {
+    factory(root.p5);
   }
+}(this, function(p5) {
+  p5.prototype.loadModule = function(pathOrPaths, onSuccess, onError) {
+    const p = this;
+    const paths = Array.isArray(pathOrPaths) ? pathOrPaths : [pathOrPaths];
+    const results = [];
+    let remaining = paths.length;
 
-  // preload 対象として p5.js に登録する
-  if (typeof p5 !== 'undefined' && typeof p5.prototype.registerPreloadMethod === 'function') {
-    p5.prototype.registerPreloadMethod('loadModule', p5.prototype);
-  }
+    p._incrementPreload();
 
-  // グローバルモード用に公開
-  if (typeof window !== 'undefined') {
-    window.loadModule = loadModule;
-  }
-})();
+    paths.reduce((chain, path, index) => {
+      return chain.then(() => import(path).then((mod) => {
+        results[index] = mod;
+        remaining--;
+        if (remaining === 0) {
+          p._decrementPreload();
+          if (onSuccess) onSuccess(...results);
+        }
+      }).catch((err) => {
+        p._decrementPreload();
+        if (onError) onError(err);
+      }));
+    }, Promise.resolve());
+
+    return null; // preload用関数の戻り値としてはnullで問題ない
+  };
+}));
+
