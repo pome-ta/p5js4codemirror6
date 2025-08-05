@@ -307,6 +307,7 @@ const sketch = (p) => {
   
   p.preload = () => {
     console.log('p');
+    p.loadModule('dummy');
     /*
     p.loadModule(dayjsURLPath, (mod) => {
       dayjs = mod.default;
