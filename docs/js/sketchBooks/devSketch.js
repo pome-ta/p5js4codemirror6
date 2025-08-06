@@ -316,6 +316,15 @@ const sketch = (p) => {
     });
     
     
+    
+    /*
+    p.loadModule(dayjsURLPath).then((m) => {
+      dayjs = m.default;
+      console.log(dayjs)
+    })
+    */
+    
+    
   
     
     
@@ -414,7 +423,7 @@ const sketch = (p) => {
     //console.log(noise2D);
     console.log('s');
     //dayjs.then(m=>console.log(m.format()))
-    console.log(dayjs);
+    console.log(dayjs().format());
   };
 
   p.draw = () => {
