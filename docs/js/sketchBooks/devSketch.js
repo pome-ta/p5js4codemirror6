@@ -301,6 +301,7 @@ const sketch = (p) => {
   let part;
   let phrase;
   let fft;
+  console.log(p);
   
 
   const gridGraph = new GridAndLabels(p);
@@ -314,7 +315,7 @@ const sketch = (p) => {
     });
     
   
-    console.log(p);
+    
     
     //dayjs = p.loadModule(dayjsURLPath);
     

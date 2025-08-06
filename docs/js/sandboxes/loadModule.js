@@ -1,35 +1,59 @@
-(function (root, factory) {
-  if (typeof define === 'function' && define.amd) {
-    define('loadModule', ['p5'], factory);
-  } else if (typeof exports === 'object') {
-    module.exports = factory(require('p5'));
-  } else {
-    factory(root.p5);
+
+(function () {
+  'use strict';
+
+  if (typeof p5 === 'undefined') {
+    console.error(
+      'p5.js is not loaded. Please make sure to include p5.js before loadModule.js.'
+    );
+    return;
   }
-}(this, function(p5) {
-  p5.prototype.loadModule = function(pathOrPaths, onSuccess, onError) {
-    const p = this;
-    const paths = Array.isArray(pathOrPaths) ? pathOrPaths : [pathOrPaths];
-    const results = [];
-    let remaining = paths.length;
 
-    p._incrementPreload();
+  /**
+   * @module p5
+   * @submodule io
+   */
 
-    paths.reduce((chain, path, index) => {
-      return chain.then(() => import(path).then((mod) => {
-        results[index] = mod;
-        remaining--;
-        if (remaining === 0) {
-          p._decrementPreload();
-          if (onSuccess) onSuccess(...results);
+  /**
+   * ES Modules を動的にインポートします。
+   *
+   * @method loadModule
+   * @param  {String}          path              インポートするモジュールのパス (URL)。
+   * @param  {Function}        [successCallback] 成功時のコールバック。
+   * @param  {Function}        [failureCallback] 失敗時のコールバック。
+   * @return {Promise<Object>}                   解決されるとモジュールオブジェクトを返す Promise。
+   *
+   */
+  p5.prototype.loadModule = function (path, successCallback, failureCallback) {
+    const p5Inst = this;
+
+    const isPreloading = p5Inst._preload_count > 0;
+
+    if (isPreloading) {
+      p5Inst._incrementPreload();
+    }
+
+    const promise = import(path);
+
+    promise
+      .then((module) => {
+        if (typeof successCallback === 'function') {
+          successCallback.call(p5Inst, module);
         }
-      }).catch((err) => {
-        p._decrementPreload();
-        if (onError) onError(err);
-      }));
-    }, Promise.resolve());
+      })
+      .catch((err) => {
+        if (typeof failureCallback === 'function') {
+          failureCallback.call(p5Inst, err);
+        } else {
+          console.error(err);
+        }
+      })
+      .finally(() => {
+        if (isPreloading) {
+          p5Inst._decrementPreload();
+        }
+      });
 
-    return null; // preload用関数の戻り値としてはnullで問題ない
+    return promise;
   };
-}));
-
+})();
