@@ -7,17 +7,19 @@
     );
     return;
   }
-  
-  
 
   p5.prototype.registerMethod('init', function () {
     const _p = this;
     
     // preloadメソッドの登録
     p5.prototype.registerPreloadMethod('loadModule', p5.prototype);
-    
+
     // 非同期ロード処理を定義する
-    p5.prototype.loadModule = function (path, successCallback, failureCallback) {
+    p5.prototype.loadModule = function (
+      path,
+      successCallback,
+      failureCallback
+    ) {
       const _promise = _loadModule(path, successCallback, failureCallback);
       _promise
         .then(() => {
@@ -31,7 +33,7 @@
     }
 
   });
-  
+
   const _loadModule = function (path, successCallback, failureCallback) {
     const _p = this;
     
@@ -56,8 +58,5 @@
       });
 
     return promise;
-  }
-
-  
+  };
 })();
-
