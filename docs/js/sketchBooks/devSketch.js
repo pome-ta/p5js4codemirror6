@@ -312,6 +312,7 @@ const sketch = (p) => {
     
     p.loadModule(dayjsURLPath, (mod) => {
       dayjs = mod.default;
+      console.log(dayjs)
     });
     
   
@@ -408,7 +409,7 @@ const sketch = (p) => {
     
     
     gridGraph.setup(fft);
-    //p.frameRate(10);
+    p.frameRate(10);
     //console.log(noise2D);
     console.log('s');
     //dayjs.then(m=>console.log(m.format()))
@@ -417,7 +418,7 @@ const sketch = (p) => {
 
   p.draw = () => {
     // put drawing code here
-    
+    console.log(dayjs);
     p.background(...bgColor);
     const spectrum = fft.analyze();
     gridGraph.drawSpectrum(spectrum);
