@@ -1,23 +1,18 @@
-import { minimalSetup } from './codemirror/codemirror.js';
+import {minimalSetup} from './codemirror/codemirror.js';
+import {Compartment, EditorState, StateEffect, StateField,} from './codemirror/state.js';
 import {
-  Compartment,
-  EditorState,
-  StateField,
-  StateEffect,
-} from './codemirror/state.js';
-import {
+  Decoration,
   EditorView,
   highlightActiveLine,
   highlightActiveLineGutter,
   highlightWhitespace,
   lineNumbers,
-  Decoration,
 } from './codemirror/view.js';
-import { autocompletion, closeBrackets } from './codemirror/autocomplete.js';
-import { bracketMatching } from './codemirror/language.js';
+import {autocompletion, closeBrackets} from './codemirror/autocomplete.js';
+import {bracketMatching} from './codemirror/language.js';
 
-import { javascript } from './codemirror/lang-javascript.js';
-import { oneDark } from './codemirror/theme-one-dark.js';
+import {javascript} from './codemirror/lang-javascript.js';
+import {oneDark} from './codemirror/theme-one-dark.js';
 
 /* ref: `basicSetup` の宣言内容
 const basicSetup = (() => [
@@ -67,13 +62,13 @@ const minimalSetup = (() => [
  * backGround Rectangle span
  */
 const bgRectangleClassName = 'cm-bgRectangle';
-const bgRectangleMark = Decoration.mark({ class: bgRectangleClassName });
+const bgRectangleMark = Decoration.mark({class: bgRectangleClassName});
 const bgRectangleTheme = EditorView.baseTheme({
-  '.cm-bgRectangle': { backgroundColor: '#121212bb' },
+  '.cm-bgRectangle': {backgroundColor: '#121212bb'},
 });
 const bgRectEffect = {
-  add: StateEffect.define({ from: 0, to: 0 }),
-  remove: StateEffect.define({ from: 0, to: 0 }),
+  add: StateEffect.define({from: 0, to: 0}),
+  remove: StateEffect.define({from: 0, to: 0}),
 };
 
 const bgRectangleField = StateField.define({
@@ -99,15 +94,15 @@ const bgRectangleField = StateField.define({
 });
 
 function bgRectangleSet(view) {
-  const { state, dispatch } = view;
-  const { from, to } = state.selection.main.extend(0, state.doc.length);
+  const {state, dispatch} = view;
+  const {from, to} = state.selection.main.extend(0, state.doc.length);
   if (!from && !to) {
     return;
   }
   const decoSet = state.field(bgRectangleField, false);
 
-  const addFromTO = (from, to) => bgRectEffect.add.of({ from, to });
-  const removeFromTO = (from, to) => bgRectEffect.remove.of({ from, to });
+  const addFromTO = (from, to) => bgRectEffect.add.of({from, to});
+  const removeFromTO = (from, to) => bgRectEffect.remove.of({from, to});
 
   let effects = [];
   effects.push(
@@ -126,7 +121,7 @@ function bgRectangleSet(view) {
   if (!effects.length) {
     return false;
   }
-  dispatch({ effects: effects.filter((ef) => ef) });
+  dispatch({effects: effects.filter((ef) => ef)});
   return true;
 }
 
@@ -167,12 +162,12 @@ const transparentTheme = EditorView.theme(
     '.cm-content': {
       caretColor: cursor,
     },
-    '.cm-cursor, .cm-dropCursor': { borderLeftColor: cursor },
+    '.cm-cursor, .cm-dropCursor': {borderLeftColor: cursor},
     '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection':
-      { backgroundColor: selection },
-    '.cm-panels': { backgroundColor: darkBackground, color: ivory },
-    '.cm-panels.cm-panels-top': { borderBottom: '2px solid black' },
-    '.cm-panels.cm-panels-bottom': { borderTop: '2px solid black' },
+      {backgroundColor: selection},
+    '.cm-panels': {backgroundColor: darkBackground, color: ivory},
+    '.cm-panels.cm-panels-top': {borderBottom: '2px solid black'},
+    '.cm-panels.cm-panels-bottom': {borderTop: '2px solid black'},
     '.cm-searchMatch': {
       backgroundColor: '#72a1ff59',
       outline: '1px solid #457dff',
@@ -180,8 +175,8 @@ const transparentTheme = EditorView.theme(
     '.cm-searchMatch.cm-searchMatch-selected': {
       backgroundColor: '#6199ff2f',
     },
-    '.cm-activeLine': { backgroundColor: highlightBackground },
-    '.cm-selectionMatch': { backgroundColor: '#aafe661a' },
+    '.cm-activeLine': {backgroundColor: highlightBackground},
+    '.cm-selectionMatch': {backgroundColor: '#aafe661a'},
     '&.cm-focused .cm-matchingBracket, &.cm-focused .cm-nonmatchingBracket': {
       backgroundColor: '#bad0f847',
       // outline: '1px solid #515a6b',
@@ -219,7 +214,7 @@ const transparentTheme = EditorView.theme(
       },
     },
   },
-  { dark: true }
+  {dark: true}
 );
 
 const updateCallback = EditorView.updateListener.of(

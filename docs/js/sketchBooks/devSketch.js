@@ -5,7 +5,7 @@
   console.log(dayjs)
 })();
 */
-const dayjsURLPath = 'https://esm.sh/dayjsl';
+const dayjsURLPath = 'https://esm.sh/dayjs';
 let dayjs;
 
 let noise2D;
@@ -152,7 +152,7 @@ class GridAndLabels {
 
     // x: hz
     const decades = Array.from(
-      {length: Math.floor(maxLog) - Math.floor(minLog) + 1},
+      { length: Math.floor(maxLog) - Math.floor(minLog) + 1 },
       (_, d) => d + Math.floor(minLog)
     );
 
@@ -199,7 +199,7 @@ class GridAndLabels {
 
     // y: db
     const dbTicks = Array.from(
-      {length: Math.floor((this.maxDb - this.minDb) / this.dbStep) + 1},
+      { length: Math.floor((this.maxDb - this.minDb) / this.dbStep) + 1 },
       (_, i) => this.minDb + i * this.dbStep
     );
 
@@ -272,8 +272,7 @@ class GridAndLabels {
     const instance = this;
     const originalFunction =
       instance.#p.windowResized === void 0
-        ? (e) => {
-        }
+        ? (e) => {}
         : instance.#p.windowResized;
     instance.#p.windowResized = function (...args) {
       const result = originalFunction.apply(this, args);
