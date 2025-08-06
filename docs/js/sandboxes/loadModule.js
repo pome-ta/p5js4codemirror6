@@ -12,27 +12,34 @@
 
   p5.prototype.registerMethod('init', function () {
     const _p = this;
+    
     // preloadメソッドの登録
     p5.prototype.registerPreloadMethod('loadModule', p5.prototype);
     
     // 非同期ロード処理を定義する
     p5.prototype.loadModule = function (path, successCallback, failureCallback) {
       const _promise = _loadModule(path, successCallback, failureCallback);
-      _promise.then(() => {
-        _p._decrementPreload(); // これを忘れると setup() が動かない。
-      })
+      _promise
+        .then(() => {
+          // これを忘れると setup() が動かない。
+          _p._decrementPreload();
+        })
+        .catch((err) => {
+          console.error(err);
+          _p._decrementPreload();
+      });
     }
 
   });
   
   const _loadModule = function (path, successCallback, failureCallback) {
     const _p = this;
-    const _msTime = Date.now(); // Cache回避のために現在ミリ秒を取得する
-    const _url = `${path}?ts=${_msTime}`; // Cache回避対策
-    const promise = import(_url);
     
-    console.log('loadModule: ')
-    //console.log(p5Inst)
+    // Cache回避のために現在ミリ秒を取得する
+    const _msTime = Date.now();
+    // Cache回避対策
+    const _url = `${path}?ts=${_msTime}`;
+    const promise = import(_url);
     
     promise
       .then((module) => {

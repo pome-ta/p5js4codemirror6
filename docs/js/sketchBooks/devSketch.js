@@ -5,7 +5,7 @@
   console.log(dayjs)
 })();
 */
-const dayjsURLPath = 'https://esm.sh/dayjs';
+const dayjsURLPath = 'https://esm.sh/dayjsl';
 let dayjs;
 
 let noise2D;
