@@ -1,19 +1,16 @@
 import DomFactory from '../utils/domFactory.js';
 
-
 function runSketch(code) {
   if (window._p5Instance) {
     window._p5Instance.remove();
     window._p5Instance = null;
   }
 
-
   const script = DomFactory.create('script', {
     setAttrs: {
       // id: 'p5SourceScript',
       type: 'text/javascript',
       //type: 'defer',
-      
     },
     // xxx: スコープを切る
     textContent: `{
@@ -36,9 +33,7 @@ function runSketch(code) {
 window.addEventListener('message', (e) => {
   const sourceCode = e.data;
   runSketch(sourceCode);
-  
 });
-
 
 window._p5Instance = null;
 

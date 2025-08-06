@@ -11,31 +11,29 @@ let dayjs;
 let noise2D;
 //console.log(window);
 
-
 // Metronom
 class GridAndLabels {
   #p;
-  
+
   #fft;
   #minFreq;
   #maxFreq;
-  
+
   #labelsLayer;
   #gridLayer;
   #spectrumLayer;
-  
+
   #labelsSize;
   #labelsPosition;
   #gridSize;
   #gridPosition;
-  
-  #xyListOld;
-  
 
-  constructor(mainInstance, isLinear=false) {
+  #xyListOld;
+
+  constructor(mainInstance, isLinear = false) {
     this.#p = mainInstance;
     this.#fft = null;
-    
+
     this.#labelsLayer = null;
     this.#gridLayer = null;
     this.#spectrumLayer = null;
@@ -43,111 +41,112 @@ class GridAndLabels {
 
     // todo: マージン設定方法要検討
     this.ratio = 0.96;
-    
+
     // todo: どこで定義するか要検討
     this.minDb = -60;
     this.maxDb = +6;
     this.dbStep = 6;
-    
+
     this.#xyListOld = [];
   }
-  
+
   setup(fft) {
     this.#fft = fft;
     this.#setBaseGraphics();
     this.#useWindowResized();
   }
-  
+
   drawSpectrum(spectrum) {
-    
     this.#drawBaseGraphics();
-    
+
     if (this.#p.frameCount % 9 !== 0) {
       // 描画悪あがき
       this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
-      return
+      return;
     }
-    
+
     this.#spectrumLayer.clear();
-    
+
     const [pgw, pgh] = this.#gridSize;
     const [pgx, pgy] = this.#gridPosition;
-    
-    
+
     const xyList = spectrum.map((amplitude, index) => {
       const bin = index * this.#minFreq;
-     
-      const x = this.#p.map(Math.log10(bin ? bin : 1e-12), Math.log10(this.#minFreq), Math.log10(this.#maxFreq), 0, pgw);
-      
+
+      const x = this.#p.map(
+        Math.log10(bin ? bin : 1e-12),
+        Math.log10(this.#minFreq),
+        Math.log10(this.#maxFreq),
+        0,
+        pgw
+      );
+
       const amplitudeRatio = amplitude / 255;
       const logDb = 20 * Math.log10(amplitudeRatio || 1e-10);
       const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
       return [x, y];
     });
-    
+
     // xxx: 今後の場合分け用？
-    
+
     //this.#spectrumLayer.noFill();
     this.#spectrumLayer.noStroke();
     this.#spectrumLayer.fill(0, 255, 255, 64);
     this.#spectrumLayer.beginShape();
     this.#spectrumLayer.vertex(0, pgh);
-    
+
     [...xyList].forEach((xy) => {
       this.#spectrumLayer.vertex(...xy);
     });
-    
+
     this.#spectrumLayer.vertex(pgw, pgh);
     this.#spectrumLayer.endShape();
-    
+
     this.#spectrumLayer.noFill();
     if (this.#xyListOld?.length) {
       this.#spectrumLayer.stroke(255, 0, 255, 192);
       this.#spectrumLayer.beginShape();
       //this.#spectrumLayer.vertex(0, pgh);
-      
+
       [...this.#xyListOld].forEach((xy) => {
         this.#spectrumLayer.vertex(...xy);
       });
-      
+
       //this.#spectrumLayer.vertex(pgw, pgh);
       this.#spectrumLayer.endShape();
     }
-    
+
     this.#spectrumLayer.stroke(0, 255, 255, 192);
     this.#spectrumLayer.beginShape();
     //this.#spectrumLayer.vertex(0, pgh);
-    
+
     [...xyList].forEach((xy) => {
       this.#spectrumLayer.vertex(...xy);
     });
-    
+
     //this.#spectrumLayer.vertex(pgw, pgh);
     this.#spectrumLayer.endShape();
-    
+
     this.#xyListOld = xyList;
     this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
   }
 
-
   get #sampleRate() {
     return this.#p.sampleRate();
   }
-  
-  
+
   #createBase() {
     this.#labelsLayer.clear();
     this.#gridLayer.clear();
-    
+
     const [lw, lh] = this.#labelsSize;
     const [lx, ly] = this.#labelsPosition;
     const [gw, gh] = this.#gridSize;
     const [gx, gy] = this.#gridPosition;
-    
+
     const xDistance = (lw - gw) / 2;
     const yDistance = (lh - gh) / 2;
-    
-    
+
     const minLog = Math.log10(this.#minFreq);
     const maxLog = Math.log10(this.#maxFreq);
 
@@ -158,44 +157,45 @@ class GridAndLabels {
     );
 
     const ticks = [...Array(9)].map((_, i) => i + 1);
-    
+
     const digits = Math.floor(Math.log10(this.#minFreq));
     // 20hz 用
     const minimumFreq = Math.floor(this.#minFreq / 10 ** digits) * 10 ** digits;
-    
+
     this.#labelsLayer.textFont('monospace');
     this.#labelsLayer.textSize(8);
     this.#labelsLayer.fill(255);
-    
+
     this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
     decades.forEach((d, idx) => {
       ticks.forEach((i) => {
         const freq = i * 10 ** d;
-        
-        if (freq < minimumFreq || freq >= this.#maxFreq){
+
+        if (freq < minimumFreq || freq >= this.#maxFreq) {
           return;
         }
-    
+
         const x = this.#p.map(Math.log10(freq), minLog, maxLog, 0, gw);
         const isMajor = i === 1;
-    
+
         if (i % 2 === 0 || isMajor) {
           this.#gridLayer.stroke(isMajor ? 100 : 50);
           this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
-          
+
           const ty = isMajor ? gh + ly : lh - yDistance / 2;
-          this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` :`${freq}`, x + xDistance, ty);
-          
+          this.#labelsLayer.text(
+            freq >= 1000 ? `${freq / 1000}k` : `${freq}`,
+            x + xDistance,
+            ty
+          );
         } else {
           this.#gridLayer.stroke(25);
           this.#gridLayer.strokeWeight(0.4);
         }
-        
+
         this.#gridLayer.line(x, 0, x, gh);
-        
       });
     });
-    
 
     // y: db
     const dbTicks = Array.from(
@@ -216,16 +216,15 @@ class GridAndLabels {
       this.#gridLayer.line(0, y, gw, y);
       this.#labelsLayer.text(`${db}`, lw, y + yDistance);
     });
-    
   }
-  
+
   #setBaseGraphics() {
     this.nyquist = this.#sampleRate / 2;
     this.bandWidth = this.nyquist / this.#fft.bins;
-    
+
     this.#minFreq = this.bandWidth;
     this.#maxFreq = this.nyquist;
-    
+
     this.#setSize();
     this.#createBase();
     this.#drawBaseGraphics();
@@ -283,53 +282,42 @@ class GridAndLabels {
   }
 }
 
-
-
 const sketch = (p) => {
   let w = p.windowWidth;
   let h = p.windowHeight;
   let bgColor;
-  
+
   const BPM = 98;
   let metrTone, metrEnv, metrPhrase;
 
   let kickTone, kickEnv, kickPhrase;
   let osc;
-  
-  
-  
+
   let part;
   let phrase;
   let fft;
   console.log(p);
-  
 
   const gridGraph = new GridAndLabels(p);
-  
+
   p.preload = () => {
     console.log('p');
     //p.loadModule('dummy');
-    
+
     p.loadModule(dayjsURLPath, (mod) => {
       dayjs = mod.default;
-      console.log(dayjs)
+      console.log(dayjs);
     });
-    
-    
-    
+
     /*
     p.loadModule(dayjsURLPath).then((m) => {
       dayjs = m.default;
       console.log(dayjs)
     })
     */
-    
-    
-  
-    
-    
+
     //dayjs = p.loadModule(dayjsURLPath);
-    
+
     /*
     import(dayjsURLPath).then((module) => {
       
@@ -341,17 +329,15 @@ const sketch = (p) => {
     });
     */
 
-
     /*
     
     const { createNoise2D } = await import('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/dist/esm/simplex-noise.js');
     */
     //noise2D = createNoise2D();
     //console.log(noise2D);
-    
+
     //console.log(dayjs);
-    
-  }
+  };
 
   p.setup = () => {
     // put setup code here
@@ -364,60 +350,67 @@ const sketch = (p) => {
     p.background(...bgColor);
 
     fft = new p5.FFT();
-    
+
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
     // metronom
     metrTone = new p5.Oscillator(types[1]);
     metrTone.start();
     metrTone.amp(0.0);
-    
+
     metrEnv = new p5.Envelope();
     metrEnv.setADSR(0.001, 0.05, 0.01, 0.1);
     metrEnv.setRange(1, 0);
-    
-    metrPhrase = new p5.Phrase('metr', (time, playbackRate) => {
-      if (!playbackRate) {
-        //metrTone.amp(0.0);
-        return
-      }
-      metrTone.freq(playbackRate);
-      //metrTone.amp(1.0);
-      metrEnv.play(metrTone);
-      
-    }, [...Array(4)].flatMap((_, idx) => [idx ? 440 : 800, ...Array(3).fill(null)]));
-    
-    
+
+    metrPhrase = new p5.Phrase(
+      'metr',
+      (time, playbackRate) => {
+        if (!playbackRate) {
+          //metrTone.amp(0.0);
+          return;
+        }
+        metrTone.freq(playbackRate);
+        //metrTone.amp(1.0);
+        metrEnv.play(metrTone);
+      },
+      [...Array(4)].flatMap((_, idx) => [
+        idx ? 440 : 800,
+        ...Array(3).fill(null),
+      ])
+    );
+
     // sound
-    
+
     kickTone = new p5.Oscillator(types[0]);
     kickTone.start();
     kickTone.amp(0.0);
-    
+
     kickEnv = new p5.Envelope(0.001, 0.1, 0, 0.2);
     kickEnv.setRange(1, 0);
-    
-    
-    
-    kickPhrase = new p5.Phrase('kick', (time, playbackRate) => {
-      kickTone.freq(220);
-      kickTone.amp(0);
-    
-      kickTone.freq(24, 0.15);
-      kickEnv.play(kickTone, 0, 0.01);
-      
-    }, [1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,1,0]);
-    
-    
+
+    kickPhrase = new p5.Phrase(
+      'kick',
+      (time, playbackRate) => {
+        kickTone.freq(220);
+        kickTone.amp(0);
+
+        kickTone.freq(24, 0.15);
+        kickEnv.play(kickTone, 0, 0.01);
+      },
+      [
+        1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+        1, 0, 0, 0, 1, 0, 1, 0,
+      ]
+    );
+
     part = new p5.Part();
     part.setBPM(BPM);
     part.addPhrase(metrPhrase);
     part.addPhrase(kickPhrase);
-    
+
     part.loop();
-    
-    window._cacheSounds = [kickTone, kickEnv, metrTone, metrEnv, part,];
-    
-    
+
+    window._cacheSounds = [kickTone, kickEnv, metrTone, metrEnv, part];
+
     gridGraph.setup(fft);
     p.frameRate(10);
     //console.log(noise2D);
@@ -456,7 +449,6 @@ const sketch = (p) => {
   }
 };
 
-
 new p5(sketch);
 
 /*
@@ -468,7 +460,6 @@ new p5(sketch);
   new p5(sketch);
 })();
 */
-
 
 /*
 import(dayjsURLPath).then((module) => {
