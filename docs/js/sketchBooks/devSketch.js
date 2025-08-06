@@ -315,6 +315,7 @@ const sketch = (p) => {
       console.log(dayjs)
     });
     
+    
   
     
     
@@ -418,7 +419,7 @@ const sketch = (p) => {
 
   p.draw = () => {
     // put drawing code here
-    console.log(dayjs);
+    //console.log(dayjs);
     p.background(...bgColor);
     const spectrum = fft.analyze();
     gridGraph.drawSpectrum(spectrum);

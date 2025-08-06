@@ -8,37 +8,35 @@
     );
     return;
   }
+  
+  const p5Inst = this;
 
-  /**
-   * @module p5
-   * @submodule io
-   */
 
-  /**
-   * ES Modules を動的にインポートします。
-   *
-   * @method loadModule
-   * @param  {String}          path              インポートするモジュールのパス (URL)。
-   * @param  {Function}        [successCallback] 成功時のコールバック。
-   * @param  {Function}        [failureCallback] 失敗時のコールバック。
-   * @return {Promise<Object>}                   解決されるとモジュールオブジェクトを返す Promise。
-   *
-   */
-  p5.prototype.loadModule = function (path, successCallback, failureCallback) {
-    const p5Inst = this;
+  p5.prototype.registerMethod('init', function () {
+    // preloadメソッドの登録
+    p5.prototype.registerPreloadMethod('loadModule', p5.prototype);
+    
 
-    const isPreloading = p5Inst._preload_count > 0;
-
-    if (isPreloading) {
-      p5Inst._incrementPreload();
+    // 非同期ロード処理を定義する
+    p5.prototype.loadModule = function (path, successCallback, failureCallback) {
+      const _promise = _loadModule(path, successCallback, failureCallback);
+      _promise.then(() => {
+        p5Inst._decrementPreload(); // これを忘れると setup() が動かない。
+      });
     }
 
-    const promise = import(path);
-
+  });
+  
+  const _loadModule = function (path, successCallback, failureCallback) {
+    const _msTime = Date.now(); // Cache回避のために現在ミリ秒を取得する
+    const _url = `${path}?ts=${_msTime}`; // Cache回避対策
+    const promise = import(_url);
+    
     promise
       .then((module) => {
         if (typeof successCallback === 'function') {
           successCallback.call(p5Inst, module);
+          console.log('aaa')
         }
       })
       .catch((err) => {
@@ -55,5 +53,8 @@
       });
 
     return promise;
-  };
+  }
+
+  
 })();
+
