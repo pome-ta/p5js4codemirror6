@@ -31,12 +31,11 @@
   const _loadModule = function (path, successCallback, failureCallback) {
     const _p = this;
 
-    // Cache回避のために現在ミリ秒を取得する
+    // Cache 回避対策: 現在ミリ秒を取得する
     const _msTime = Date.now();
-    // Cache回避対策
     const _url = `${path}?ts=${_msTime}`;
+    
     const promise = import(_url);
-
     promise
       .then((module) => {
         if (typeof successCallback === 'function') {
@@ -54,3 +53,4 @@
     return promise;
   };
 })();
+
