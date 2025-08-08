@@ -1,4 +1,4 @@
-const spectrumAnalyzerPath = '../sketchBooks/spectrumAnalyzer.js'
+const spectrumAnalyzerPath = '../../sketchBooks/modules/spectrumAnalyzer.js'
 
 const sketch = (p) => {
   let w = p.windowWidth;
