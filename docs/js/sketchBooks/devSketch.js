@@ -7,11 +7,14 @@ const sketch = (p) => {
   let h = p.windowHeight;
   let bgColor;
 
-  let fft;
   
   let spectrumAnalyzer;
   let pointerTracker;
   let tapIndicator;
+  
+  let fft;
+  let osc;
+  let env;
   
   p.preload = () => {
     p.loadModule(spectrumAnalyzerPath, (m) => {
@@ -44,6 +47,18 @@ const sketch = (p) => {
     spectrumAnalyzer.setup(fft);
     tapIndicator.setup();
     
+    
+    const types = ['sine', 'triangle', 'sawtooth', 'square'];
+    osc = new p5.Oscillator(types[0], 440);
+    //osc.start();
+    env = new p5.Envelope();
+    
+    //env.play(osc);
+    
+    window._cacheSounds = [osc, env];
+    
+    
+    
     //p.frameRate(10);
   };
 
@@ -54,6 +69,18 @@ const sketch = (p) => {
     const spectrum = fft.analyze();
     spectrumAnalyzer.drawSpectrum(spectrum);
     
+  };
+  
+  p.touchStarted = (e) => {
+    env.triggerAttack(osc);
+  };
+
+  p.touchMoved = (e) => {
+    
+  };
+
+  p.touchEnded = (e) => {
+    //env.triggerRelease(osc);
   };
 
   p.windowResized = (e) => {
