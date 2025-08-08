@@ -65,26 +65,27 @@ const sketch = (p) => {
 
     // sound
 
-    kickTone = new p5.Oscillator(types[0]);
+    kickTone = new p5.Oscillator(types[1]);
     kickTone.start();
     kickTone.amp(0.0);
 
-    kickEnv = new p5.Envelope(0.001, 0.1, 0, 0.2);
-    kickEnv.setRange(1, 0);
+    kickEnv = new p5.Envelope();
+    kickEnv.setADSR(0.01, 0.2);
+    //kickEnv.setRange(1, 0);
 
     kickPhrase = new p5.Phrase(
       'kick',
       (time, playbackRate) => {
-        kickTone.freq(220);
+        kickTone.freq(330);
         kickTone.amp(0);
 
-        kickTone.freq(24, 0.15);
-        kickEnv.play(kickTone, 0, 0.01);
+        kickTone.freq(32, 0.5);
+        kickEnv.play(kickTone);
       },
       [
-        1, 1, 0, 0,
-        1, 0, 1, 0,
-        1, 0, 0, 1,
+        1, 0, 0, 0,
+        1, 0, 0, 0,
+        1, 0, 0, 0,
         1, 0, 1, 0,
         
         1, 0, 0, 1,
@@ -96,7 +97,7 @@ const sketch = (p) => {
 
     part = new p5.Part();
     part.setBPM(BPM);
-    part.addPhrase(metrPhrase);
+    // part.addPhrase(metrPhrase);
     part.addPhrase(kickPhrase);
 
     part.loop();
