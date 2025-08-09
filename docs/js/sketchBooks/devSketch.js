@@ -50,8 +50,10 @@ const sketch = (p) => {
     
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
     osc = new p5.Oscillator(types[0], 440);
-    //osc.start();
+    osc.amp(0);
+    osc.start();
     env = new p5.Envelope();
+    //env.setRange(1, 0);
     
     //env.play(osc);
     
@@ -72,7 +74,9 @@ const sketch = (p) => {
   };
   
   p.touchStarted = (e) => {
-    env.triggerAttack(osc);
+    //env.triggerAttack(osc);
+    env.play(osc);
+    
   };
 
   p.touchMoved = (e) => {
@@ -81,6 +85,7 @@ const sketch = (p) => {
 
   p.touchEnded = (e) => {
     //env.triggerRelease(osc);
+    
   };
 
   p.windowResized = (e) => {
