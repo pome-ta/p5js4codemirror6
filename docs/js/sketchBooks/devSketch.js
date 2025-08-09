@@ -12,7 +12,7 @@ const sketch = (p) => {
   let pointerTracker;
   let tapIndicator;
   
-  const zero = 1e-1;
+  const zero = 1e-5;
   
   let fft;
   let osc;
