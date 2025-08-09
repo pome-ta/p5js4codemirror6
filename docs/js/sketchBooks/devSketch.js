@@ -53,7 +53,10 @@ const sketch = (p) => {
     osc.amp(0);
     osc.start();
     env = new p5.Envelope();
-    //env.setRange(1, 0);
+    // env.setADSR(0.01, 0, 0.5, 0.8);
+    env.setRange(1, 0);
+    env.setExp(true); //true
+
     
     //env.play(osc);
     
@@ -74,7 +77,8 @@ const sketch = (p) => {
   };
   
   p.touchStarted = (e) => {
-    //env.triggerAttack(osc);
+    // env.triggerAttack(osc);
+    // env.triggerRelease(osc);
     env.play(osc);
     
   };
@@ -84,7 +88,7 @@ const sketch = (p) => {
   };
 
   p.touchEnded = (e) => {
-    //env.triggerRelease(osc);
+    // env.triggerRelease(osc);
     
   };
 
