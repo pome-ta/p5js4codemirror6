@@ -1,4 +1,4 @@
-const spectrumAnalyzerPath = '../../sketchBooks/modules/spectrumAnalyzer.js'
+const spectrumAnalyzerPath = '../../sketchBooks/modules/spectrumAnalyzer.js';
 const interactionTraceKitPath = '../../sketchBooks/modules/interactionTraceKit.js';
 
 
@@ -10,18 +10,18 @@ const sketch = (p) => {
   let spectrumAnalyzer;
   let pointerTracker;
   let tapIndicator;
-  
+
   // todo: `0` に近い、最小値として
   const zero = 1e-3 + 1e-4;
-  
+
   let fft;
   let osc;
   let env;
   let phrase;
   let part;
-  
+
   const BPM = 80;
-  
+
   p.preload = () => {
     p.loadModule(spectrumAnalyzerPath, (m) => {
       const SpectrumAnalyzer = m.default;
@@ -37,7 +37,7 @@ const sketch = (p) => {
   p.setup = () => {
     // put setup code here
     soundReset();
-    
+
     p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
       passive: false,
     });
@@ -51,73 +51,79 @@ const sketch = (p) => {
     fft = new p5.FFT();
     spectrumAnalyzer.setup(fft);
     tapIndicator.setup();
-    
+
     // --- sound
     p.setBPM(BPM);
-    
+
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
     osc = new p5.Oscillator(types[0]);
     osc.amp(0);
     osc.start();
     env = new p5.Envelope();
-    env.setADSR(zero, 0.1, 1, zero + zero);
+    env.setADSR(zero, 0.5, 1, zero + zero);
     //env.setRange(1, 0);
     env.setExp(true); //true
-    
+
     phrase = new p5.Phrase(
       'kick',
       (time, playbackRate) => {
-        if (playbackRate === 0) {
+        if (playbackRate < 0) {
           return;
         }
-        osc.freq(440);
-        //kickTone.freq(32, 0.5);
+
+        osc.freq(220);
+        osc.freq(24, 0.1);
         env.play(osc);
       },
+      // [
+      //   1, -12, -13, -14,
+      //   2, 21, -23, -24,
+      //   3, -32, -33, -34,
+      //   4, -42, 41, -44,
+      // ]
       [
         1, 0, 0, 0,
-        1, 1, 0, 0,
-        1, 0, 0, 0,
         1, 0, 1, 0,
+        1, 0, 0, 0,
+        1, 0, 0, 1,
       ]
     );
-    
+
     part = new p5.Part();
     part.addPhrase(phrase);
     part.loop();
 
-    
+
     window._cacheSounds = [osc, env, part];
-    
-    
-    
+
+
     //p.frameRate(10);
   };
 
   p.draw = () => {
     // put drawing code here
     p.background(...bgColor);
-    
+
     const spectrum = fft.analyze();
     spectrumAnalyzer.drawSpectrum(spectrum);
-    
+
   };
-  
+
   p.touchStarted = (e) => {
     //env.triggerAttack(osc);
     // env.triggerRelease(osc);
     //env.triggerRelease(osc);
     //env.play(osc);
-    
+
   };
 
   p.touchMoved = (e) => {
-    
+
   };
 
   p.touchEnded = (e) => {
     //env.triggerRelease(osc);
-    
+
   };
 
   p.windowResized = (e) => {
