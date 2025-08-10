@@ -17,10 +17,6 @@ const sketch = (p) => {
   let fft;
   let osc;
   let env;
-  let phrase;
-  let part;
-  
-  const BPM = 80;
   
   p.preload = () => {
     p.loadModule(spectrumAnalyzerPath, (m) => {
@@ -52,42 +48,19 @@ const sketch = (p) => {
     spectrumAnalyzer.setup(fft);
     tapIndicator.setup();
     
-    // --- sound
-    p.setBPM(BPM);
-    
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
-    osc = new p5.Oscillator(types[0]);
+    osc = new p5.Oscillator(types[0], 440);
     osc.amp(0);
     osc.start();
     env = new p5.Envelope();
-    env.setADSR(zero, 0.1, 1, zero + zero);
+    env.setADSR(zero, 3.3, 1.0, zero + zero);
     //env.setRange(1, 0);
     env.setExp(true); //true
-    
-    phrase = new p5.Phrase(
-      'kick',
-      (time, playbackRate) => {
-        if (playbackRate === 0) {
-          return;
-        }
-        osc.freq(440);
-        //kickTone.freq(32, 0.5);
-        env.play(osc);
-      },
-      [
-        1, 0, 0, 0,
-        1, 1, 0, 0,
-        1, 0, 0, 0,
-        1, 0, 1, 0,
-      ]
-    );
-    
-    part = new p5.Part();
-    part.addPhrase(phrase);
-    part.loop();
 
     
-    window._cacheSounds = [osc, env, part];
+    //env.play(osc);
+    
+    window._cacheSounds = [osc, env];
     
     
     
@@ -107,7 +80,7 @@ const sketch = (p) => {
     //env.triggerAttack(osc);
     // env.triggerRelease(osc);
     //env.triggerRelease(osc);
-    //env.play(osc);
+    env.play(osc);
     
   };
 
