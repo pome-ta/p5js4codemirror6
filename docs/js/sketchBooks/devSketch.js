@@ -7,12 +7,11 @@ const sketch = (p) => {
   let h = p.windowHeight;
   let bgColor;
 
-  
   let spectrumAnalyzer;
   let pointerTracker;
   let tapIndicator;
   
-  const zero = 1e-5;
+  const zero = 1e-8;
   
   let fft;
   let osc;
@@ -45,19 +44,17 @@ const sketch = (p) => {
     p.background(...bgColor);
 
     fft = new p5.FFT();
-
     spectrumAnalyzer.setup(fft);
     tapIndicator.setup();
-    
     
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
     osc = new p5.Oscillator(types[0], 440);
     osc.amp(0);
     osc.start();
     env = new p5.Envelope();
-    env.setADSR(zero, 0, 1.0, 0.5);
-    env.setRange(1, 0);
-    env.setExp(true); //true
+    //env.setADSR(zero, 5.0, 1.0, 0.0);
+    //env.setRange(1, 0);
+    //env.setExp(true); //true
 
     
     //env.play(osc);
@@ -79,9 +76,10 @@ const sketch = (p) => {
   };
   
   p.touchStarted = (e) => {
-    env.triggerAttack(osc);
+    //env.triggerAttack(osc);
     // env.triggerRelease(osc);
-    //env.play(osc);
+    //env.triggerRelease(osc);
+    env.play(osc, 0, 2.0);
     
   };
 
@@ -90,7 +88,7 @@ const sketch = (p) => {
   };
 
   p.touchEnded = (e) => {
-    env.triggerRelease(osc);
+    //env.triggerRelease(osc);
     
   };
 
