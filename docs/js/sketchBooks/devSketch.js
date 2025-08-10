@@ -60,7 +60,7 @@ const sketch = (p) => {
     osc.amp(0);
     osc.start();
     env = new p5.Envelope();
-    env.setADSR(zero, 0.5, 1, zero + zero);
+    env.setADSR(zero, 0.1, 1, zero + zero);
     //env.setRange(1, 0);
     env.setExp(true); //true
 
@@ -68,12 +68,13 @@ const sketch = (p) => {
       'kick',
       (time, playbackRate) => {
         if (playbackRate < 0) {
+          //env.triggerRelease(osc);
           return;
         }
 
-        osc.freq(220);
-        osc.freq(24, 0.1);
+        osc.freq(880);
         env.play(osc);
+        //env.triggerAttack(osc);
       },
       // [
       //   1, -12, -13, -14,
@@ -82,10 +83,10 @@ const sketch = (p) => {
       //   4, -42, 41, -44,
       // ]
       [
+        1, -1, -1, -1,
+        1, -1, 1, -1,
         1, 0, 0, 0,
-        1, 0, 1, 0,
-        1, 0, 0, 0,
-        1, 0, 0, 1,
+        1, 0, -1, 1,
       ]
     );
 
