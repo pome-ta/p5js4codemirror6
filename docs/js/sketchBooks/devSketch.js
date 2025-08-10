@@ -11,7 +11,8 @@ const sketch = (p) => {
   let pointerTracker;
   let tapIndicator;
   
-  const zero = 1e-8;
+  // todo: `0` に近い、最小値として
+  const zero = 1e-3 + 1e-4;
   
   let fft;
   let osc;
@@ -52,9 +53,9 @@ const sketch = (p) => {
     osc.amp(0);
     osc.start();
     env = new p5.Envelope();
-    //env.setADSR(zero, 5.0, 1.0, 0.0);
+    env.setADSR(zero, 3.3, 1.0, zero + zero);
     //env.setRange(1, 0);
-    //env.setExp(true); //true
+    env.setExp(true); //true
 
     
     //env.play(osc);
@@ -79,7 +80,7 @@ const sketch = (p) => {
     //env.triggerAttack(osc);
     // env.triggerRelease(osc);
     //env.triggerRelease(osc);
-    env.play(osc, 0, 2.0);
+    env.play(osc);
     
   };
 
