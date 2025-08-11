@@ -16,6 +16,7 @@ const sketch = (p) => {
 
   let fft;
   let osc;
+  let filter;
   let env;
   let phrase;
   let part;
@@ -56,11 +57,17 @@ const sketch = (p) => {
     p.setBPM(BPM);
 
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
-    osc = new p5.Oscillator(types[0]);
-    osc.amp(0);
+    //osc = new p5.Oscillator(types[2]);
+    osc = new p5.Noise();
     osc.start();
+    osc.amp(0);
+    
+    filter = new p5.BandPass('highpass');
+    //osc.disconnect();
+    //osc.connect(filter);
+    
     env = new p5.Envelope();
-    env.setADSR(zero, 0.1, 1, zero + zero);
+    env.setADSR(zero, 0.5, 1, zero + zero);
     //env.setRange(1, 0);
     env.setExp(true); //true
 
@@ -71,8 +78,10 @@ const sketch = (p) => {
           //env.triggerRelease(osc);
           return;
         }
+        
+        //filter.setType(playbackRate === 1 ? 'highpass' : 'bandpass')
 
-        osc.freq(880);
+        //osc.freq(220);
         env.play(osc);
         //env.triggerAttack(osc);
       },
@@ -84,9 +93,9 @@ const sketch = (p) => {
       // ]
       [
         1, -1, -1, -1,
-        1, -1, 1, -1,
-        1, 0, 0, 0,
-        1, 0, -1, 1,
+        2, -1, 1, -1,
+        2, 0, 0, 0,
+        1, 0, -1, 2,
       ]
     );
 
@@ -95,7 +104,7 @@ const sketch = (p) => {
     part.loop();
 
 
-    window._cacheSounds = [osc, env, part];
+    window._cacheSounds = [osc, env, part, filter];
 
 
     //p.frameRate(10);
