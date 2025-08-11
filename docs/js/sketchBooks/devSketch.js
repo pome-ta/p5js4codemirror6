@@ -1,48 +1,38 @@
-// [002-Amplitude-VisualizingLoudness by thomasjohnmartinez -p5.js Web Editor](https://editor.p5js.org/thomasjohnmartinez/sketches/Wlcnc6WCD)
-const soundPath = 'https://tonejs.github.io/audio/berklee/gong_1.mp3';
+// [p5.js Web Editor | 003-Microphone-Effects](https://editor.p5js.org/thomasjohnmartinez/sketches/5NV6gUkWM)
+
 
 const sketch = (p) => {
 
   let w = p.windowWidth;
   let h = p.windowHeight;
 
-  let sound;
-  let amp;
-
-  p.preload = () => {
-    sound = p.loadSound(soundPath);
-  };
-
+  let mic;
 
   p.setup = () => {
     // put setup code here
     soundReset();
 
     const cnv = p.createCanvas(w, h);
-    cnv.mousePressed(playSound);
+    cnv.mousePressed(startMic);
 
-    p.textAlign(p.CENTER);
-    p.fill(255);
-
-    amp = new p5.Amplitude();
-    sound.connect(amp);
-
+    
     p.describe('The color of the background changes based on the amplitude of the sound.');
+    
+    mic = new p5.AudioIn();
+    
 
 
-    window._cacheSounds = [sound, amp,];
+    window._cacheSounds = [mic];
   };
 
   p.draw = () => {
     // put drawing code here
-    const level = p.map(amp.getLevel(), 0, 0.2, 0, 225);
-    p.background(level, 0, 0);
-    p.text('click to play', w / 2, 120);
+    
   };
 
 
-  function playSound() {
-    sound.play();
+  function startMic() {
+    mic.start();
   }
 
 
