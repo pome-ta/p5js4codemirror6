@@ -1,6 +1,6 @@
 const spectrumAnalyzerPath = '../../sketchBooks/modules/spectrumAnalyzer.js';
-const interactionTraceKitPath = '../../sketchBooks/modules/interactionTraceKit.js';
-
+const interactionTraceKitPath =
+  '../../sketchBooks/modules/interactionTraceKit.js';
 
 const sketch = (p) => {
   let w = p.windowWidth;
@@ -11,17 +11,17 @@ const sketch = (p) => {
   let pointerTracker;
   let tapIndicator;
 
-  // todo: `0` に近い、最小値として
-  const zero = 1e-3 + 1e-4;
+  const BPM = 90;
 
   let fft;
+
   let osc;
-  let filter;
   let env;
   let phrase;
   let part;
 
-  const BPM = 80;
+  // todo: `0` に近い、最小値として
+  const zero = 1e-3 + 1e-4;
 
   p.preload = () => {
     p.loadModule(spectrumAnalyzerPath, (m) => {
@@ -57,45 +57,29 @@ const sketch = (p) => {
     p.setBPM(BPM);
 
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
-    //osc = new p5.Oscillator(types[2]);
-    osc = new p5.Noise();
+    osc = new p5.Oscillator(types[0]);
     osc.start();
     osc.amp(0);
-    
-    filter = new p5.BandPass('highpass');
-    //osc.disconnect();
-    //osc.connect(filter);
-    
+
     env = new p5.Envelope();
-    env.setADSR(zero, 0.5, 1, zero + zero);
-    //env.setRange(1, 0);
-    env.setExp(true); //true
+    env.setADSR(zero, 0.1, 1, zero + zero);
+    env.setExp(true);
 
     phrase = new p5.Phrase(
-      'kick',
+      'metronom',
       (time, playbackRate) => {
-        if (playbackRate < 0) {
-          //env.triggerRelease(osc);
+        if (!playbackRate) {
           return;
         }
-        
-        //filter.setType(playbackRate === 1 ? 'highpass' : 'bandpass')
 
-        //osc.freq(220);
+        osc.freq(playbackRate);
         env.play(osc);
-        //env.triggerAttack(osc);
       },
-      // [
-      //   1, -12, -13, -14,
-      //   2, 21, -23, -24,
-      //   3, -32, -33, -34,
-      //   4, -42, 41, -44,
-      // ]
       [
-        1, -1, -1, -1,
-        2, -1, 1, -1,
-        2, 0, 0, 0,
-        1, 0, -1, 2,
+        880, 0, 0, 0,
+        440, 0, 0, 0,
+        440, 0, 0, 0,
+        440, 0, 0, 0,
       ]
     );
 
@@ -103,11 +87,7 @@ const sketch = (p) => {
     part.addPhrase(phrase);
     part.loop();
 
-
-    window._cacheSounds = [osc, env, part, filter];
-
-
-    //p.frameRate(10);
+    window._cacheSounds = [osc, env, part];
   };
 
   p.draw = () => {
@@ -116,24 +96,15 @@ const sketch = (p) => {
 
     const spectrum = fft.analyze();
     spectrumAnalyzer.drawSpectrum(spectrum);
-
   };
 
   p.touchStarted = (e) => {
-    //env.triggerAttack(osc);
-    // env.triggerRelease(osc);
-    //env.triggerRelease(osc);
-    //env.play(osc);
-
   };
 
   p.touchMoved = (e) => {
-
   };
 
   p.touchEnded = (e) => {
-    //env.triggerRelease(osc);
-
   };
 
   p.windowResized = (e) => {
@@ -159,4 +130,3 @@ const sketch = (p) => {
 };
 
 new p5(sketch);
-
