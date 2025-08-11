@@ -7,27 +7,36 @@ const sketch = (p) => {
   let h = p.windowHeight;
 
   let mic;
+  let delay;
+  let filter;
 
   p.setup = () => {
     // put setup code here
     soundReset();
 
+    p.describe(`a sketch that accesses the user's microphone and connects it to a delay line.`);
+
     const cnv = p.createCanvas(w, h);
     cnv.mousePressed(startMic);
+    p.background(220);
 
-    
-    p.describe('The color of the background changes based on the amplitude of the sound.');
-    
+
     mic = new p5.AudioIn();
-    
+    delay = new p5.Delay(0.74, 0.1);
+    // filter = new p5.Biquad(600, "bandpass");
+
+    p.textAlign(p.CENTER, p.CENTER);
+    p.textWrap(p.WORD);
+    p.textSize(10);
+    p.text('click to open mic, watch out for feedback', w / 2, h / 2, 100);
 
 
-    window._cacheSounds = [mic];
+    window._cacheSounds = [mic,delay,filter];
   };
 
   p.draw = () => {
     // put drawing code here
-    
+
   };
 
 
@@ -43,7 +52,10 @@ const sketch = (p) => {
   };
 
   function soundReset() {
-    // const actx = p.getAudioContext();
+    const actx = p.getAudioContext();
+
+     console.log(p.soundOut);
+
     const gain = p.soundOut.output.gain;
     const defaultValue = gain.defaultValue;
     // todo: クリップノイズ対策
