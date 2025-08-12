@@ -89,6 +89,9 @@ const sketch = (p) => {
   function soundReset() {
     const actx = p.getAudioContext();
      //console.log(p.soundOut);
+     //console.log(actx)
+     //console.log(p)
+     console.log(p5)
 
     const gain = p.soundOut.output.gain;
     const defaultValue = gain.defaultValue;
