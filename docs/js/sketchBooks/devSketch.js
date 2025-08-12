@@ -1,48 +1,83 @@
-// [p5.js Web Editor | 003-Microphone-Effects](https://editor.p5js.org/thomasjohnmartinez/sketches/5NV6gUkWM)
+// `soundReset` の改善
+
+const spectrumAnalyzerPath = '../../sketchBooks/modules/spectrumAnalyzer.js'
+const interactionTraceKitPath = '../../sketchBooks/modules/interactionTraceKit.js';
 
 
 const sketch = (p) => {
-
   let w = p.windowWidth;
   let h = p.windowHeight;
+  
+  let SpectrumAnalyzer;
+  let pointerTracker;
+  let tapIndicator;
 
-  let mic;
-  let delay;
-  let filter;
+  let osc;
+  let lfo;
+  let osc2;
+  
+  p.preload = () => {
+    p.loadModule(spectrumAnalyzerPath, (m) => {
+      const SpectrumAnalyzer = m.default;
+      spectrumAnalyzer = new SpectrumAnalyzer(p);
+    });
+    p.loadModule(interactionTraceKitPath, (m) => {
+      const {PointerTracker, TapIndicator} = m;
+      pointerTracker = new PointerTracker(p);
+      tapIndicator = new TapIndicator(p);
+    });
+  };
 
   p.setup = () => {
     // put setup code here
     soundReset();
+    
+    p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
+      passive: false,
+    });
 
-    p.describe(`a sketch that accesses the user's microphone and connects it to a delay line.`);
+    p.createCanvas(w, h);
+    p.colorMode(p.HSL, 1, 1, 1);
 
-    const cnv = p.createCanvas(w, h);
-    cnv.mousePressed(startMic);
-    p.background(220);
+    bgColor = [0, 0, 0.25];
+    p.background(...bgColor);
 
+    fft = new p5.FFT();
 
-    mic = new p5.AudioIn();
-    delay = new p5.Delay(0.74, 0.1);
-    // filter = new p5.Biquad(600, "bandpass");
+    spectrumAnalyzer.setup(fft);
+    tapIndicator.setup();
+    
+    
+    // sound
+    const types = ['sine', 'triangle', 'sawtooth', 'square'];
+    osc = new p5.Oscillator(types[0], 440);
+    //osc.amp(0.4);
+    //osc.start();
 
-    p.textAlign(p.CENTER, p.CENTER);
-    p.textWrap(p.WORD);
-    p.textSize(10);
-    p.text('click to open mic, watch out for feedback', w / 2, h / 2, 100);
+    lfo = new p5.Oscillator(0.3, 'sine'); // 速さ
+    lfo.amp(500); // 幅
+    lfo.start();
+    osc.start();
 
+    lfo.disconnect();
+    lfo.connect(osc.freqNode);
+    
+    
+    osc2 = new p5.Oscillator(types[1], 880);
+    osc2.amp(0.4);
+    osc2.start();
 
-    window._cacheSounds = [mic,delay,filter];
+    window._cacheSounds = [osc, lfo, osc2];
   };
 
   p.draw = () => {
     // put drawing code here
-
+    p.background(...bgColor);
+    
+    const spectrum = fft.analyze();
+    spectrumAnalyzer.drawSpectrum(spectrum);
   };
 
-
-  function startMic() {
-    mic.start();
-  }
 
 
   p.windowResized = (e) => {
@@ -53,8 +88,7 @@ const sketch = (p) => {
 
   function soundReset() {
     const actx = p.getAudioContext();
-
-     console.log(p.soundOut);
+     //console.log(p.soundOut);
 
     const gain = p.soundOut.output.gain;
     const defaultValue = gain.defaultValue;
