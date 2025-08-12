@@ -14,7 +14,7 @@ const sketch = (p) => {
 
   let osc;
   let lfo;
-  let osc2;
+  let osca;
   
   p.preload = () => {
     p.loadModule(spectrumAnalyzerPath, (m) => {
@@ -63,11 +63,11 @@ const sketch = (p) => {
     lfo.connect(osc.freqNode);
     
     
-    osc2 = new p5.Oscillator(types[1], 880);
-    osc2.amp(0.4);
-    osc2.start();
+    osca = new p5.Oscillator(types[1], 880);
+    osca.amp(0.4);
+    osca.start();
 
-    window._cacheSounds = [osc, lfo, osc2];
+    window._cacheSounds = [osc, lfo, osca];
   };
 
   p.draw = () => {
@@ -87,11 +87,26 @@ const sketch = (p) => {
   };
 
   function soundReset() {
+    //dispose
+    const soundArray = p.soundOut.soundArray;
+    console.log(soundArray);
+    
+    soundArray?.forEach((s) => {
+      s?.stop && s?.stop();
+      s?.disconnect && s?.disconnect();
+      s?.dispose && s?.dispose();
+      delete s;
+    });
+    
+    //p.soundOut.soundArray = [];
+    
+    
+    /*
     const actx = p.getAudioContext();
-     //console.log(p.soundOut);
-     //console.log(actx)
-     //console.log(p)
-     console.log(p5)
+    //console.log(p.soundOut);
+    //console.log(actx)
+    //console.log(p)
+    //console.log(p5)
 
     const gain = p.soundOut.output.gain;
     const defaultValue = gain.defaultValue;
@@ -103,6 +118,9 @@ const sketch = (p) => {
     });
 
     gain.value = defaultValue;
+    */
+    
+    
     p.userStartAudio();
   }
 };
