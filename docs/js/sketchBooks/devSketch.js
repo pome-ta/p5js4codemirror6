@@ -44,16 +44,18 @@ const sketch = (p) => {
 
     fft = new p5.FFT();
 
-    spectrumAnalyzer.setup(fft);
-    tapIndicator.setup();
+    //spectrumAnalyzer.setup(fft);
+    //tapIndicator.setup();
     
     
     // sound
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
-    osc = new p5.Oscillator(types[0], 440);
+    
+    osc = new p5.Oscillator(types[0], 440 + (p.random() * 440));
+    
     //osc.amp(0.4);
     //osc.start();
-
+    
     lfo = new p5.Oscillator(0.3, 'sine'); // 速さ
     lfo.amp(500); // 幅
     lfo.start();
@@ -63,19 +65,22 @@ const sketch = (p) => {
     lfo.connect(osc.freqNode);
     
     
-    osca = new p5.Oscillator(types[1], 880);
+    
+    
+    osca = new p5.Oscillator(types[1], 880 + (p.random() * 440));
     osca.amp(0.4);
     osca.start();
 
-    window._cacheSounds = [osc, lfo, osca];
+    //window._cacheSounds = [osc, lfo, osca];
   };
 
   p.draw = () => {
     // put drawing code here
     p.background(...bgColor);
-    
+    /*
     const spectrum = fft.analyze();
     spectrumAnalyzer.drawSpectrum(spectrum);
+    */
   };
 
 
@@ -88,15 +93,26 @@ const sketch = (p) => {
 
   function soundReset() {
     //dispose
-    const soundArray = p.soundOut.soundArray;
-    console.log(soundArray);
+    //console.log(p.soundOut.soundArray);
     
-    soundArray?.forEach((s) => {
+    const soundArray = p.soundOut.soundArray;
+    console.log(p.soundOut.soundArray);
+    
+    soundArray?.forEach((s, idx, ary) => {
       s?.stop && s?.stop();
       s?.disconnect && s?.disconnect();
       s?.dispose && s?.dispose();
-      delete s;
+      //delete s;
+      //ary.shift();
     });
+    
+    /*
+    for (let i = p.soundOut.soundArray.length; i-- > 0;) {
+      const s = p.soundOut.soundArray.splice(i, 1);
+      s?.dispose && s.dispose();
+    }
+    */
+    //console.log(p.soundOut.soundArray);
     
     //p.soundOut.soundArray = [];
     
