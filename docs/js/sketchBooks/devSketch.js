@@ -96,12 +96,18 @@ const sketch = (p) => {
     //console.log(p.soundOut.soundArray);
     
     const soundArray = p.soundOut.soundArray;
-    console.log(p.soundOut.soundArray);
+    console.log(p.soundOut);
     
     soundArray?.forEach((s, idx, ary) => {
+      /*
+      s?.dispose && s?.dispose();
       s?.stop && s?.stop();
       s?.disconnect && s?.disconnect();
-      s?.dispose && s?.dispose();
+      */
+      
+      //s.disconnect(p.soundOut.output)
+      //p.soundOut.output.disconnect(s);
+      p.soundOut.input.disconnect(s);
       //delete s;
       //ary.shift();
     });
@@ -114,7 +120,7 @@ const sketch = (p) => {
     */
     //console.log(p.soundOut.soundArray);
     
-    //p.soundOut.soundArray = [];
+    p.soundOut.soundArray = [];
     
     
     /*
