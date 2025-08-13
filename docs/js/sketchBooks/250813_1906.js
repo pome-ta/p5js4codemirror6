@@ -47,6 +47,7 @@ const sketch = (p) => {
     spectrumAnalyzer.setup(fft);
     //tapIndicator.setup();
     
+    
     // sound
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
     
@@ -54,14 +55,18 @@ const sketch = (p) => {
     osca.aname = 'a'
     
     //osc.amp(0.4);
-    //osca.start();
-    
+    osca.start();
+    /*
     lfo = new p5.Oscillator(0.3, 'sine'); // 速さ
     lfo.amp(500); // 幅
     lfo.start();
     osca.start();
-    lfo.disconnect();
-    lfo.connect(osca.freqNode);
+    */
+
+    //lfo.disconnect();
+    //lfo.connect(osca.freqNode);
+    
+    
     
     
     oscb = new p5.Oscillator(types[1], 880 + (p.random() * 440));
@@ -70,7 +75,7 @@ const sketch = (p) => {
     oscb.start();
     
 
-    //window._cacheSounds = [osca, lfo, oscb];
+    //window._cacheSounds = [osc, lfo, osca];
   };
 
   p.draw = () => {
@@ -91,39 +96,62 @@ const sketch = (p) => {
   };
 
   function soundReset() {
-    //const actx = p.getAudioContext();
+    const actx = p.getAudioContext();
     //dispose
-    p.disposeSound();
-    p.soundOut.soundArray.forEach((s) => {
-      s?.stop && s.stop();
-      s?.dispose && s.dispose();
-      s?.disconnect && s.disconnect();
-    })
-    p.soundOut.soundArray = [];
-    p.soundOut.extensions = [];
+    console.log(p.soundOut.soundArray);
     
-    //const soundArray = [...p.soundOut.soundArray];
+    const soundArray = p.soundOut.soundArray;
     //console.log(p.soundOut);
-    //console.log(p)
-    console.log(p.soundOut)
-    //console.log(soundArray);
-    /*
-    soundArray.forEach((s) => {
+    
+    Array.from(soundArray).forEach((s) => {
       console.log(s)
-    })
-    */
+      
+      s?.dispose && s?.dispose();
+      s?.stop && s?.stop();
+      s?.disconnect && s?.disconnect();
+      
+      //s.dispose();
+      
+      
+      actx.destination?.disconnect(s)
+      //s.disconnect(actx.destination)
+      //s.disconnect(p.soundOut.output)
+      //p.soundOut.output.disconnect(s);
+      //p.soundOut.input.disconnect(s);
+      //s = null
+      //ary.shift();
+    });
+    
+    
     /*
-    console.log(soundArray.length)
-    for (let i = 0; i < soundArray.length; i++) {
-            console.log(soundArray)
-
-      console.log(i)
-      console.log(soundArray[i])
+    for (let i = p.soundOut.soundArray.length; i-- > 0;) {
+      const s = p.soundOut.soundArray.splice(i, 1);
+      s?.dispose && s.dispose();
     }
     */
+    //console.log(p.soundOut.soundArray);
+    
+    p.soundOut.soundArray = [];
+    /*
+    p.soundOut.output.disconnect();
+    
+    const meter = actx.createGain();
+    const fftMeter = actx.createGain();
+    p.soundOut.output.connect(meter);
+    p.soundOut.output.connect(fftMeter);
+
+    // connect output to destination
+    p.soundOut.output.connect(actx.destination);
+    */
     
     
     /*
+    const actx = p.getAudioContext();
+    //console.log(p.soundOut);
+    //console.log(actx)
+    //console.log(p)
+    //console.log(p5)
+
     const gain = p.soundOut.output.gain;
     const defaultValue = gain.defaultValue;
     // todo: クリップノイズ対策
@@ -135,6 +163,7 @@ const sketch = (p) => {
 
     gain.value = defaultValue;
     */
+    
     
     p.userStartAudio();
   }
