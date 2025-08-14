@@ -108,9 +108,6 @@ const sketch = (p) => {
     oscb.aname = 'b'
     oscb.amp(0.4);
     oscb.start();
-    
-
-    //window._cacheSounds = [osca, lfo, oscb];
   };
 
   p.draw = () => {
@@ -131,20 +128,13 @@ const sketch = (p) => {
   };
 
   function soundReset() {
-    //const actx = p.getAudioContext();
-    //dispose
+    // wip: クリップノイズ対策
     p.disposeSound();
-    /*
-    p.soundOut.soundArray.forEach((s) => {
-      s?.stop && s.stop();
-      s?.dispose && s.dispose();
-      s?.disconnect && s.disconnect();
-    });
-    */
-    
+
     const soundArray = p.soundOut.soundArray;
     for (let soundIdx = soundArray.length - 1; soundIdx >= 0; soundIdx--) {
       const sound = soundArray[soundIdx];
+      // todo: 過剰処理？
       sound?.stop && sound.stop();
       sound?.dispose && sound.dispose();
       sound?.disconnect && sound.disconnect();
@@ -152,62 +142,18 @@ const sketch = (p) => {
       soundArray.splice(soundIdx, 1);
     }
     
-    p.soundOut.soundArray = [];
-    /*
-    p.soundOut.parts.forEach((p)=> {
-      console.log(p)
-      deldet 
-    });
-    */
-    
     const parts = p.soundOut.parts;
     for (let partIdx = parts.length - 1; partIdx >= 0; partIdx--) {
       const phrases = parts[partIdx].phrases;
       for (let phraseIdx = phrases.length - 1; phraseIdx >= 0; phraseIdx--) {
         phrases.splice(phraseIdx, 1);
       }
-      
-      
-      console.log(p.soundOut.parts[partIdx])
-      //delete p.soundOut.parts[partIdx];
       parts.splice(partIdx, 1);
     }
+    
+    p.soundOut.soundArray = [];
     p.soundOut.parts = [];
-    p.soundOut.extensions = [];
-    
-    //const soundArray = [...p.soundOut.soundArray];
-    //console.log(p.soundOut);
-    //console.log(p)
-    console.log(p.soundOut)
-    //console.log(soundArray);
-    /*
-    soundArray.forEach((s) => {
-      console.log(s)
-    })
-    */
-    /*
-    console.log(soundArray.length)
-    for (let i = 0; i < soundArray.length; i++) {
-            console.log(soundArray)
-
-      console.log(i)
-      console.log(soundArray[i])
-    }
-    */
-    
-    
-    /*
-    const gain = p.soundOut.output.gain;
-    const defaultValue = gain.defaultValue;
-    // todo: クリップノイズ対策
-    gain.value = -1;
-    window._cacheSounds?.forEach((s) => {
-      s?.stop && s?.stop();
-      s?.disconnect && s?.disconnect();
-    });
-
-    gain.value = defaultValue;
-    */
+    p.soundOut.extensions = [];  // todo: 対応必要？
     
     p.userStartAudio();
   }
