@@ -1,7 +1,7 @@
 import DomFactory from './utils/domFactory.js';
 import createEditorView from './editor/index.js';
 
-import { EditorSelection } from './editor/codemirror/state.js';
+import {EditorSelection} from './editor/codemirror/state.js';
 import {
   cursorCharLeft,
   cursorCharRight,
@@ -490,8 +490,8 @@ const footer = DomFactory.create('footer', {
             moveCache < headLine
               ? headLine
               : moveCache >= endLine
-              ? endLine
-              : moveCache;
+                ? endLine
+                : moveCache;
 
           this.targetEditor.dispatch({
             selection: EditorSelection.create([
@@ -532,7 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
     editor.dispatch({
-      changes: { from: editor.state?.doc.length, insert: loadedSource },
+      changes: {from: editor.state?.doc.length, insert: loadedSource},
     });
   });
 });

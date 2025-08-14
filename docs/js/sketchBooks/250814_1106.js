@@ -1,13 +1,13 @@
 // `soundReset` の改善
 
-const spectrumAnalyzerPath = '../../sketchBooks/modules/spectrumAnalyzer.js'
+const spectrumAnalyzerPath = '../../sketchBooks/modules/spectrumAnalyzer.js';
 const interactionTraceKitPath = '../../sketchBooks/modules/interactionTraceKit.js';
 
 
 const sketch = (p) => {
   let w = p.windowWidth;
   let h = p.windowHeight;
-  
+
   let SpectrumAnalyzer;
   let pointerTracker;
   let tapIndicator;
@@ -23,7 +23,7 @@ const sketch = (p) => {
 
   // todo: `0` に近い、最小値として
   const zero = 1e-3 + 1e-4;
-  
+
   p.preload = () => {
     p.loadModule(spectrumAnalyzerPath, (m) => {
       const SpectrumAnalyzer = m.default;
@@ -39,7 +39,7 @@ const sketch = (p) => {
   p.setup = () => {
     // put setup code here
     soundReset();
-    
+
     p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
       passive: false,
     });
@@ -54,7 +54,7 @@ const sketch = (p) => {
 
     spectrumAnalyzer.setup(fft);
     //tapIndicator.setup();
-    
+
     // --- sound
     p.setBPM(BPM);
 
@@ -90,12 +90,11 @@ const sketch = (p) => {
   p.draw = () => {
     // put drawing code here
     p.background(...bgColor);
-    
+
     const spectrum = fft.analyze();
     spectrumAnalyzer.drawSpectrum(spectrum);
-    
-  };
 
+  };
 
 
   p.windowResized = (e) => {
@@ -120,11 +119,11 @@ const sketch = (p) => {
       sound?.stop && sound.stop();
       sound?.dispose && sound.dispose();
       sound?.disconnect && sound.disconnect();
-      
+
       p.soundOut.soundArray.splice(soundIdx, 1);
     }
-    
-    
+
+
     p.soundOut.soundArray = [];
     /*
     p.soundOut.parts.forEach((p)=> {
@@ -132,25 +131,25 @@ const sketch = (p) => {
       deldet 
     });
     */
-    
+
     for (let partIdx = p.soundOut.parts.length - 1; partIdx >= 0; partIdx--) {
       const phrases = p.soundOut.parts[partIdx].phrases;
       for (let phraseIdx = phrases.length - 1; phraseIdx >= 0; phraseIdx--) {
         phrases.splice(phraseIdx, 1);
       }
-      
-      
-      console.log(p.soundOut.parts[partIdx])
+
+
+      console.log(p.soundOut.parts[partIdx]);
       //delete p.soundOut.parts[partIdx];
       p.soundOut.parts.splice(partIdx, 1);
     }
     p.soundOut.parts = [];
     p.soundOut.extensions = [];
-    
+
     //const soundArray = [...p.soundOut.soundArray];
     //console.log(p.soundOut);
     //console.log(p)
-    console.log(p.soundOut)
+    console.log(p.soundOut);
     //console.log(soundArray);
     /*
     soundArray.forEach((s) => {
@@ -166,8 +165,8 @@ const sketch = (p) => {
       console.log(soundArray[i])
     }
     */
-    
-    
+
+
     /*
     const gain = p.soundOut.output.gain;
     const defaultValue = gain.defaultValue;
@@ -180,7 +179,7 @@ const sketch = (p) => {
 
     gain.value = defaultValue;
     */
-    
+
     p.userStartAudio();
   }
 };

@@ -1,13 +1,13 @@
 // `soundReset` の改善
 
-const spectrumAnalyzerPath = '../../sketchBooks/modules/spectrumAnalyzer.js'
+const spectrumAnalyzerPath = '../../sketchBooks/modules/spectrumAnalyzer.js';
 const interactionTraceKitPath = '../../sketchBooks/modules/interactionTraceKit.js';
 
 
 const sketch = (p) => {
   let w = p.windowWidth;
   let h = p.windowHeight;
-  
+
   let SpectrumAnalyzer;
   let pointerTracker;
   let tapIndicator;
@@ -20,14 +20,14 @@ const sketch = (p) => {
   let env;
   let phrase;
   let part;
-  
+
   let osca;
   let lfo;
   let oscb;
 
   // todo: `0` に近い、最小値として
   const zero = 1e-3 + 1e-4;
-  
+
   p.preload = () => {
     p.loadModule(spectrumAnalyzerPath, (m) => {
       const SpectrumAnalyzer = m.default;
@@ -43,7 +43,7 @@ const sketch = (p) => {
   p.setup = () => {
     // put setup code here
     soundReset();
-    
+
     p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
       passive: false,
     });
@@ -58,7 +58,7 @@ const sketch = (p) => {
 
     spectrumAnalyzer.setup(fft);
     //tapIndicator.setup();
-    
+
     // --- sound
     p.setBPM(BPM);
 
@@ -87,25 +87,24 @@ const sketch = (p) => {
     part = new p5.Part();
     part.addPhrase(phrase);
     part.loop();
-    
-    
+
+
     osca = new p5.Oscillator(types[0], 440 + (p.random() * 440));
-    osca.aname = 'a'
-    
+    osca.aname = 'a';
+
     //osc.amp(0.4);
     //osca.start();
-    
+
     lfo = new p5.Oscillator(0.3, 'sine'); // 速さ
     lfo.amp(500); // 幅
     lfo.start();
     osca.start();
     lfo.disconnect();
     lfo.connect(osca.freqNode);
-    
-    
-    
+
+
     oscb = new p5.Oscillator(types[1], 880 + (p.random() * 440));
-    oscb.aname = 'b'
+    oscb.aname = 'b';
     oscb.amp(0.4);
     oscb.start();
   };
@@ -113,12 +112,11 @@ const sketch = (p) => {
   p.draw = () => {
     // put drawing code here
     p.background(...bgColor);
-    
+
     const spectrum = fft.analyze();
     spectrumAnalyzer.drawSpectrum(spectrum);
-    
-  };
 
+  };
 
 
   p.windowResized = (e) => {
@@ -138,10 +136,10 @@ const sketch = (p) => {
       sound?.stop && sound.stop();
       sound?.dispose && sound.dispose();
       sound?.disconnect && sound.disconnect();
-      
+
       soundArray.splice(soundIdx, 1);
     }
-    
+
     const parts = p.soundOut.parts;
     for (let partIdx = parts.length - 1; partIdx >= 0; partIdx--) {
       const phrases = parts[partIdx].phrases;
@@ -150,11 +148,11 @@ const sketch = (p) => {
       }
       parts.splice(partIdx, 1);
     }
-    
+
     p.soundOut.soundArray = [];
     p.soundOut.parts = [];
     p.soundOut.extensions = [];  // todo: 対応必要？
-    
+
     p.userStartAudio();
   }
 };
