@@ -1,92 +1,69 @@
-// [p5.js Web Editor | 004-OscillatorAmplitudeLFOmodulation](https://editor.p5js.org/thomasjohnmartinez/sketches/9bsyBm86Q)
-
-const interactionTraceKitPath =
-  '../../sketchBooks/modules/interactionTraceKit.js';
+// [p5.js Web Editor | 006-DelayTime-Envelope](https://editor.p5js.org/thomasjohnmartinez/sketches/Dk95S298f)
 
 const sketch = (p) => {
   let w = p.windowWidth;
   let h = p.windowHeight;
 
-  let pointerTracker;
-  let pointX, pointY;
-
   let osc;
-  let lfo;
-
-  p.preload = () => {
-    p.loadModule(interactionTraceKitPath, (m) => {
-      const { PointerTracker } = m;
-      pointerTracker = new PointerTracker(p);
-    });
-  };
+  let delay;
+  let env;
+  
 
   p.setup = () => {
     // put setup code here
     soundReStart();
 
-    p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
-      passive: false,
-    });
-
-    p.describe(
-      'a sketch that demonstrates amplitude modulation with an LFO and sine tone'
-    );
-
     const cnv = p.createCanvas(w, h);
-    cnv.mousePressed(startSound);
+    p.background(220);
+    
     p.textAlign(p.CENTER);
-    p.textWrap(p.WORD);
-    p.textSize(10);
+    p.textSize(13);
+    p.text('click and drag mouse', w / 2, h / 2);
+    
 
-    osc = new p5.Oscillator('sine');
-    lfo = new p5.Oscillator(1);
-    lfo.disconnect();
-    osc.amp(lfo);
+    osc = new p5.Oscillator('sawtooth');
+    osc.amp(0.75);
+    
+    env = new p5.Envelope(0.01);
+    delay = new p5.Delay(0.12, 0.7);
+    
+    
+    osc.amp(env);
+    osc.disconnect();
+    osc.connect(delay);
+    
+    
+    
+    
+    cnv.mousePressed(oscStart);
+    //cnv.mouseReleased(oscStop);
+    //cnv.mouseOut(oscStop);
+    
+    
+    p.describe('Click and release or hold, to play a square wave with delay effect.');
+    
   };
 
   p.draw = () => {
     // put drawing code here
-    p.background(220);
-
-    const maxWidth = 100;
-    p.text('click to play sound', w / 2 - maxWidth / 2, h / 2 - 20, maxWidth);
-    p.text(
-      'control lfo with mouseX position',
-      w / 2 - maxWidth / 2,
-      h / 2,
-      maxWidth
-    );
-
-    if (isNaN(pointX)) {
-      return;
-    }
-
-    const freq = p.map(pointX, 0, w, 0, 10);
-    lfo.freq(freq);
+    //osc.freq(p.map(p.mouseX, 0, w, 100, 1000));
   };
 
-  function startSound() {
-    lfo.start();
+  function oscStart() {
+    p.background(0, 255, 255);
+    p.text('release to hear delay', w/2, h/2+150);
     osc.start();
+    env.triggerAttack();
+  }
+  
+  function oscStop() {
+    p.background(220);
+    p.text('click and drag mouse', w/2, h/2+150);
+    env.triggerRelease();
   }
 
-  p.touchStarted = (e) => {
-    pointerTracker.updateXY();
-    pointX = pointerTracker.x;
-    pointY = pointerTracker.y;
-  };
 
-  p.touchMoved = (e) => {
-    pointerTracker.updateXY();
-    pointX = pointerTracker.x;
-    pointY = pointerTracker.y;
-  };
-
-  p.touchEnded = (e) => {
-    pointerTracker.updateXY();
-    pointX = pointerTracker.x;
-    pointY = pointerTracker.y;
-  };
+  
 
   p.windowResized = (e) => {
     w = p.windowWidth;
@@ -127,3 +104,4 @@ const sketch = (p) => {
 };
 
 new p5(sketch);
+
