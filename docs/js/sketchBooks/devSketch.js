@@ -1,17 +1,35 @@
 // [p5.js Web Editor | 006-DelayTime-Envelope](https://editor.p5js.org/thomasjohnmartinez/sketches/Dk95S298f)
 
+const interactionTraceKitPath =
+  '../../sketchBooks/modules/interactionTraceKit.js';
+
+
 const sketch = (p) => {
   let w = p.windowWidth;
   let h = p.windowHeight;
+  
+  let pointerTracker;
+  let pointX, pointY;
 
   let osc;
   let delay;
   let env;
   
+  p.preload = () => {
+    p.loadModule(interactionTraceKitPath, (m) => {
+      const { PointerTracker } = m;
+      pointerTracker = new PointerTracker(p);
+    });
+  };
+  
 
   p.setup = () => {
     // put setup code here
     soundReStart();
+    
+    p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
+      passive: false,
+    });
 
     const cnv = p.createCanvas(w, h);
     p.background(220);
@@ -61,6 +79,24 @@ const sketch = (p) => {
     p.text('click and drag mouse', w/2, h/2+150);
     env.triggerRelease();
   }
+  
+  p.touchStarted = (e) => {
+    pointerTracker.updateXY();
+    pointX = pointerTracker.x;
+    pointY = pointerTracker.y;
+  };
+
+  p.touchMoved = (e) => {
+    pointerTracker.updateXY();
+    pointX = pointerTracker.x;
+    pointY = pointerTracker.y;
+  };
+
+  p.touchEnded = (e) => {
+    pointerTracker.updateXY();
+    pointX = pointerTracker.x;
+    pointY = pointerTracker.y;
+  };
 
 
   
