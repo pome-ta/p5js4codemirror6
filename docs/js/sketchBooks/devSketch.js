@@ -45,17 +45,15 @@ const sketch = (p) => {
     env = new p5.Envelope(0.01);
     delay = new p5.Delay(0.12, 0.7);
     
-    
     osc.amp(env);
     osc.disconnect();
     osc.connect(delay);
     
-    
-    
-    
+    /*
     cnv.mousePressed(oscStart);
-    //cnv.mouseReleased(oscStop);
-    //cnv.mouseOut(oscStop);
+    cnv.mouseReleased(oscStop);
+    cnv.mouseOut(oscStop);
+    */
     
     
     p.describe('Click and release or hold, to play a square wave with delay effect.');
@@ -64,39 +62,38 @@ const sketch = (p) => {
 
   p.draw = () => {
     // put drawing code here
-    //osc.freq(p.map(p.mouseX, 0, w, 100, 1000));
+    osc.freq(p.map(p.mouseY, h, 0, 440, 880));
+    
+    const dtime = p.map(p.mouseX, 0, w, 0.1, 0.5);
+    delay.delayTime(dtime);
   };
 
   function oscStart() {
     p.background(0, 255, 255);
-    p.text('release to hear delay', w/2, h/2+150);
+    p.text('release to hear delay', w/2, h/2);
     osc.start();
     env.triggerAttack();
   }
   
   function oscStop() {
     p.background(220);
-    p.text('click and drag mouse', w/2, h/2+150);
+    p.text('click and drag mouse', w/2, h/2);
     env.triggerRelease();
   }
   
+  
+  
   p.touchStarted = (e) => {
-    pointerTracker.updateXY();
-    pointX = pointerTracker.x;
-    pointY = pointerTracker.y;
+    oscStart();
   };
 
   p.touchMoved = (e) => {
-    pointerTracker.updateXY();
-    pointX = pointerTracker.x;
-    pointY = pointerTracker.y;
   };
 
   p.touchEnded = (e) => {
-    pointerTracker.updateXY();
-    pointX = pointerTracker.x;
-    pointY = pointerTracker.y;
+    oscStop();
   };
+  
 
 
   
