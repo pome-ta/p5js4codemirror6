@@ -46,7 +46,7 @@ const sketch = (p) => {
     env.setADSR(0.01, 0, 1.0);
     // env.setRange();
     delay = new p5.Delay();
-    delay.process(osc, 0.12, 0.7);
+    delay.process(osc, 0.12, 0.3);
 
     // osc.disconnect();
     // osc.connect(env);
