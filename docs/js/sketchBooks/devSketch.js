@@ -1,6 +1,6 @@
-// `soundReset` の改善
+// p5.sound のv0.2 確認
 
-const spectrumAnalyzerPath = '../../sketchBooks/modules/spectrumAnalyzer.js';
+//const spectrumAnalyzerPath = '../../sketchBooks/modules/spectrumAnalyzer.js';
 const interactionTraceKitPath = '../../sketchBooks/modules/interactionTraceKit.js';
 
 
@@ -8,9 +8,11 @@ const sketch = (p) => {
   let w = p.windowWidth;
   let h = p.windowHeight;
 
-  let SpectrumAnalyzer;
+  
+  //let SpectrumAnalyzer;
   let pointerTracker;
   let tapIndicator;
+  
 
   const BPM = 90;
 
@@ -28,17 +30,21 @@ const sketch = (p) => {
   // todo: `0` に近い、最小値として
   const zero = 1e-3 + 1e-4;
 
+  
   p.preload = () => {
+    /*
     p.loadModule(spectrumAnalyzerPath, (m) => {
       const SpectrumAnalyzer = m.default;
       spectrumAnalyzer = new SpectrumAnalyzer(p);
     });
+    */
     p.loadModule(interactionTraceKitPath, (m) => {
       const {PointerTracker, TapIndicator} = m;
       pointerTracker = new PointerTracker(p);
       tapIndicator = new TapIndicator(p);
     });
   };
+  
 
   p.setup = () => {
     // put setup code here
@@ -56,7 +62,7 @@ const sketch = (p) => {
 
     fft = new p5.FFT();
 
-    spectrumAnalyzer.setup(fft);
+    //spectrumAnalyzer.setup(fft);
     //tapIndicator.setup();
 
     // --- sound
@@ -114,7 +120,7 @@ const sketch = (p) => {
     p.background(...bgColor);
 
     const spectrum = fft.analyze();
-    spectrumAnalyzer.drawSpectrum(spectrum);
+    //spectrumAnalyzer.drawSpectrum(spectrum);
 
   };
 
@@ -127,6 +133,7 @@ const sketch = (p) => {
 
   function soundReset() {
     // wip: クリップノイズ対策
+    /*
     p.disposeSound();
 
     const soundArray = p.soundOut.soundArray;
@@ -152,6 +159,7 @@ const sketch = (p) => {
     p.soundOut.soundArray = [];
     p.soundOut.parts = [];
     p.soundOut.extensions = [];  // todo: 対応必要?
+    */
 
     p.userStartAudio();
   }
