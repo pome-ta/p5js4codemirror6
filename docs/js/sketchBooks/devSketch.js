@@ -12,24 +12,10 @@ const sketch = (p) => {
   //let SpectrumAnalyzer;
   let pointerTracker;
   let tapIndicator;
-  
-
-  const BPM = 90;
-
-  let fft;
 
   let osc;
-  let env;
-  let phrase;
-  let part;
-
-  let osca;
-  let lfo;
-  let oscb;
-
-  // todo: `0` に近い、最小値として
-  const zero = 1e-3 + 1e-4;
-
+  let osca,lfo,oscb;
+  
   
   p.preload = () => {
     /*
@@ -60,41 +46,10 @@ const sketch = (p) => {
     bgColor = [0, 0, 0.25];
     p.background(...bgColor);
 
-    fft = new p5.FFT();
-
-    //spectrumAnalyzer.setup(fft);
-    //tapIndicator.setup();
-
+    
     // --- sound
-    p.setBPM(BPM);
-
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
-    osc = new p5.Oscillator(types[0]);
-    osc.start();
-    osc.amp(0);
-
-    env = new p5.Envelope();
-    env.setADSR(zero, 0.1, 1, zero + zero);
-    env.setExp(true);
-
-    phrase = new p5.Phrase(
-      'metronom',
-      (time, playbackRate) => {
-        if (!playbackRate) {
-          return;
-        }
-
-        osc.freq(playbackRate, 0.5);
-        env.play(osc);
-      },
-      [880, 0, 0, 0, 440, 0, 0, 0, 440, 0, 0, 0, 440, 0, 0, 0]
-    );
-
-    part = new p5.Part();
-    part.addPhrase(phrase);
-    part.loop();
-
-
+    /*
     osca = new p5.Oscillator(types[0], 440 + (p.random() * 440));
     osca.aname = 'a';
 
@@ -106,20 +61,22 @@ const sketch = (p) => {
     lfo.start();
     osca.start();
     lfo.disconnect();
-    lfo.connect(osca.freqNode);
+    lfo.connect(osca.osc);
+    */
 
 
     oscb = new p5.Oscillator(types[1], 880 + (p.random() * 440));
     oscb.aname = 'b';
     oscb.amp(0.4);
     oscb.start();
+    console.log(p)
   };
 
   p.draw = () => {
     // put drawing code here
     p.background(...bgColor);
 
-    const spectrum = fft.analyze();
+    //const spectrum = fft.analyze();
     //spectrumAnalyzer.drawSpectrum(spectrum);
 
   };
@@ -160,7 +117,8 @@ const sketch = (p) => {
     p.soundOut.parts = [];
     p.soundOut.extensions = [];  // todo: 対応必要?
     */
-
+    
+    p.setAudioContext()
     p.userStartAudio();
   }
 };
