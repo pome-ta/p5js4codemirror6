@@ -16,7 +16,7 @@ const sketch = (p) => {
 
   p.preload = () => {
     p.loadModule(interactionTraceKitPath, (m) => {
-      const { PointerTracker } = m;
+      const {PointerTracker} = m;
       pointerTracker = new PointerTracker(p);
     });
   };
@@ -86,7 +86,8 @@ const sketch = (p) => {
     oscStart();
   };
 
-  p.touchMoved = (e) => {};
+  p.touchMoved = (e) => {
+  };
 
   p.touchEnded = (e) => {
     oscStop();
