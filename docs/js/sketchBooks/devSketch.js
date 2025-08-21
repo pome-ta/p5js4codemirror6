@@ -1,4 +1,4 @@
-// [p5.js Web Editor | 006-DelayTime-Envelope](https://editor.p5js.org/thomasjohnmartinez/sketches/Dk95S298f)
+// [p5.js-sound/examples/array_of_notes/sketch.js at main · processing/p5.js-sound · GitHub](https://github.com/processing/p5.js-sound/blob/main/examples/array_of_notes/sketch.js)
 
 const interactionTraceKitPath =
   '../../sketchBooks/modules/interactionTraceKit.js';
@@ -8,16 +8,37 @@ const sketch = (p) => {
   let h = p.windowHeight;
 
   let pointerTracker;
-  let pointX, pointY;
+  let tapIndicator;
 
-  let osc;
-  let delay;
-  let env;
+  let synth;
+  let songStarted = false;
+  
+  const song = [
+    // Note pitch, velocity (between 0-1), start time (s), note duration (s)
+    { pitch: 'E4', velocity: 1, time: 0, duration: 1 },
+    { pitch: 'D4', velocity: 1, time: 1, duration: 1 },
+    { pitch: 'C4', velocity: 1, time: 2, duration: 1 },
+    { pitch: 'D4', velocity: 1, time: 3, duration: 1 },
+    { pitch: 'E4', velocity: 1, time: 4, duration: 1 },
+    { pitch: 'E4', velocity: 1, time: 5, duration: 1 },
+    { pitch: 'E4', velocity: 1, time: 6, duration: 1 },
+    // Rest indicated by offset in start time
+    { pitch: 'D4', velocity: 1, time: 8, duration: 1 },
+    { pitch: 'D4', velocity: 1, time: 9, duration: 1 },
+    { pitch: 'E4', velocity: 1, time: 10, duration: 1 },
+    { pitch: 'D4', velocity: 1, time: 11, duration: 1 },
+    // Chord indicated by simultaneous note start times
+    { pitch: 'C4', velocity: 1, time: 12, duration: 2 },
+    { pitch: 'E4', velocity: 1, time: 12, duration: 2 },
+    { pitch: 'G4', velocity: 1, time: 12, duration: 2 },
+  ];
+  
 
   p.preload = () => {
     p.loadModule(interactionTraceKitPath, (m) => {
-      const {PointerTracker} = m;
+      const {PointerTracker, TapIndicator} = m;
       pointerTracker = new PointerTracker(p);
+      tapIndicator = new TapIndicator(p);
     });
   };
 
@@ -28,69 +49,38 @@ const sketch = (p) => {
     p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
       passive: false,
     });
+    
 
-    const cnv = p.createCanvas(w, h);
-    p.background(220);
+    p.createCanvas(w, h);
+    tapIndicator.setup();
 
-    p.textAlign(p.CENTER);
-    p.textSize(13);
-    p.text('click and drag mouse', w / 2, h / 2);
-
-    osc = new p5.Oscillator('sawtooth');
-    osc.amp(0.5);
-
-    env = new p5.Envelope();
-    env.setADSR(0.01, 0, 1.0);
-    // env.setRange();
-    delay = new p5.Delay();
-    delay.process(osc, 0.12, 0.7);
-
-    // osc.disconnect();
-    // osc.connect(env);
-
-    // osc.amp(env);
-    // osc.disconnect();
-    // osc.connect(delay);
-
-    // cnv.mousePressed(oscStart);
-    // cnv.mouseReleased(oscStop);
-    // cnv.mouseOut(oscStop);
-
-    p.describe(
-      'Click and release or hold, to play a square wave with delay effect.'
-    );
+    p.textAlign(p.CENTER, p.CENTER);
+    
+    // --- sound
+    synth = new p5.PolySynth();
+    
   };
 
   p.draw = () => {
     // put drawing code here
-    osc.freq(p.map(p.mouseY, h, 0, 440, 880));
-
-    const dtime = p.map(p.mouseX, 0, w, 0.1, 0.5);
-    delay.delayTime(dtime);
+    p.background(180);
+    songStarted ? p.text('song started', w / 2, h / 2) : p.text('click to play song', w / 2, h / 2);
   };
 
-  function oscStart() {
-    p.background(0, 255, 255);
-    p.text('release to hear delay', w / 2, h / 2);
-    osc.start();
-    env.triggerAttack(osc);
-  }
-
-  function oscStop() {
-    p.background(220);
-    p.text('click and drag mouse', w / 2, h / 2);
-    env.triggerRelease(osc);
-  }
-
   p.touchStarted = (e) => {
-    oscStart();
+    if (!songStarted) { // Only play once
+      for (let i = 0; i < song.length; i++) {
+        const note = song[i];
+        synth.play(note.pitch, note.velocity, note.time, note.duration);
+      }
+      songStarted = true;
+    }
   };
 
   p.touchMoved = (e) => {
   };
 
   p.touchEnded = (e) => {
-    oscStop();
   };
 
   p.windowResized = (e) => {
