@@ -53,8 +53,6 @@ const sketch = (p) => {
     // Create synth voice
     synth = new p5.PolySynth();
     
-    
-    
   };
 
   p.draw = () => {
@@ -72,8 +70,35 @@ const sketch = (p) => {
       p.noStroke();
       p.text(keyOrder[i], i * keyWidth + keyWidth / 2, h / 2);
     }
-    
   };
+  
+
+  function keyPressed() {
+    const keyIndex = keyOrder.indexOf(p.key);
+    // Check if valid note key pressed
+    if (keyIndex >= 0) {
+      // Update key state
+      keyStates[keyIndex] = 1;
+      // Play synth
+      const midiNoteNumber = baseNote + keyIndex; // 0-127; 60 is Middle C (C4)
+      const freq = p.midiToFreq(midiNoteNumber);
+      synth.noteAttack(freq, velocity, 0);
+    }
+  }
+  
+  function keyReleased() {
+    const keyIndex = keyOrder.indexOf(p.key);
+    // Check if valid note key pressed
+    if (keyIndex >= 0) {
+      // Update key state
+      keyStates[keyIndex] = 0;
+      // Stop synth
+      const midiNoteNumber = baseNote + keyIndex; // 0-127; 60 is Middle C (C4)
+      const freq = p.midiToFreq(midiNoteNumber);
+      synth.noteRelease(freq, 0);
+    }
+  }
+  
 
   p.touchStarted = (e) => {
     const keyWidth = w / keyStates.length;
