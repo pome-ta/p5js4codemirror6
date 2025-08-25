@@ -57,24 +57,30 @@ const sketch = (p) => {
     // put drawing code here
     p.background(255);
   };
+  /*
+  p.mousePressed = (e)=> {
+    console.log(p)
+    if (soundFile.isPlaying()) {
+      soundFile.pause();
+    } else {
+      soundFile.play();
+    }
+  }
+  */
 
-  // p.mousePressed = (e)=> {
-  //   console.log(p)
-  //   if (soundFile.isPlaying()) {
-  //     soundFile.pause();
-  //   } else {
-  //     soundFile.play();
-  //   }
-  // }
-
+  
   p.touchStarted = (e) => {};
 
   p.touchMoved = (e) => {};
 
   p.touchEnded = (e) => {
-    console.log(soundFile.isPlaying());
-    soundFile.play();
+    if (soundFile.isPlaying()) {
+      soundFile.pause();
+    } else {
+      soundFile.play();
+    }
   };
+  
 
   p.windowResized = (e) => {
     w = p.windowWidth;
