@@ -22,7 +22,7 @@ const sketch = (p) => {
   let soundFile;
 
   p.preload = () => {
-    // soundReStart();
+    soundReStart();
 
     p.loadModule(interactionTraceKitPath, (m) => {
       const { PointerTracker, TapIndicator } = m;
@@ -30,14 +30,14 @@ const sketch = (p) => {
       tapIndicator = new TapIndicator(p);
     });
 
-    // const url = githubusercontent(soundFileURL);
-    // console.log(url);
-    // soundFile = p.loadSound(url);
+    const url = githubusercontent(soundFileURL);
+    console.log(url);
+    soundFile = p.loadSound(url);
   };
 
   p.setup = () => {
     // put setup code here
-    soundReStart();
+    //soundReStart();
 
     p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
       passive: false,
@@ -45,12 +45,14 @@ const sketch = (p) => {
 
     p.createCanvas(w, h);
     tapIndicator.setup();
+    /*
 
     const url = githubusercontent(soundFileURL);
     console.log(url);
     soundFile = p.loadSound(url);
 
     console.log(soundFile);
+    */
   };
 
   p.draw = () => {
