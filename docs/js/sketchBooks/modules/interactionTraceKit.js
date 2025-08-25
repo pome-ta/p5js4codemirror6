@@ -49,7 +49,7 @@ class TapIndicator {
   #markSize;
   #pgColor;
 
-  baseColorHSB = [0.0, 0.0, 1.0];
+  baseColorHSB = [0.3, 0.1, 0.9];
 
   constructor(mainInstance, markSize = 48) {
     this.#p = mainInstance;
@@ -72,6 +72,7 @@ class TapIndicator {
     this.#pg = this.#p.createGraphics(this.#p.width, this.#p.height);
 
     this.#pg.colorMode(this.#pg.HSB, 1.0, 1.0, 1.0, 1.0);
+    this.#pg.blendMode(this.#pg.SCREEN);
     this.#pgColor = this.#pg.color(...this.baseColorHSB);
     this.#pgColor.setAlpha(0.5);
     this.#pg.fill(this.#pgColor);
