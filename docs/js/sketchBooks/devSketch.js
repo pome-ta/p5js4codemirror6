@@ -1,31 +1,89 @@
-let song;
-const url = 'https://github.com/processing/p5.js-sound/blob/main/examples/files/Damscray_DancingTiger.ogg';
+// [p5.js-sound/examples/Compressor/sketch.js at main · processing/p5.js-sound · GitHub](https://github.com/processing/p5.js-sound/blob/main/examples/Compressor/sketch.js)
 
-function preload() {
-  // 外部URLから音源をロード
-  const githubusercontent = (githubUrl) => githubUrl.replace('https://github.com/', 'https://raw.githubusercontent.com/').replace('/blob/', '/');
-  song = loadSound(githubusercontent(url));
-}
+const interactionTraceKitPath =
+  '../../sketchBooks/modules/interactionTraceKit.js';
 
-function setup() {
-  createCanvas(400, 200);
-  textAlign(CENTER, CENTER);
-  textSize(16);
-  text('クリックで再生', width/2, height/2);
-}
+const sketch = (p) => {
+  let w = p.windowWidth;
+  let h = p.windowHeight;
 
-function mousePressed() {
-  if (song.isPlaying()) {
-    song.pause();
-  } else {
-    song.play();
+  let pointerTracker;
+  let tapIndicator;
+
+  
+
+  p.preload = () => {
+    p.loadModule(interactionTraceKitPath, (m) => {
+      const {PointerTracker, TapIndicator} = m;
+      pointerTracker = new PointerTracker(p);
+      tapIndicator = new TapIndicator(p);
+    });
+  };
+
+  p.setup = () => {
+    // put setup code here
+    soundReStart();
+
+    p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
+      passive: false,
+    });
+    
+
+    p.createCanvas(w, h);
+    tapIndicator.setup();
+  };
+
+  p.draw = () => {
+    // put drawing code here
+    p.background(255);
+  };
+  
+  p.touchStarted = (e) => {
+  };
+
+  p.touchMoved = (e) => {
+  };
+
+  p.touchEnded = (e) => {
+  };
+
+  p.windowResized = (e) => {
+    w = p.windowWidth;
+    h = p.windowHeight;
+    p.resizeCanvas(w, h);
+  };
+
+  function soundReStart() {
+    // wip: クリップノイズ対策
+    p.disposeSound();
+
+    const soundArray = p.soundOut.soundArray;
+    for (let soundIdx = soundArray.length - 1; soundIdx >= 0; soundIdx--) {
+      const sound = soundArray[soundIdx];
+      // todo: 過剰処理?
+      sound?.stop && sound.stop();
+      sound?.dispose && sound.dispose();
+      sound?.disconnect && sound.disconnect();
+
+      soundArray.splice(soundIdx, 1);
+    }
+
+    const parts = p.soundOut.parts;
+    for (let partIdx = parts.length - 1; partIdx >= 0; partIdx--) {
+      const phrases = parts[partIdx].phrases;
+      for (let phraseIdx = phrases.length - 1; phraseIdx >= 0; phraseIdx--) {
+        phrases.splice(phraseIdx, 1);
+      }
+      parts.splice(partIdx, 1);
+    }
+
+    p.soundOut.soundArray = [];
+    p.soundOut.parts = [];
+    p.soundOut.extensions = []; // todo: 対応必要?
+
+    p.userStartAudio();
   }
-}
+};
 
-// https://raw.githubusercontent.com/processing/p5.js-sound/main/examples/files/Damscray_DancingTiger.ogg
+new p5(sketch);
 
-// https://github.com/processing/p5.js-sound/blob/main/examples/files/Damscray_DancingTiger.ogg
-
-
-//const rawUrl = blobUrl.replace("https://github.com/", "https://raw.githubusercontent.com/").replace("/blob/", "/");
-//const rawUrl = blobUrl.replace('https://github.com/', 'https://raw.githubusercontent.com/').replace('/blob/', '/');
