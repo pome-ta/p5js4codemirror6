@@ -1,5 +1,13 @@
 // addon `refreshSoundContext.js`
 
+const soundFileURL =
+  'https://github.com/processing/p5.js-sound/blob/main/examples/files/beat.ogg';
+
+// todo: `p.loadSound` 用 => 通常のGitHub URL を`githubusercontent` へ置き換え
+const githubusercontent = (githubUrl) =>
+  githubUrl
+    .replace('https://github.com/', 'https://raw.githubusercontent.com/')
+    .replace('/blob/', '/');
 
 const interactionTraceKitPath =
   '../../sketchBooks/modules/interactionTraceKit.js';
@@ -11,22 +19,21 @@ const sketch = (p) => {
   let pointerTracker;
   let tapIndicator;
 
-  
+  let soundFile;
 
   p.preload = () => {
-
     p.loadModule(interactionTraceKitPath, (m) => {
       const { PointerTracker, TapIndicator } = m;
       pointerTracker = new PointerTracker(p);
       tapIndicator = new TapIndicator(p);
     });
-    console.log('pre')
 
+    const url = githubusercontent(soundFileURL);
+    soundFile = p.loadSound(url);
   };
 
   p.setup = () => {
     // put setup code here
-    //soundReStart();
 
     p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
       passive: false,
@@ -34,10 +41,6 @@ const sketch = (p) => {
 
     p.createCanvas(w, h);
     tapIndicator.setup();
-    //p.refreshSoundContext();
-    
-    console.log(p)
-    
   };
 
   p.draw = () => {
@@ -55,14 +58,17 @@ const sketch = (p) => {
   }
   */
 
-  
   p.touchStarted = (e) => {};
 
   p.touchMoved = (e) => {};
 
   p.touchEnded = (e) => {
+    if (soundFile.isPlaying()) {
+      soundFile.pause();
+    } else {
+      soundFile.play();
+    }
   };
-  
 
   p.windowResized = (e) => {
     w = p.windowWidth;
