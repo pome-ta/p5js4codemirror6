@@ -42,7 +42,7 @@ const sketch = (p) => {
     });
 
     p.createCanvas(w, h);
-    tapIndicator.setup();
+    //tapIndicator.setup();
     // console.log(p);
   };
 
@@ -50,7 +50,7 @@ const sketch = (p) => {
     // put drawing code here
     p.background(64);
   };
-  /*
+  
   p.mousePressed = (e)=> {
     if (soundFile.isPlaying()) {
       soundFile.pause();
@@ -60,12 +60,12 @@ const sketch = (p) => {
       // p.background(255);
     }
   }
-  */
-
+  
+  /*
   p.touchStarted = (e) => {};
 
   p.touchMoved = (e) => {};
-
+  
   p.touchEnded = (e) => {
     if (soundFile.isPlaying()) {
       soundFile.pause();
@@ -75,6 +75,8 @@ const sketch = (p) => {
       p.background(255);
     }
   };
+  */
+  
 
   p.windowResized = (e) => {
     console.log('re');
