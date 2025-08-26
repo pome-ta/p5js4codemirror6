@@ -33,12 +33,15 @@ const sketch = (p) => {
 
     p.createCanvas(w, h);
     tapIndicator.setup();
+    p.refreshSoundContext();
+    
+    console.log(p)
     
   };
 
   p.draw = () => {
     // put drawing code here
-    p.background(255);
+    p.background(64);
   };
   /*
   p.mousePressed = (e)=> {
