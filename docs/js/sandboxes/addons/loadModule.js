@@ -34,7 +34,7 @@
     // Cache 回避対策: 現在ミリ秒を取得する
     const _msTime = Date.now();
     const _url = `${path}?ts=${_msTime}`;
-    
+
     const promise = import(_url);
     promise
       .then((module) => {
@@ -53,4 +53,3 @@
     return promise;
   };
 })();
-
