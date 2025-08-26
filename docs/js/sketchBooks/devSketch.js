@@ -20,6 +20,7 @@ const sketch = (p) => {
       pointerTracker = new PointerTracker(p);
       tapIndicator = new TapIndicator(p);
     });
+    console.log('pre')
 
   };
 
@@ -33,7 +34,7 @@ const sketch = (p) => {
 
     p.createCanvas(w, h);
     tapIndicator.setup();
-    p.refreshSoundContext();
+    //p.refreshSoundContext();
     
     console.log(p)
     
