@@ -1,5 +1,4 @@
-// [p5.js-sound/examples/Compressor/sketch.js at main · processing/p5.js-sound · GitHub](https://github.com/processing/p5.js-sound/blob/main/examples/Compressor/sketch.js)
-
+// addon `refreshSoundContext.js`
 
 const soundFileURL =
   'https://github.com/processing/p5.js-sound/blob/main/examples/files/beat.ogg';
@@ -62,7 +61,7 @@ const sketch = (p) => {
   p.touchStarted = (e) => {};
 
   p.touchMoved = (e) => {};
-  /*
+
   p.touchEnded = (e) => {
     if (soundFile.isPlaying()) {
       soundFile.pause();
@@ -70,7 +69,6 @@ const sketch = (p) => {
       soundFile.play();
     }
   };
-  */
 
   p.windowResized = (e) => {
     w = p.windowWidth;
