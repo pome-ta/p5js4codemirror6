@@ -1,5 +1,13 @@
-// addon `refreshSoundContext.js`
+// [p5.js-sound/examples/Compressor/sketch.js at main · processing/p5.js-sound · GitHub](https://github.com/processing/p5.js-sound/blob/main/examples/Compressor/sketch.js)
 
+const soundFileURL =
+  'https://github.com/processing/p5.js-sound/blob/main/examples/files/beat.ogg';
+
+// todo: `p.loadSound` 用 => 通常のGitHub URL を`githubusercontent` へ置き換え
+const githubusercontent = (githubUrl) =>
+  githubUrl
+    .replace('https://github.com/', 'https://raw.githubusercontent.com/')
+    .replace('/blob/', '/');
 
 const interactionTraceKitPath =
   '../../sketchBooks/modules/interactionTraceKit.js';
@@ -11,9 +19,10 @@ const sketch = (p) => {
   let pointerTracker;
   let tapIndicator;
 
-  
+  let soundFile;
 
   p.preload = () => {
+    soundReStart();
 
     p.loadModule(interactionTraceKitPath, (m) => {
       const { PointerTracker, TapIndicator } = m;
@@ -21,6 +30,9 @@ const sketch = (p) => {
       tapIndicator = new TapIndicator(p);
     });
 
+    const url = githubusercontent(soundFileURL);
+    console.log(url);
+    soundFile = p.loadSound(url);
   };
 
   p.setup = () => {
@@ -33,7 +45,14 @@ const sketch = (p) => {
 
     p.createCanvas(w, h);
     tapIndicator.setup();
-    
+    /*
+
+    const url = githubusercontent(soundFileURL);
+    console.log(url);
+    soundFile = p.loadSound(url);
+
+    console.log(soundFile);
+    */
   };
 
   p.draw = () => {
@@ -57,6 +76,11 @@ const sketch = (p) => {
   p.touchMoved = (e) => {};
 
   p.touchEnded = (e) => {
+    if (soundFile.isPlaying()) {
+      soundFile.pause();
+    } else {
+      soundFile.play();
+    }
   };
   
 
