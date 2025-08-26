@@ -53,24 +53,29 @@ const sketch = (p) => {
     console.log(p)
     if (soundFile.isPlaying()) {
       soundFile.pause();
+      p.background(80);
     } else {
       soundFile.play();
+      p.background(255);
     }
   }
   */
+  
 
   p.touchStarted = (e) => {};
 
   p.touchMoved = (e) => {};
-  /*
+  
   p.touchEnded = (e) => {
     if (soundFile.isPlaying()) {
       soundFile.pause();
+      p.background(80);
     } else {
       soundFile.play();
+      p.background(255);
     }
   };
-  */
+  
 
   p.windowResized = (e) => {
     w = p.windowWidth;
