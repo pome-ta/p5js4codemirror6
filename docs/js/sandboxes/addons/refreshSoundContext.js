@@ -21,7 +21,6 @@
     }
 
     // wip: クリップノイズ対策
-
     this.disposeSound();
 
     const soundArray = this.soundOut.soundArray;

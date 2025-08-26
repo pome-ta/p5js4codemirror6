@@ -1,6 +1,5 @@
 // [p5.js-sound/examples/Compressor/sketch.js at main · processing/p5.js-sound · GitHub](https://github.com/processing/p5.js-sound/blob/main/examples/Compressor/sketch.js)
 
-
 const soundFileURL =
   'https://github.com/processing/p5.js-sound/blob/main/examples/files/beat.ogg';
 
@@ -35,6 +34,8 @@ const sketch = (p) => {
 
   p.setup = () => {
     // put setup code here
+    w = p.windowWidth;
+    h = p.windowHeight;
 
     p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
       passive: false,
@@ -42,30 +43,31 @@ const sketch = (p) => {
 
     p.createCanvas(w, h);
     tapIndicator.setup();
+    console.log(p);
   };
 
   p.draw = () => {
     // put drawing code here
-    p.background(64);
+    // p.background(64);
   };
   /*
   p.mousePressed = (e)=> {
     console.log(p)
+
     if (soundFile.isPlaying()) {
       soundFile.pause();
-      p.background(80);
+      // p.background(80);
     } else {
       soundFile.play();
-      p.background(255);
+      // p.background(255);
     }
   }
   */
-  
 
   p.touchStarted = (e) => {};
 
   p.touchMoved = (e) => {};
-  
+
   p.touchEnded = (e) => {
     if (soundFile.isPlaying()) {
       soundFile.pause();
@@ -75,14 +77,13 @@ const sketch = (p) => {
       p.background(255);
     }
   };
-  
 
   p.windowResized = (e) => {
+    console.log('re');
     w = p.windowWidth;
     h = p.windowHeight;
     p.resizeCanvas(w, h);
   };
-
 };
 
 new p5(sketch);
