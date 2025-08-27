@@ -88,9 +88,19 @@ const sketch = (p) => {
     const x = 0.0625 * w;
     const y = 0.25 * h;
     
-    cntrls = ['attack', 'knee', 'ratio', 'release', 'drywet'].map(t => new Date());
+    cntrls = ['attack', 'knee', 'ratio', 'release', 'drywet'].map((t, idx) => {
+      const knob = new Knob(t);
+      const [_x, _y] = idx >= 3 && idx <= 4 ? [w - x, y*(idx-1)] : [x, y + y * idx];
+      knob.x = _x;
+      knob.y = _y;
+      
+      
+      return knob;
+    });
     
     console.log(cntrls)
+    
+    
     
     
     
