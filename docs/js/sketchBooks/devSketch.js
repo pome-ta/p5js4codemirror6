@@ -48,8 +48,8 @@ const sketch = (p) => {
   p.preload = () => {
     p.loadModule(interactionTraceKitPath, (m) => {
       const { PointerTracker, TapIndicator } = m;
-      pointerTracker = new PointerTracker(p);
-      tapIndicator = new TapIndicator(p);
+      // pointerTracker = new PointerTracker(p);
+      // tapIndicator = new TapIndicator(p);
     });
 
     const url = githubusercontent(soundFileURL);
@@ -61,9 +61,9 @@ const sketch = (p) => {
     w = p.windowWidth;
     h = p.windowHeight;
 
-    p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
-      passive: false,
-    });
+    // p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
+    //   passive: false,
+    // });
 
     p.angleMode(p.DEGREES);
     p.createCanvas(w, h);
@@ -81,7 +81,7 @@ const sketch = (p) => {
     compressor.process(soundFile);
 
     fft = new p5.FFT();
-    
+
     soundFile.loop();
 
     //Create cntrls
@@ -100,68 +100,70 @@ const sketch = (p) => {
 
     knobRad = 0.15 * h;
     knobLineLen = knobRad / 2;
-    
+
     cntrls.push(new ThreshLine('threshold'));
-    
+
     knobBckg = p.color(150);
     knobLine = p.color(30);
     threshLineCol = p.color(30);
-    
-    description = p.createDiv("p5.Compressor: <br>" +
-      "Adjust the knobs to control the compressor's " +
-      "attack, knee, ratio, release, and wet / dry values " +
-      "Move the slider to adjust threshold." +
-      "For information on these audioParams, see <br>" +
-      "<a href =https://www.w3.org/TR/webaudio/#the-dynamicscompressornode-interface>"+
-      "Web Audio Dyanmics Compressor Node Interface</a>");
-    description.size(.75*fftWidth, p.AUTO);
-    description.position(w-fftWidth, 1.15*fftHeight);
-    
-    
 
-    tapIndicator.setup();
+    description = p.createDiv(
+      'p5.Compressor: <br>' +
+        "Adjust the knobs to control the compressor's " +
+        'attack, knee, ratio, release, and wet / dry values ' +
+        'Move the slider to adjust threshold.' +
+        'For information on these audioParams, see <br>' +
+        '<a href =https://www.w3.org/TR/webaudio/#the-dynamicscompressornode-interface>' +
+        'Web Audio Dyanmics Compressor Node Interface</a>'
+    );
+    description.size(0.75 * fftWidth, p.AUTO);
+    description.position(w - fftWidth, 1.15 * fftHeight);
+
+    // tapIndicator.setup();
   };
-  
+
   // attack knee ratio threshold release
 
   p.draw = () => {
     // put drawing code here
     p.background(255);
     p.fill(180);
-    
+
     const spectrum = fft.analyze();
     p.noStroke();
-    
-    for (let i = 0; i< spectrum.length; i++){
-      const x = p.map(i, 0, spectrum.length, 0.2*w, fftWidth);
-      const y = -fftHeight + p.map(spectrum[i], 0, 255, fftHeight, 0.125*h);
-      p.rect(x, fftHeight, fftWidth/spectrum.length, y);
+
+    for (let i = 0; i < spectrum.length; i++) {
+      const x = p.map(i, 0, spectrum.length, 0.2 * w, fftWidth);
+      const y = -fftHeight + p.map(spectrum[i], 0, 255, fftHeight, 0.125 * h);
+      p.rect(x, fftHeight, fftWidth / spectrum.length, y);
     }
-    
-    
-    if (pressed) {cntrls[cntrlIndex].change();}
-    
+
+    if (pressed) {
+      cntrls[cntrlIndex].change();
+    }
+
     cntrls.forEach((cntrl) => cntrl.display());
-
-    
   };
-  /*
-  
-  p.mousePressed = (e)=> {
-    if (soundFile.isPlaying()) {
-      soundFile.pause();
-      // p.background(80);
-    } else {
-      soundFile.play();
-      // p.background(255);
-    }
-  }
-  */
 
+  p.mousePressed = (e) => {
+    for (let i = 0; i < cntrls.length; i++) {
+      if (cntrls[i].mouseOver()) {
+        pressed = true;
+        cntrlIndex = i;
+        break;
+      }
+    }
+  };
+
+  p.mouseReleased = (e) => {
+    pressed = false;
+  };
+
+  /*
   p.touchStarted = (e) => {
     for (let i = 0; i < cntrls.length; i++) {
-      if (cntrls[i].mouseOver()){ 
-        pressed = true; 
+      if (cntrls[i].mouseOver()) {
+        pressed = true;
         cntrlIndex = i;
         break;
       }
@@ -173,6 +175,7 @@ const sketch = (p) => {
   p.touchEnded = (e) => {
     pressed = false;
   };
+  */
 
   const getRange = (type) => {
     switch (type) {
@@ -238,45 +241,54 @@ const sketch = (p) => {
     }
     return newVal;
   };
-  
-  
+
   function ThreshLine(type) {
     this.type = type;
     this.x = w - fftWidth;
     this.range = getRange(type);
     this.current = getDefault(type);
-    this.y = p.map(this.current, -100,0, fftHeight, h - fftHeight);
-  
+    this.y = p.map(this.current, -100, 0, fftHeight, h - fftHeight);
+
     this.length = fftWidth;
-  
+
     this.display = function () {
       p.stroke(threshLineCol);
-      p.line(this.x,this.y, this.length, this.y)
+      p.line(this.x, this.y, this.length, this.y);
       p.noStroke();
-      p.text(type, fftWidth - 50, this.y+knobLineLen, knobRad,knobRad);
-      p.text(this.current, fftWidth - 50, this.y + knobLineLen + 10, knobRad, knobRad);
-  
+      p.text(type, fftWidth - 50, this.y + knobLineLen, knobRad, knobRad);
+      p.text(
+        this.current,
+        fftWidth - 50,
+        this.y + knobLineLen + 10,
+        knobRad,
+        knobRad
+      );
     };
-  
+
     this.change = function () {
       // this.y = mouseY;
-      if (p.mouseY < h - fftHeight) {this.y = h - fftHeight}
-      else if (p.mouseY > fftHeight) {this.y = fftHeight;}
-      else { this.y = mouseY;}
-      this.current = p.map(this.y, fftHeight, h - fftHeight, -100,0);
-  
-  
+      if (p.mouseY < h - fftHeight) {
+        this.y = h - fftHeight;
+      } else if (p.mouseY > fftHeight) {
+        this.y = fftHeight;
+      } else {
+        this.y = mouseY;
+      }
+      this.current = p.map(this.y, fftHeight, h - fftHeight, -100, 0);
     };
-  
+
     this.mouseOver = function () {
-      if (p.mouseX > this.x && p.mouseX < w - this.x
-        && p.mouseY < this.y + 5 && p.mouseY > this.y - 5){
+      if (
+        p.mouseX > this.x &&
+        p.mouseX < w - this.x &&
+        p.mouseY < this.y + 5 &&
+        p.mouseY > this.y - 5
+      ) {
         return true;
       } else {
         return false;
       }
-    }
-  
+    };
   }
 
   function Knob(type) {
