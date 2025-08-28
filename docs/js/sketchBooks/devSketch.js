@@ -48,8 +48,8 @@ const sketch = (p) => {
   p.preload = () => {
     p.loadModule(interactionTraceKitPath, (m) => {
       const { PointerTracker, TapIndicator } = m;
-      // pointerTracker = new PointerTracker(p);
-      // tapIndicator = new TapIndicator(p);
+      pointerTracker = new PointerTracker(p);
+      tapIndicator = new TapIndicator(p);
     });
 
     const url = githubusercontent(soundFileURL);
@@ -61,9 +61,9 @@ const sketch = (p) => {
     w = p.windowWidth;
     h = p.windowHeight;
 
-    // p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
-    //   passive: false,
-    // });
+    p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
+      passive: false,
+    });
 
     p.angleMode(p.DEGREES);
     p.createCanvas(w, h);
@@ -119,7 +119,7 @@ const sketch = (p) => {
     description.size(0.75 * fftWidth, p.AUTO);
     description.position(w - fftWidth, 1.15 * fftHeight);
 
-    // tapIndicator.setup();
+    tapIndicator.setup();
   };
 
   // attack knee ratio threshold release
@@ -145,6 +145,7 @@ const sketch = (p) => {
     cntrls.forEach((cntrl) => cntrl.display());
   };
 
+  /*
   p.mousePressed = (e) => {
     for (let i = 0; i < cntrls.length; i++) {
       if (cntrls[i].mouseOver()) {
@@ -158,8 +159,8 @@ const sketch = (p) => {
   p.mouseReleased = (e) => {
     pressed = false;
   };
-
-  /*
+  */
+  
   p.touchStarted = (e) => {
     for (let i = 0; i < cntrls.length; i++) {
       if (cntrls[i].mouseOver()) {
@@ -170,12 +171,13 @@ const sketch = (p) => {
     }
   };
 
+
   p.touchMoved = (e) => {};
 
   p.touchEnded = (e) => {
     pressed = false;
   };
-  */
+
 
   const getRange = (type) => {
     switch (type) {
@@ -345,7 +347,6 @@ const sketch = (p) => {
     this.change = function () {
       p.translate(this.x, this.y);
       const a = p.atan2(p.mouseY - this.y, p.mouseX - this.x);
-      //console.log(a);
       this.curAngle = a - 90;
 
       if (this.curAngle < 0) {
