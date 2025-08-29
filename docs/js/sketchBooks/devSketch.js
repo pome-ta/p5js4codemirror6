@@ -1,80 +1,49 @@
-// [p5.js-sound/examples/_monosynth_basic/sketch.js at main · processing/p5.js-sound · GitHub](https://github.com/processing/p5.js-sound/blob/main/examples/_monosynth_basic/sketch.js)
+//[p5.js-sound/examples/removeSketch/sketch.js at main · processing/p5.js-sound · GitHub](https://github.com/processing/p5.js-sound/blob/main/examples/removeSketch/sketch.js)
 
 
-const interactionTraceKitPath =
-  '../../sketchBooks/modules/interactionTraceKit.js';
+function init() {
+    var s = function(c) {
 
-const sketch = (p) => {
-  let w, h;
+        c.backgroundSound;
+        c.sounds = {};
+        c.soundFiles = [
+            'https://s3-us-west-2.amazonaws.com/s.cdpn.io/51676/chords1.mp3',
+            'https://s3-us-west-2.amazonaws.com/s.cdpn.io/51676/chords2.mp3',
+            'https://s3-us-west-2.amazonaws.com/s.cdpn.io/51676/chords3.mp3',
+        ];
+        c.count = 0;
 
-  let pointerTracker;
-  let tapIndicator;
-  
-  
-  let monoSynth;
+        c.preload = function() {
+            c.backgroundSound = c.loadSound("https://s3-us-west-2.amazonaws.com/s.cdpn.io/51676/FM8_synth_chords.mp3");
 
-  p.preload = () => {
-    p.loadModule(interactionTraceKitPath, (m) => {
-      const { PointerTracker, TapIndicator } = m;
-      pointerTracker = new PointerTracker(p);
-      tapIndicator = new TapIndicator(p);
-    });
-  };
+            for (var i = 0; i < c.soundFiles.length; i++) {
+                c.sounds[i] = c.loadSound(c.soundFiles[i]);
+            }
+        }
 
-  p.setup = () => {
-    // put setup code here
-    w = p.windowWidth;
-    h = p.windowHeight;
+        c.setup = function() {
+            c.cnv = c.createCanvas(c.windowWidth, c.windowHeight);
+            c.text('click 5 times to remove the sketch', 20, 20);
+            c.backgroundSound.amp(1);
+            c.backgroundSound.loop(0, 1, 1, 0, (c.backgroundSound.duration() - 0.1));
+        }
 
-    p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
-      passive: false,
-    });
-    
-    
-    monoSynth = new p5.MonoSynth();
+        c.draw = function() {
 
-    p.createCanvas(w, h);
-    
-    
-    p.textAlign(p.CENTER);
-    p.text('press to play a random note at a random velocity', w/2, h/2);
-    
-    tapIndicator.setup();
-  };
+        }
 
+        c.touchEnded = function() {
+            if (c.count == 5) {
+                c.remove();
+            } else {
+                c.sounds[c.count % 3].play();
+            }
 
-  p.draw = () => {
-    // put drawing code here
-    //p.background(128);
-    
-  };
+            c.count++;
+        }
+    };
 
-  /*
-  p.mousePressed = (e) => {
-  };
+    new p5(s);
+}
 
-  p.mouseReleased = (e) => {
-  };
-  */
-
-  p.touchStarted = (e) => {
-    // pick a random midi note
-    const midiVal = p.midiToFreq(p.round(p.random(50,72) ));
-    monoSynth.triggerAttack(midiVal, p.random() );
-  };
-
-  p.touchMoved = (e) => {};
-
-  p.touchEnded = (e) => {
-    monoSynth.triggerRelease();
-  };
-
-
-  p.windowResized = (e) => {
-    w = p.windowWidth;
-    h = p.windowHeight;
-    p.resizeCanvas(w, h);
-  };
-};
-
-new p5(sketch);
+init();
