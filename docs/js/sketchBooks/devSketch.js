@@ -15,8 +15,7 @@
  *  MouseY は、p5.Delay Time と Resonance の両方を制御します。
  */
 
-const interactionTraceKitPath =
-  '../../sketchBooks/modules/interactionTraceKit.js';
+const interactionTraceKitPath = 'modules/interactionTraceKit.js';
 
 const sketch = (p) => {
   let w, h;

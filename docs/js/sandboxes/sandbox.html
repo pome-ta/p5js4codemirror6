@@ -6,22 +6,33 @@
       name="viewport"
       content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"
     />
-
-    <script type="module">
-      import eruda from 'https://esm.sh/eruda';
-
-      eruda.init();
-
-      const timeStr = new Date().toLocaleTimeString();
-      const outLog = 'p5Canvas: ' + timeStr;
-      console.log(outLog);
-    </script>
-
+    
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/addons/p5.sound.js"></script>
     <!--<script src="https://cdn.jsdelivr.net/npm/p5.sound@latest/dist/p5.sound.js"></script>-->
     <script src="./addons/refreshSoundContext.js"></script>
     <script src="./addons/loadModule.js"></script>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "eruda": "https://esm.sh/eruda",
+        "modules/": "./../../sketchBooks/modules/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import eruda from 'eruda';
+
+    eruda.init();
+
+    const timeStr = new Date().toLocaleTimeString();
+    const outLog = 'p5Canvas: ' + timeStr;
+    console.log(outLog);
+  </script>
+
+
 
     <style>
       html,

@@ -27,13 +27,14 @@
         .finally(() => _p._decrementPreload());
     };
   });
+  
 
   const _loadModule = function (path, successCallback, failureCallback) {
     const _p = this;
 
     // Cache 回避対策: 現在ミリ秒を取得する
     const _msTime = Date.now();
-    const _url = `${path}?ts=${_msTime}`;
+    const _url = path.startsWith('http') ? `${path}?ts=${_msTime}` : `${path}`;
 
     const promise = import(_url);
     promise
@@ -53,3 +54,4 @@
     return promise;
   };
 })();
+
