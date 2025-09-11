@@ -60,6 +60,17 @@ export default class DomFactory {
     return this;
   }
 
+  /**
+   * @example
+   * addEventListener: {
+   *   type: 'click',
+   *   listener: {
+   *     handleEvent: function (e) {
+   *
+   *     }
+   *   }
+   * }
+   */
   addEventListener({type, listener, options}) {
     this.#element.addEventListener(type, listener, options);
 
