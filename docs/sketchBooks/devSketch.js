@@ -1,19 +1,4 @@
-// [p5.js-sound/examples/DelayNoiseEnvelope/sketch.js at main · processing/p5.js-sound · GitHub](https://github.com/processing/p5.js-sound/blob/main/examples/DelayNoiseEnvelope/sketch.js)
 
-/**
- *  Example: p5.Delay w/ p5.Noise, p5.Envelope & p5.Amplitude
- *
- *  Click the mouse to hear the p5.Delay process a Noise Envelope.
- *
- *  MouseX controls the p5.Delay Filter Frequency.
- *  MouseY controls both the p5.Delay Time and Resonance.
- */
-/**
- * 例: p5.Delay と p5.Noise、p5.Envelope、p5.Amplitude マウスをクリックすると、p5.Delay がノイズ エンベロープを処理する様子が聞こえます。
- *
- *  MouseX は p5.Delay フィルター周波数を制御します。
- *  MouseY は、p5.Delay Time と Resonance の両方を制御します。
- */
 
 const interactionTraceKitPath = 'modules/interactionTraceKit.js';
 
