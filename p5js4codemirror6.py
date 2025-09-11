@@ -392,7 +392,7 @@ class WebViewController(UIViewController):
       return
 
     javaScriptString = '''
-    (function getShaderCode() {
+    (function getSourceCode() {
        const root = document.querySelector('#editor-div');
        const cme = Array.from(root.childNodes).find((cme) => cme);
        const cms = Array.from(cme.childNodes).find((cms) =>

@@ -17,6 +17,7 @@
 
 const interactionTraceKitPath = 'modules/interactionTraceKit.js';
 
+
 const sketch = (p) => {
   let w, h;
 
