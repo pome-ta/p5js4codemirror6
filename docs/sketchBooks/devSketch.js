@@ -1,22 +1,40 @@
+// [p5.js-sound/examples/FFT_freqRange/sketch.js at main · processing/p5.js-sound · GitHub](https://github.com/processing/p5.js-sound/blob/main/examples/FFT_freqRange/sketch.js)
 
 
-const interactionTraceKitPath = 'modules/interactionTraceKit.js';
+/**
+ * Display the average amount of energy (amplitude) across a range
+ * of frequencies using the p5.FFT class and its methods analyze()
+ * and getEnergy().
+ * 
+ * This example divides the frequency spectrum into eight bands.
+ */
+
+const soundFileURL =
+  'https://github.com/processing/p5.js-sound/blob/main/examples/files/beat.ogg';
+
+
+// todo: `p.loadSound` 用 => 通常のGitHub URL を`githubusercontent` へ置き換え
+const githubusercontent = (githubUrl) =>
+  githubUrl
+    .replace('https://github.com/', 'https://raw.githubusercontent.com/')
+    .replace('/blob/', '/');
 
 
 const sketch = (p) => {
   let w, h;
 
-  let pointerTracker;
-  let tapIndicator;
+  let soundFile;
+  let fft;
+  
+  let description = 'loading';
+  let pTag;
+  
 
   let noise, env, analyzer, delay;
 
   p.preload = () => {
-    p.loadModule(interactionTraceKitPath, (m) => {
-      const { PointerTracker, TapIndicator } = m;
-      pointerTracker = new PointerTracker(p);
-      tapIndicator = new TapIndicator(p);
-    });
+    const url = githubusercontent(soundFileURL);
+    soundFile = p.loadSound(url);
   };
 
   p.setup = () => {
@@ -24,61 +42,18 @@ const sketch = (p) => {
     w = p.windowWidth;
     h = p.windowHeight;
 
-    p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
-      passive: false,
-    });
-
     p.createCanvas(w, h);
 
-    // other types include 'brown' and 'pink'
-    // 他のタイプには'brown' と'pink' があります
-    noise = new p5.Noise('white');
+    
 
-    // Turn down because we'll control .amp with a p5.Envelope
-    // `.amp` をp5.Envelope で制御するので下げます
-    noise.amp(0);
-    noise.start();
-
-    // so we will only hear the p5.Delay effect
-    // p5.Delay効果のみが聞こえます
-    noise.disconnect();
-
-    delay = new p5.Delay();
-    delay.process(noise, 0.12, 0.7, 2300); // tell delay to process noise
-
-    // the Envelope ADSR: attackTime, decayTime, sustainLevel, releaseTime
-    env = new p5.Envelope();
-    env.setADSR(0.01, 0.2, 0.2, 0.1);
-    env.setRange(1, 0);
-
-    // p5.Amplitude will analyze all sound in the sketch
-    analyzer = new p5.Amplitude();
-
-    tapIndicator.setup();
+    
   };
 
   p.draw = () => {
     // put drawing code here
     p.background(128);
 
-    // get volume reading from the p5.Amplitude analyzer
-    const level = analyzer.getLevel();
-    // then use level to draw a green rectangle
-    const levelHeight = p.map(level, 0, 0.4, 0, h);
-    p.fill(100, 250, 100);
-    p.rect(0, h, w, -levelHeight);
-
-    // map mouseX and mouseY to p5.Delay parameters
-    let filterFreq = p.map(p.mouseX, 0, w, 60, 15000);
-    filterFreq = p.constrain(filterFreq, 60, 15000);
-
-    let filterRes = p.map(p.mouseY, 0, h, 3, 0.01);
-    filterRes = p.constrain(filterRes, 0.01, 3);
-    delay.filter(filterFreq, filterRes);
-
-    let delTime = p.map(p.mouseY, 0, w, 0.2, 0.01);
-    delTime = p.constrain(delTime, 0.01, 0.2);
-    delay.delayTime(delTime);
+    
   };
 
   /*
@@ -90,7 +65,7 @@ const sketch = (p) => {
   */
 
   p.touchStarted = (e) => {
-    env.play(noise, 0, 0.1, 0);
+    soundFile.isPlaying() ? soundFile.pause() : soundFile.loop();
   };
 
   p.touchMoved = (e) => {};
