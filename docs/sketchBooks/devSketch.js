@@ -22,6 +22,7 @@ const githubusercontent = (githubUrl) =>
 
 const sketch = (p) => {
   let w, h;
+  let cnvs;
 
   let soundFile;
   let fft;
@@ -29,8 +30,6 @@ const sketch = (p) => {
   let description = 'loading';
   let pTag;
   
-
-  let noise, env, analyzer, delay;
 
   p.preload = () => {
     const url = githubusercontent(soundFileURL);
@@ -42,7 +41,20 @@ const sketch = (p) => {
     w = p.windowWidth;
     h = p.windowHeight;
 
-    p.createCanvas(w, h);
+    
+    p.createCanvas(w, h/2);
+    
+    
+    //p.fill(255, 40, 255);
+    p.noStroke();
+    p.textAlign(p.CENTER);
+    fft = new p5.FFT();
+
+    pTag = p.createP(description);
+    const p2Tag = p.createP('Description: Using getEnergy(low, high) to measure amplitude within a range of frequencies.');
+    
+    
+
 
     
 
@@ -51,7 +63,7 @@ const sketch = (p) => {
 
   p.draw = () => {
     // put drawing code here
-    p.background(128);
+    //p.background(128);
 
     
   };
