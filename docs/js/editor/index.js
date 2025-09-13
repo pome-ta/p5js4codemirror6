@@ -281,7 +281,6 @@ const createEditorView = (editorDiv, doc = '', customSetup = null) => {
     state: state,
     parent: editorDiv,
   });
-  // bgRectangleSet(editorView);
   return editorView;
 };
 
