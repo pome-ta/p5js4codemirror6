@@ -138,7 +138,7 @@ export default class spectrumAnalyzer {
 
     // x: hz
     const decades = Array.from(
-      { length: Math.floor(maxLog) - Math.floor(minLog) + 1 },
+      {length: Math.floor(maxLog) - Math.floor(minLog) + 1},
       (_, d) => d + Math.floor(minLog)
     );
 
@@ -185,7 +185,7 @@ export default class spectrumAnalyzer {
 
     // y: db
     const dbTicks = Array.from(
-      { length: Math.floor((this.maxDb - this.minDb) / this.dbStep) + 1 },
+      {length: Math.floor((this.maxDb - this.minDb) / this.dbStep) + 1},
       (_, i) => this.minDb + i * this.dbStep
     );
 
@@ -258,7 +258,8 @@ export default class spectrumAnalyzer {
     const instance = this;
     const originalFunction =
       instance.#p.windowResized === void 0
-        ? (e) => {}
+        ? (e) => {
+        }
         : instance.#p.windowResized;
     instance.#p.windowResized = function (...args) {
       const result = originalFunction.apply(this, args);

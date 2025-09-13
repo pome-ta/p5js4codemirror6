@@ -138,7 +138,8 @@ class TapIndicator {
     // touchStarted
     const touchStartedFunction =
       instance.#p.touchStarted === void 0
-        ? (e) => {}
+        ? (e) => {
+        }
         : instance.#p.touchStarted;
     instance.#p.touchStarted = function (...args) {
       const result = touchStartedFunction.apply(this, args);
@@ -148,7 +149,8 @@ class TapIndicator {
 
     // touchMoved
     const touchMovedFunction =
-      instance.#p.touchMoved === void 0 ? (e) => {} : instance.#p.touchMoved;
+      instance.#p.touchMoved === void 0 ? (e) => {
+      } : instance.#p.touchMoved;
     instance.#p.touchMoved = function (...args) {
       const result = touchMovedFunction.apply(this, args);
       instance.#touchMovedHook(args);
@@ -157,7 +159,8 @@ class TapIndicator {
 
     // touchEnded
     const touchEndedFunction =
-      instance.#p.touchEnded === void 0 ? (e) => {} : instance.#p.touchEnded;
+      instance.#p.touchEnded === void 0 ? (e) => {
+      } : instance.#p.touchEnded;
     instance.#p.touchEnded = function (...args) {
       const result = touchEndedFunction.apply(this, args);
       instance.#touchEndedHook(args);
@@ -169,7 +172,8 @@ class TapIndicator {
     const instance = this;
     const originalFunction =
       instance.#p.windowResized === void 0
-        ? (e) => {}
+        ? (e) => {
+        }
         : instance.#p.windowResized;
     instance.#p.windowResized = function (...args) {
       const result = originalFunction.apply(this, args);
@@ -179,4 +183,4 @@ class TapIndicator {
   }
 }
 
-export { PointerTracker, TapIndicator };
+export {PointerTracker, TapIndicator};
