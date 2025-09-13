@@ -41,9 +41,9 @@ const sketch = (p) => {
     w = p.windowWidth;
     h = p.windowHeight;
 
-    
+
     p.createCanvas(w, h / rate);
-    
+
     p.fill(255, 40, 255);
     p.noStroke();
     p.textAlign(p.CENTER);
@@ -73,9 +73,9 @@ const sketch = (p) => {
 
       const freqValue = fft.getEnergy(loFreq, hiFreq - 1);
       // Rectangle height represents the average value of this frequency range
-      const _h = (-h/2) + p.map(freqValue, 0, 255, h/rate, 0);
-      p.rect((i+1)*w/8 - w/8, h/rate, w/8, _h);
-  
+      const _h = (-h / rate) + p.map(freqValue, 0, 255, h / rate, 0);
+      p.rect((i + 1) * w / 8 - w / 8, h / rate, w / 8, _h);
+
       p.fill(255);
       p.text(loFreq.toFixed(0) + ' Hz - ' + hiFreq.toFixed(0) + ' Hz', (i + 1) * w / 8 - w / 8 / 2, 30);
     }
