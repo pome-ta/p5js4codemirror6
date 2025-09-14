@@ -1,39 +1,28 @@
-// [p5.js-sound/examples/FFT_freqRange/sketch.js at main · processing/p5.js-sound · GitHub](https://github.com/processing/p5.js-sound/blob/main/examples/FFT_freqRange/sketch.js)
+// [p5.js-sound/examples/Filter_BandPass/sketch.js at main · processing/p5.js-sound · GitHub](https://github.com/processing/p5.js-sound/blob/main/examples/Filter_BandPass/sketch.js)
 
 
 /**
- * Display the average amount of energy (amplitude) across a range
- * of frequencies using the p5.FFT class and its methods analyze()
- * and getEnergy().
- *
- * This example divides the frequency spectrum into eight bands.
+ *  Example: Apply a p5.BandPass filter to white noise.
+ *  Visualize the sound with FFT.
+ *  Map mouseX to the bandpass frequency
+ *  and mouseY to resonance/width of the a BandPass filter
  */
 
-const soundFileURL =
-  'https://github.com/processing/p5.js-sound/blob/main/examples/files/beat.ogg';
 
-
-// todo: `p.loadSound` 用 => 通常のGitHub URL を`githubusercontent` へ置き換え
-const githubusercontent = (githubUrl) =>
-  githubUrl
-    .replace('https://github.com/', 'https://raw.githubusercontent.com/')
-    .replace('/blob/', '/');
-
+const interactionTraceKitPath = 'modules/interactionTraceKit.js';
 
 const sketch = (p) => {
   let w, h;
-  const rate = 2;
 
-  let soundFile;
-  let fft;
-
-  let description = 'loading';
-  let pTag;
-
+  let pointerTracker;
+  let tapIndicator;
 
   p.preload = () => {
-    const url = githubusercontent(soundFileURL);
-    soundFile = p.loadSound(url);
+    p.loadModule(interactionTraceKitPath, (m) => {
+      const {PointerTracker, TapIndicator} = m;
+      pointerTracker = new PointerTracker(p);
+      tapIndicator = new TapIndicator(p);
+    });
   };
 
   p.setup = () => {
@@ -41,82 +30,27 @@ const sketch = (p) => {
     w = p.windowWidth;
     h = p.windowHeight;
 
-
-    p.createCanvas(w, h / rate);
-
+    
+    p.createCanvas(w, h);
+    
+    
+    
     p.fill(255, 40, 255);
-    p.noStroke();
-    p.textAlign(p.CENTER);
-    p.textSize(8);
-
-    fft = new p5.FFT();
-
-    pTag = p.createP(description);
-    const p2Tag = p.createP('Description: Using getEnergy(low, high) to measure amplitude within a range of frequencies.');
-
-
+    
+    p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
+      passive: false,
+    });
+    tapIndicator.setup();
+    
   };
 
   p.draw = () => {
     // put drawing code here
-    p.background(30, 20, 30);
-    updateDescription();
-
-    fft.analyze();
-    for (let i = 0; i < 8; i++) {
-      p.noStroke();
-      p.fill((i * 30) % 100 + 50, 195, (i * 25 + 50) % 255);
-      // Each bar has a unique frequency range
-      const centerFreq = (p.pow(2, i) * 125) / 2;
-      const loFreq = (p.pow(2, i - 1) * 125) / 2 + centerFreq / 4;
-      const hiFreq = (centerFreq + centerFreq / 2);
-
-      const freqValue = fft.getEnergy(loFreq, hiFreq - 1);
-      // Rectangle height represents the average value of this frequency range
-      const _h = (-h / rate) + p.map(freqValue, 0, 255, h / rate, 0);
-      p.rect((i + 1) * w / 8 - w / 8, h / rate, w / 8, _h);
-
-      p.fill(255);
-      p.text(loFreq.toFixed(0) + ' Hz - ' + hiFreq.toFixed(0) + ' Hz', (i + 1) * w / 8 - w / 8 / 2, 30);
-    }
-
-
+    p.background(30);
   };
 
-  // Change description text if the song is loading, playing or paused
-  function updateDescription() {
-    if (!soundFile.isPlaying()) {
-      description = 'Paused...';
-      pTag.html(description);
-    } else if (soundFile.isPlaying()) {
-      description = 'Playing!';
-      pTag.html(description);
-    } else {
-      for (let i = 0; i < p.frameCount % 3; i++) {
-        // add periods to loading to create a fun loading bar effect
-        // 読み込み中にピリオドを追加して、楽しい読み込みバー効果を作成します。
-        // todo: 表示されなくない？
-        if (p.frameCount % 4 == 0) {
-          description += '.';
-        }
-        if (p.frameCount % 25 == 0) {
-          description = 'loading';
-        }
-      }
-      pTag.html(description);
-    }
-  }
-
-  /*
-  p.mousePressed = (e) => {
-  };
-
-  p.mouseReleased = (e) => {
-  };
-  */
-
+  
   p.touchStarted = (e) => {
-    soundFile.isPlaying() ? soundFile.pause() : soundFile.loop();
   };
 
   p.touchMoved = (e) => {
@@ -133,3 +67,60 @@ const sketch = (p) => {
 };
 
 new p5(sketch);
+
+
+
+var description = 'loading';
+var p;
+var noise;
+var fft;
+var filter, filterFreq, filterWidth;
+
+function setup() {
+  createCanvas(710, 256);
+  fill(255, 40, 255);
+
+  filter = new p5.BandPass();
+
+  noise = new p5.Noise();
+
+  noise.disconnect(); // Disconnect soundfile from main output...
+  filter.process(noise); // ...and connect to filter so we'll only hear BandPass.
+  noise.start();
+
+  fft = new p5.FFT();
+
+  // update description text
+  p = createP(description);
+  var p2 = createP('Draw the array returned by FFT.analyze( ). This represents the frequency spectrum, from lowest to highest frequencies.');
+}
+
+function draw() {
+  background(30);
+
+  // Map mouseX to a bandpass freq from the FFT spectrum range: 10Hz - 22050Hz
+  filterFreq = map (mouseX, 0, width, 10, 22050);
+  // Map mouseY to resonance/width
+  filterWidth = map(mouseY, 0, height, 0, 90);
+  // set filter parameters
+  filter.set(filterFreq, filterWidth);
+
+  // Draw every value in the FFT spectrum analysis where
+  // x = lowest (10Hz) to highest (22050Hz) frequencies,
+  // h = energy / amplitude at that frequency
+  var spectrum = fft.analyze();
+  noStroke();
+  for (var i = 0; i< spectrum.length; i++){
+    var x = map(i, 0, spectrum.length, 0, width);
+    var h = -height + map(spectrum[i], 0, 255, height, 0);
+    rect(x, height, width/spectrum.length, h) ;
+  }
+
+  updateDescription();
+}
+
+// display current Filter params
+function updateDescription() {
+    description = 'Playing! Press any key to pause. Filter Frequency = ' + filterFreq + ' Filter Width = ' + filterWidth;
+    p.html(description);
+}
