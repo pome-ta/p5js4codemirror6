@@ -13,6 +13,10 @@ const interactionTraceKitPath = 'modules/interactionTraceKit.js';
 
 const sketch = (p) => {
   let w, h;
+  
+  let noise;
+  let fft;
+  let filter, filterFreq, filterWidth;
 
   let pointerTracker;
   let tapIndicator;
@@ -32,10 +36,19 @@ const sketch = (p) => {
 
     
     p.createCanvas(w, h);
-    
-    
-    
     p.fill(255, 40, 255);
+    
+    filter = new p5.BandPass();
+
+    noise = new p5.Noise();
+
+    noise.disconnect(); // Disconnect soundfile from main output...
+    filter.process(noise); // ...and connect to filter so we'll only hear BandPass.
+    noise.start();
+
+    fft = new p5.FFT();
+    
+    
     
     p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
       passive: false,
@@ -47,6 +60,27 @@ const sketch = (p) => {
   p.draw = () => {
     // put drawing code here
     p.background(30);
+    
+    
+    // Draw every value in the FFT spectrum analysis where
+    // x = lowest (10Hz) to highest (22050Hz) frequencies,
+    // h = energy / amplitude at that frequency
+    const spectrum = fft.analyze();
+    const length = spectrum.length;
+    p.noStroke();
+    
+    spectrum.forEach((value, idx)=> {
+      const x = p.map(idx, 0, length, 0, h);
+      const _h = -h + p.map(value, 0, 255, h, 0);
+      p.rect(x, h, w/length, _h) ;
+    });
+    /*
+    for (let i = 0; i< spectrum.length; i++){
+      const x = p.map(i, 0, spectrum.length, 0, h);
+      const _h = -h + p.map(spectrum[i], 0, 255, h, 0);
+      p.rect(x, h, w/spectrum.length, _h) ;
+    }
+    */
   };
 
   
