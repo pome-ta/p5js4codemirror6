@@ -22,7 +22,7 @@ const sketch = (p) => {
   let tapIndicator;
   
   let description = 'loading';
-  let pTag1, pTag2;
+  let pTag1;
 
   p.preload = () => {
     p.loadModule(interactionTraceKitPath, (m) => {
@@ -53,6 +53,7 @@ const sketch = (p) => {
     
     pTag1 = [w * 0.5, h * 0.3];
     p.textAlign(p.CENTER);
+    p.textFont('monospace');
     p.text(description, ...pTag1);
     
     
@@ -96,7 +97,8 @@ const sketch = (p) => {
   function updateDescription() {
     p.push();
     p.fill(255 - 30);
-    description = 'Playing! Press any key to pause.\nFilter Frequency = ' + filterFreq + '\nFilter Width = ' + filterWidth;
+    description = 'Playing! Press any key to pause.\nFilter Frequency:\n' + filterFreq + '\nFilter Width:\n' + filterWidth;
+    
     p.text(description, ...pTag1);
     p.pop();
   }
