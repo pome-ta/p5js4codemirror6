@@ -1,5 +1,4 @@
-import {minimalSetup} from './codemirror/codemirror.js';
-import {Compartment, EditorState, StateEffect, StateField,} from './codemirror/state.js';
+import {Compartment, EditorState, StateEffect, StateField,} from '@codemirror/state';
 import {
   Decoration,
   EditorView,
@@ -7,12 +6,17 @@ import {
   highlightActiveLineGutter,
   highlightWhitespace,
   lineNumbers,
-} from './codemirror/view.js';
-import {autocompletion, closeBrackets} from './codemirror/autocomplete.js';
-import {bracketMatching} from './codemirror/language.js';
+} from '@codemirror/view';
 
-import {javascript} from './codemirror/lang-javascript.js';
-import {oneDark} from './codemirror/theme-one-dark.js';
+import {autocompletion, closeBrackets} from '@codemirror/autocomplete';
+import {bracketMatching} from '@codemirror/language';
+
+
+import {javascript} from '@codemirror/lang-javascript';
+import {oneDark} from '@codemirror/theme-one-dark';
+
+import { minimalSetup} from 'codemirror';
+
 
 /* ref: `basicSetup` の宣言内容
 const basicSetup = (() => [

@@ -1,7 +1,7 @@
 import DomFactory from './utils/domFactory.js';
 import createEditorView from './editor/index.js';
 
-import {EditorSelection} from './editor/codemirror/state.js';
+import {EditorSelection} from '@codemirror/state';
 import {
   cursorCharLeft,
   cursorCharRight,
@@ -12,7 +12,7 @@ import {
   selectLine,
   toggleComment,
   undo,
-} from './editor/codemirror/commands.js';
+} from '@codemirror/commands';
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 

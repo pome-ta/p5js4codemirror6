@@ -8,12 +8,23 @@
       content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"
   />
 
+
+  <script type="importmap">
+    {
+      "imports": {
+        "eruda": "https://esm.sh/eruda",
+        "codemirror": "https://esm.sh/codemirror",
+        "@codemirror/": "https://esm.sh/@codemirror/"
+      }
+    }
+  </script>
+
   <script type="module">
-    import eruda from 'https://esm.sh/eruda';
+    import eruda from 'eruda';
 
     eruda.init();
   </script>
-
+    
   <link rel="stylesheet" href="./css/style.css"/>
   <script type="module" src="./js/main.js"></script>
   <title>codemirror6sandbox</title>
