@@ -236,7 +236,7 @@ const initTheme = EditorView.theme({
   },
 
   '.cm-line': {
-    padding: '0 0.5px',
+    padding: '0 1px',
   },
 
   '&.cm-editor': {
@@ -266,7 +266,7 @@ const initializeSetup = [
   bracketMatching(),
   EditorView.lineWrapping, // 改行
   tabSize.of(EditorState.tabSize.of(2)),
-  //javascript(),
+  javascript(),
   //typescriptLanguage,
   initTheme,
   transparentTheme,
