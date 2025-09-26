@@ -12,7 +12,7 @@ import {autocompletion, closeBrackets} from '@codemirror/autocomplete';
 import {bracketMatching} from '@codemirror/language';
 
 
-import {javascript} from '@codemirror/lang-javascript';
+import {typescriptLanguage} from '@codemirror/lang-javascript';
 import {oneDark} from '@codemirror/theme-one-dark';
 
 import { minimalSetup} from 'codemirror';
@@ -266,7 +266,7 @@ const initializeSetup = [
   bracketMatching(),
   EditorView.lineWrapping, // 改行
   tabSize.of(EditorState.tabSize.of(2)),
-  javascript(),
+  typescriptLanguage,
   initTheme,
   transparentTheme,
   resOutlineTheme,
