@@ -15,10 +15,8 @@
 @media (prefers-color-scheme: light) {
   :root {
     --accessory-backGround-color-scheme: linear-gradient(0deg, #939393, #939393),
-      linear-gradient(0deg, rgba(86, 88, 92, 0.87), rgba(86, 88, 92, 0.87)),
-      rgba(85, 85, 85, 0.9);
-    --accessory-backGround-background-blend-mode: color-dodge, normal,
-      luminosity;
+      linear-gradient(0deg, rgba(86, 88, 92, 0.87), rgba(86, 88, 92, 0.87)), rgba(85, 85, 85, 0.9);
+    --accessory-backGround-background-blend-mode: color-dodge, normal, luminosity;
     --accessory-backGround-backdrop-filter: blur(75px);
 
     --accessory-button-backGround-normal: #ffffff;
@@ -32,12 +30,7 @@
     --accessory-backGround-background-blend-mode: normal;
     --accessory-backGround-backdrop-filter: blur(50px);
 
-    --accessory-button-backGround-normal: linear-gradient(
-        0deg,
-        #262626,
-        #262626
-      ),
-      rgba(153, 153, 153, 0.15);
+    --accessory-button-backGround-normal: linear-gradient(0deg, #262626, #262626), rgba(153, 153, 153, 0.15);
     --accessory-button-background-blend-mode-normal: plus-lighter;
   }
 }

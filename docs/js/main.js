@@ -1,7 +1,7 @@
 import DomFactory from './utils/domFactory.js';
 import createEditorView from './editor/index.js';
 
-import {EditorSelection} from '@codemirror/state';
+import { EditorSelection } from '@codemirror/state';
 import {
   cursorCharLeft,
   cursorCharRight,
@@ -29,9 +29,7 @@ const mainSketch = './sketchBooks/mainSketch.js';
 const devSketch = './sketchBooks/devSketch.js';
 
 const codeFilePath =
-  `${location.protocol}` === 'file:' ||
-  `${location.protocol}` === 'http:' ||
-  `${location.hostname}` === 'localhost'
+  `${location.protocol}` === 'file:' || `${location.protocol}` === 'http:' || `${location.hostname}` === 'localhost'
     ? devSketch
     : mainSketch;
 // const codeFilePath = 1 ? devSketch : mainSketch;
@@ -118,8 +116,7 @@ const initDetailsOpen = false;
 
 const summary = DomFactory.create('summary', {
   setStyles: {
-    'font-family':
-      'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
     //'font-size': '0.8rem',
     padding: '0.5rem 1rem',
   },
@@ -257,8 +254,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
     const icon = DomFactory.create('span', {
       textContent: `${iconChar}`,
       setStyles: {
-        'font-family':
-          'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+        'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
         'font-size': '1.0rem',
         'font-style': 'normal',
         'font-weight': '400',
@@ -390,15 +386,8 @@ const footerHandleEvent = function () {
   footer.style.display = '';
 
   const offsetTop = window.visualViewport.offsetTop;
-  const offsetBottom =
-    window.innerHeight -
-    window.visualViewport.height +
-    offsetTop -
-    window.visualViewport.pageTop;
-  const tOffsetTop =
-    visualViewport.offsetTop +
-    visualViewport.height -
-    document.documentElement.clientHeight;
+  const offsetBottom = window.innerHeight - window.visualViewport.height + offsetTop - window.visualViewport.pageTop;
+  const tOffsetTop = visualViewport.offsetTop + visualViewport.height - document.documentElement.clientHeight;
   //footer.style.bottom = `${offsetBottom}px`;
   footer.style.transform = `translateY(${tOffsetTop}px)`;
 };
@@ -448,14 +437,8 @@ const footer = DomFactory.create('footer', {
 
           const selectionMain = this.targetEditor.state.selection.main;
           caret = selectionMain.anchor;
-          headLine = this.targetEditor.moveToLineBoundary(
-            selectionMain,
-            0
-          ).anchor;
-          endLine = this.targetEditor.moveToLineBoundary(
-            selectionMain,
-            1
-          ).anchor;
+          headLine = this.targetEditor.moveToLineBoundary(selectionMain, 0).anchor;
+          endLine = this.targetEditor.moveToLineBoundary(selectionMain, 1).anchor;
 
           swipeAreaWidth = document.querySelector('#footer').clientWidth;
           stepValue = swipeAreaWidth / divStep;
@@ -477,26 +460,16 @@ const footer = DomFactory.create('footer', {
           const swipeX = e.changedTouches[0].clientX;
 
           const moveDistance = swipeX - startX;
-          const moveCache =
-            Math.abs(moveDistance) < stepValue
-              ? caret
-              : caret + Math.round(moveDistance / stepValue);
+          const moveCache = Math.abs(moveDistance) < stepValue ? caret : caret + Math.round(moveDistance / stepValue);
 
           if (caret === moveCache) {
             return;
           }
 
-          const moveValue =
-            moveCache < headLine
-              ? headLine
-              : moveCache >= endLine
-                ? endLine
-                : moveCache;
+          const moveValue = moveCache < headLine ? headLine : moveCache >= endLine ? endLine : moveCache;
 
           this.targetEditor.dispatch({
-            selection: EditorSelection.create([
-              EditorSelection.cursor(moveValue),
-            ]),
+            selection: EditorSelection.create([EditorSelection.cursor(moveValue)]),
           });
           this.targetEditor.focus();
         },
@@ -532,7 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
     editor.dispatch({
-      changes: {from: editor.state?.doc.length, insert: loadedSource},
+      changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
   });
 });

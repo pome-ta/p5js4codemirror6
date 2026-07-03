@@ -1,10 +1,4 @@
-import {
-  Compartment,
-  EditorState,
-  StateEffect,
-  StateField,
-  RangeSetBuilder,
-} from '@codemirror/state';
+import { Compartment, EditorState, StateEffect, StateField, RangeSetBuilder } from '@codemirror/state';
 import {
   Decoration,
   EditorView,
@@ -16,12 +10,7 @@ import {
 } from '@codemirror/view';
 import { autocompletion, closeBrackets } from '@codemirror/autocomplete';
 import { bracketMatching } from '@codemirror/language';
-import {
-  typescriptLanguage,
-  javascript,
-  javascriptLanguage,
-  scopeCompletionSource,
-} from '@codemirror/lang-javascript';
+import { typescriptLanguage, javascript, javascriptLanguage, scopeCompletionSource } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
 
 import { minimalSetup } from 'codemirror';
@@ -70,7 +59,6 @@ const minimalSetup = (() => [
 
 */
 
-
 /**
  * Code Background Block span
  */
@@ -113,10 +101,7 @@ const codeBackgroundBlockPlugin = ViewPlugin.fromClass(
 );
 
 // todo: 今後の外出し用として`export`
-export const codeBackgroundBlock = () => [
-  codeBackgroundBlockPlugin,
-  codeBackgroundBlockTheme,
-];
+export const codeBackgroundBlock = () => [codeBackgroundBlockPlugin, codeBackgroundBlockTheme];
 
 // note: 配列渡しであれば、そのまま記載
 //       関数渡しだと`codeBackgroundBlock()` と記載
@@ -124,7 +109,6 @@ export const codeBackgroundBlock = () => [
 //   codeBackgroundBlockPlugin,
 //   codeBackgroundBlockTheme,
 // ];
-
 
 const resOutlineTheme = EditorView.baseTheme({
   '&.cm-editor': {
@@ -163,12 +147,13 @@ const transparentTheme = EditorView.theme(
     '.cm-content': {
       caretColor: cursor,
     },
-    '.cm-cursor, .cm-dropCursor': {borderLeftColor: cursor},
-    '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection':
-      {backgroundColor: selection},
-    '.cm-panels': {backgroundColor: darkBackground, color: ivory},
-    '.cm-panels.cm-panels-top': {borderBottom: '2px solid black'},
-    '.cm-panels.cm-panels-bottom': {borderTop: '2px solid black'},
+    '.cm-cursor, .cm-dropCursor': { borderLeftColor: cursor },
+    '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
+      backgroundColor: selection,
+    },
+    '.cm-panels': { backgroundColor: darkBackground, color: ivory },
+    '.cm-panels.cm-panels-top': { borderBottom: '2px solid black' },
+    '.cm-panels.cm-panels-bottom': { borderTop: '2px solid black' },
     '.cm-searchMatch': {
       backgroundColor: '#72a1ff59',
       outline: '1px solid #457dff',
@@ -176,8 +161,8 @@ const transparentTheme = EditorView.theme(
     '.cm-searchMatch.cm-searchMatch-selected': {
       backgroundColor: '#6199ff2f',
     },
-    '.cm-activeLine': {backgroundColor: highlightBackground},
-    '.cm-selectionMatch': {backgroundColor: '#aafe661a'},
+    '.cm-activeLine': { backgroundColor: highlightBackground },
+    '.cm-selectionMatch': { backgroundColor: '#aafe661a' },
     '&.cm-focused .cm-matchingBracket, &.cm-focused .cm-nonmatchingBracket': {
       backgroundColor: '#bad0f847',
       // outline: '1px solid #515a6b',
@@ -215,12 +200,10 @@ const transparentTheme = EditorView.theme(
       },
     },
   },
-  {dark: true}
+  { dark: true },
 );
 
-const updateCallback = EditorView.updateListener.of(
-  (update) => update.docChanged && bgRectangleSet(update.view)
-);
+const updateCallback = EditorView.updateListener.of((update) => update.docChanged && bgRectangleSet(update.view));
 
 const initTheme = EditorView.theme({
   '&': {
@@ -228,8 +211,7 @@ const initTheme = EditorView.theme({
     backgroundColor: background,
   },
   '.cm-scroller': {
-    fontFamily:
-      'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    fontFamily: 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
   },
 
   '.cm-line': {
@@ -244,8 +226,7 @@ const initTheme = EditorView.theme({
 
   // `highlightWhitespace` 調整
   '.cm-highlightSpace': {
-    backgroundImage:
-      'radial-gradient(circle at 50% 55%, #ababab 4%, transparent 24%)',
+    backgroundImage: 'radial-gradient(circle at 50% 55%, #ababab 4%, transparent 24%)',
     opacity: 0.2,
   },
 });
@@ -265,7 +246,6 @@ const initializeSetup = [
   tabSize.of(EditorState.tabSize.of(2)),
   javascript(),
   javascriptLanguage.data.of({ autocomplete: scopeCompletionSource(globalThis) }),
-  //typescriptLanguage,
   initTheme,
   transparentTheme,
   resOutlineTheme,

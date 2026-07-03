@@ -5,7 +5,7 @@ export default class DomFactory {
   constructor(domTag) {
     this.#element = typeof domTag === 'string' ? document.createElement(domTag) : domTag;
 
-    this.#buildEvent = new CustomEvent('build', {detail: this.#element});
+    this.#buildEvent = new CustomEvent('build', { detail: this.#element });
   }
 
   get element() {
@@ -71,7 +71,7 @@ export default class DomFactory {
    *   }
    * }
    */
-  addEventListener({type, listener, options}) {
+  addEventListener({ type, listener, options }) {
     this.#element.addEventListener(type, listener, options);
 
     return this;
@@ -83,7 +83,7 @@ export default class DomFactory {
     return this;
   }
 
-  targetAddEventListener({target, type, listener, options}) {
+  targetAddEventListener({ target, type, listener, options }) {
     target.addEventListener(type, listener, options);
 
     return this;

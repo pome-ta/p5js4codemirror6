@@ -2,16 +2,12 @@
   'use strict';
 
   if (typeof p5 === 'undefined') {
-    console.error(
-      'p5.js is not loaded. Please make sure to include p5.js before refreshSoundContext.js.'
-    );
+    console.error('p5.js is not loaded. Please make sure to include p5.js before refreshSoundContext.js.');
     return;
   }
 
   if (!p5.prototype.getAudioContext) {
-    console.error(
-      'p5.sound.js is not loaded. Please make sure to include p5.sound.js before refreshSoundContext.js.'
-    );
+    console.error('p5.sound.js is not loaded. Please make sure to include p5.sound.js before refreshSoundContext.js.');
     return;
   }
 
@@ -50,8 +46,5 @@
   };
 
   // wip: 直接書いてもいいかも？
-  p5.prototype.registerMethod(
-    'beforePreload',
-    p5.prototype.refreshSoundContext
-  );
+  p5.prototype.registerMethod('beforePreload', p5.prototype.refreshSoundContext);
 })();

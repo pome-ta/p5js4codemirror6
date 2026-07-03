@@ -2,9 +2,7 @@
   'use strict';
 
   if (typeof p5 === 'undefined') {
-    console.error(
-      'p5.js is not loaded. Please make sure to include p5.js before loadModule.js.'
-    );
+    console.error('p5.js is not loaded. Please make sure to include p5.js before loadModule.js.');
     return;
   }
 
@@ -15,11 +13,7 @@
     p5.prototype.registerPreloadMethod('loadModule', p5.prototype);
 
     // 非同期ロード処理を定義する
-    p5.prototype.loadModule = function (
-      path,
-      successCallback,
-      failureCallback
-    ) {
+    p5.prototype.loadModule = function (path, successCallback, failureCallback) {
       const _promise = _loadModule(path, successCallback, failureCallback);
       _promise
         .then(() => void 0)
@@ -27,7 +21,6 @@
         .finally(() => _p._decrementPreload());
     };
   });
-
 
   const _loadModule = function (path, successCallback, failureCallback) {
     const _p = this;
@@ -54,4 +47,3 @@
     return promise;
   };
 })();
-
