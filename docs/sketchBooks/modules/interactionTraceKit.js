@@ -7,10 +7,9 @@ class PointerTracker {
     this.x = null;
     this.y = null;
 
-    [this.click, this.start, this.move, this.end, this.isTouchDevice] =
-      window.matchMedia('(hover: none)').matches
-        ? ['click', 'touchstart', 'touchmove', 'touchend', true]
-        : ['click', 'mousedown', 'mousemove', 'mouseup', false];
+    [this.click, this.start, this.move, this.end, this.isTouchDevice] = window.matchMedia('(hover: none)').matches
+      ? ['click', 'touchstart', 'touchmove', 'touchend', true]
+      : ['click', 'mousedown', 'mousemove', 'mouseup', false];
   }
 
   updateXY() {
@@ -31,14 +30,8 @@ class PointerTracker {
       this.y = null;
       return;
     }
-    this.x =
-      0 <= this.#p.mouseX && this.#p.mouseX <= this.#p.width
-        ? this.#p.mouseX
-        : null;
-    this.y =
-      0 <= this.#p.mouseY && this.#p.mouseY <= this.#p.height
-        ? this.#p.mouseY
-        : null;
+    this.x = 0 <= this.#p.mouseX && this.#p.mouseX <= this.#p.width ? this.#p.mouseX : null;
+    this.y = 0 <= this.#p.mouseY && this.#p.mouseY <= this.#p.height ? this.#p.mouseY : null;
   }
 }
 
@@ -82,21 +75,13 @@ class TapIndicator {
   };
 
   #showMark = () => {
-    this.#pg.circle(
-      this.#pointerTracker.x,
-      this.#pointerTracker.y,
-      this.#markSize
-    );
+    this.#pg.circle(this.#pointerTracker.x, this.#pointerTracker.y, this.#markSize);
     this.#p.image(this.#pg, 0, 0);
   };
 
   #drawHook = () => {
     this.#pg.clear();
-    if (
-      !this.isTapped ||
-      this.#pointerTracker.x === null ||
-      this.#pointerTracker.y === null
-    ) {
+    if (!this.isTapped || this.#pointerTracker.x === null || this.#pointerTracker.y === null) {
       return;
     }
     this.#showMark();
@@ -136,11 +121,7 @@ class TapIndicator {
     const instance = this;
 
     // touchStarted
-    const touchStartedFunction =
-      instance.#p.touchStarted === void 0
-        ? (e) => {
-        }
-        : instance.#p.touchStarted;
+    const touchStartedFunction = instance.#p.touchStarted === void 0 ? (e) => {} : instance.#p.touchStarted;
     instance.#p.touchStarted = function (...args) {
       const result = touchStartedFunction.apply(this, args);
       instance.#touchStartedHook(args);
@@ -148,9 +129,7 @@ class TapIndicator {
     };
 
     // touchMoved
-    const touchMovedFunction =
-      instance.#p.touchMoved === void 0 ? (e) => {
-      } : instance.#p.touchMoved;
+    const touchMovedFunction = instance.#p.touchMoved === void 0 ? (e) => {} : instance.#p.touchMoved;
     instance.#p.touchMoved = function (...args) {
       const result = touchMovedFunction.apply(this, args);
       instance.#touchMovedHook(args);
@@ -158,9 +137,7 @@ class TapIndicator {
     };
 
     // touchEnded
-    const touchEndedFunction =
-      instance.#p.touchEnded === void 0 ? (e) => {
-      } : instance.#p.touchEnded;
+    const touchEndedFunction = instance.#p.touchEnded === void 0 ? (e) => {} : instance.#p.touchEnded;
     instance.#p.touchEnded = function (...args) {
       const result = touchEndedFunction.apply(this, args);
       instance.#touchEndedHook(args);
@@ -170,11 +147,7 @@ class TapIndicator {
 
   #useWindowResized() {
     const instance = this;
-    const originalFunction =
-      instance.#p.windowResized === void 0
-        ? (e) => {
-        }
-        : instance.#p.windowResized;
+    const originalFunction = instance.#p.windowResized === void 0 ? (e) => {} : instance.#p.windowResized;
     instance.#p.windowResized = function (...args) {
       const result = originalFunction.apply(this, args);
       instance.#initCreateGraphics();
@@ -183,4 +156,4 @@ class TapIndicator {
   }
 }
 
-export {PointerTracker, TapIndicator};
+export { PointerTracker, TapIndicator };

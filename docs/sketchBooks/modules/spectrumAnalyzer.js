@@ -68,7 +68,7 @@ export default class spectrumAnalyzer {
         Math.log10(this.#minFreq),
         Math.log10(this.#maxFreq),
         0,
-        pgw
+        pgw,
       );
 
       const amplitudeRatio = amplitude / 255;
@@ -138,8 +138,8 @@ export default class spectrumAnalyzer {
 
     // x: hz
     const decades = Array.from(
-      {length: Math.floor(maxLog) - Math.floor(minLog) + 1},
-      (_, d) => d + Math.floor(minLog)
+      { length: Math.floor(maxLog) - Math.floor(minLog) + 1 },
+      (_, d) => d + Math.floor(minLog),
     );
 
     const ticks = [...Array(9)].map((_, i) => i + 1);
@@ -169,11 +169,7 @@ export default class spectrumAnalyzer {
           this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
 
           const ty = isMajor ? gh + ly : lh - yDistance / 2;
-          this.#labelsLayer.text(
-            freq >= 1000 ? `${freq / 1000}k` : `${freq}`,
-            x + xDistance,
-            ty
-          );
+          this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` : `${freq}`, x + xDistance, ty);
         } else {
           this.#gridLayer.stroke(25);
           this.#gridLayer.strokeWeight(0.4);
@@ -185,8 +181,8 @@ export default class spectrumAnalyzer {
 
     // y: db
     const dbTicks = Array.from(
-      {length: Math.floor((this.maxDb - this.minDb) / this.dbStep) + 1},
-      (_, i) => this.minDb + i * this.dbStep
+      { length: Math.floor((this.maxDb - this.minDb) / this.dbStep) + 1 },
+      (_, i) => this.minDb + i * this.dbStep,
     );
 
     this.#labelsLayer.textAlign(this.#p.RIGHT, this.#p.CENTER);
@@ -226,20 +222,14 @@ export default class spectrumAnalyzer {
     this.#gridLayer && this.#gridLayer.remove();
     this.#spectrumLayer && this.#spectrumLayer.remove();
 
-    this.#labelsLayer = this.#p.createGraphics(
-      this.#p.windowWidth * this.ratio,
-      this.#p.windowHeight * this.ratio
-    );
+    this.#labelsLayer = this.#p.createGraphics(this.#p.windowWidth * this.ratio, this.#p.windowHeight * this.ratio);
 
     this.#gridLayer = this.#p.createGraphics(
       this.#labelsLayer.width * this.ratio,
-      this.#labelsLayer.height * this.ratio
+      this.#labelsLayer.height * this.ratio,
     );
 
-    this.#spectrumLayer = this.#p.createGraphics(
-      this.#gridLayer.width,
-      this.#gridLayer.height
-    );
+    this.#spectrumLayer = this.#p.createGraphics(this.#gridLayer.width, this.#gridLayer.height);
 
     this.#labelsSize = [this.#labelsLayer.width, this.#labelsLayer.height];
     this.#labelsPosition = [
@@ -256,11 +246,7 @@ export default class spectrumAnalyzer {
 
   #useWindowResized() {
     const instance = this;
-    const originalFunction =
-      instance.#p.windowResized === void 0
-        ? (e) => {
-        }
-        : instance.#p.windowResized;
+    const originalFunction = instance.#p.windowResized === void 0 ? (e) => {} : instance.#p.windowResized;
     instance.#p.windowResized = function (...args) {
       const result = originalFunction.apply(this, args);
       instance.#setBaseGraphics();
@@ -268,4 +254,3 @@ export default class spectrumAnalyzer {
     };
   }
 }
-
