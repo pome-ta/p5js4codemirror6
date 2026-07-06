@@ -48,39 +48,24 @@ const editorDiv = DomFactory.create('div', {
 
 const editor = createEditorView(editorDiv);
 
-// let iframeTemplateHtml = '';
-// const createIframeHtml = (userCode) => `
-// <!doctype html>
-// <html lang="ja">
-//   <head>
-//     <meta charset="utf-8" />
-//     <script src="https://cdn.jsdelivr.net/npm/p5@2.2.3/lib/p5.js"></script>
-//     <script src="https://cdn.jsdelivr.net/npm/p5.sound@0.3.0/dist/p5.sound.min.js"></script>
-//     <style>
-//       html, body { margin: 0; padding: 0; overflow: hidden; }
-//       canvas { display: block; }
-//     </style>
-//   </head>
-//   <body>
-//     <script>
-//       ${userCode}
-//     </script>
-//   </body>
-// </html>
-// `;
 
 const createIframeHtml = (userCode) => `
 <!doctype html>
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"
+    />
     <script src="https://cdn.jsdelivr.net/npm/p5/lib/p5.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/p5.sound/dist/p5.sound.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5.sound@0.3.0/dist/p5.sound.min.js"></script>
 
     <script type="importmap">
       {
         "imports": {
-          "eruda": "https://esm.sh/eruda"
+          "eruda": "https://esm.sh/eruda",
+          "modules/": "./sketchBooks/modules/"
         }
       }
     </script>
@@ -104,30 +89,21 @@ const createIframeHtml = (userCode) => `
     <script type="module">
       ${userCode}
      
-      // (iOS Safari対策のタッチイベント等はここにあっても問題ありません)
       document.addEventListener('touchstart', () => {
         if (typeof userStartAudio !== 'undefined') userStartAudio();
       }, { once: true });
     </script>
-  <body>
-  </body>
+  <body></body>
 </html>
 `;
 
 // xxx: iframe 生成時と書き換え時と併用
 const reloadSketchHandleEvent = function (e) {
-  // const toStringDoc = this.targetEditor.viewState.state.doc.toString();
-  // this.targetSandbox = this.targetSandbox ? this.targetSandbox : e.target;
   const toStringDoc = this.targetEditor.viewState.state.doc.toString();
   this.targetSandbox = this.targetSandbox
     ? this.targetSandbox
     : document.getElementById('sandbox');
-  // this.targetSandbox.contentWindow.postMessage(toStringDoc, '*');
   this.targetSandbox.srcdoc = createIframeHtml(toStringDoc);
-  // this.targetSandbox.srcdoc = iframeTemplateHtml.replace(
-  //   '{{USER_CODE_HERE}}',
-  //   toStringDoc,
-  // );
 };
 
 /* --- iframe */
@@ -138,7 +114,6 @@ const sandbox = DomFactory.create('iframe', {
     allow:
       'accelerometer; ambient-light-sensor; autoplay; bluetooth; camera; encrypted-media; geolocation; gyroscope;  hid; microphone; magnetometer; midi; payment; usb; serial; vr; xr-spatial-tracking',
     loading: 'lazy',
-    // src: './js/sandboxes/sandbox.html',
   },
   setStyles: {
     width: '100%',
@@ -234,7 +209,6 @@ const headerControlWrap = DomFactory.create('div', {
 const headerHandleEvent = function () {
   const header = document.querySelector('#header');
   const offsetTop = Math.max(0, window.visualViewport.offsetTop);
-  //console.log(offsetTop);
   //header.style.top = `${offsetTop}px`;
   header.style.transform = `translateY(${offsetTop}px)`;
   //header.style.overflow = 'hidden'
@@ -584,30 +558,12 @@ const setLayout = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
   setLayout();
-  // Promise.all([
-  //   insertFetchDoc(codeFilePath),
-  //   insertFetchDoc('./js/sandboxes/template.html'), // テンプレートのパス
-  // ]).then(([loadedSource, loadedTemplate]) => {
-  //   // テンプレートを変数に保存
-  //   // console.log(loadedTemplate)
-  //   iframeTemplateHtml = loadedTemplate;
-  //   editor.dispatch({
-  //     changes: { from: editor.state?.doc.length, insert: loadedSource },
-  //   });
 
-  //   // 初回実行
-  //   document.getElementById('sandbox').srcdoc = iframeTemplateHtml.replace(
-  //     '{{USER_CODE_HERE}}',
-  //     loadedSource,
-  //   );
-  // });
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
     editor.dispatch({
       changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
-
-    // 【追記】初回起動時の描画処理(ここで1回だけsrcdocをセットする)
     document.getElementById('sandbox').srcdoc = createIframeHtml(loadedSource);
   });
 });

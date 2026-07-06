@@ -18,11 +18,9 @@ const sketch = (p) => {
   let fft;
   let filter, filterFreq, filterWidth;
   
-  //const pointerTracker = new PointerTracker(p);
-  //const tapIndicator = new TapIndicator(p);
-  
-  let pointerTracker, tapIndicator;
-  
+  const pointerTracker = new PointerTracker(p);
+  const tapIndicator = new TapIndicator(p);
+  console.log(pointerTracker)
 
 
   let description = 'loading';
@@ -31,8 +29,6 @@ const sketch = (p) => {
 
 
   p.setup = () => {
-    pointerTracker = new PointerTracker(p);
-    tapIndicator = new TapIndicator(p);
     // put setup code here
     w = p.windowWidth;
     h = p.windowHeight;
