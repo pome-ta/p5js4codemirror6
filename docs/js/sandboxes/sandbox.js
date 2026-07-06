@@ -2,11 +2,11 @@ import DomFactory from '../utils/domFactory.js';
 
 async function runSketch(code) {
   if (window._p5Instance) {
-    // 拡張した remove() が呼ばれ、フェードアウトと停止処理が走る
+
     window._p5Instance.remove();
     window._p5Instance = null;
    
-    // クリックノイズ防止のため、フェードアウトが完了するまで少し待つ
+    // フェードアウトの完了を待つ
     await new Promise(resolve => setTimeout(resolve, 50));
   }
 
@@ -14,9 +14,8 @@ async function runSketch(code) {
     setAttrs: {
       type: 'text/javascript',
     },
+    // xxx: スコープを切る
     textContent: `{
-      // ボリュームを元に戻す処理を自動挿入
-      if (typeof masterVolume === 'function') { masterVolume(1.0); }
       ${code}
     }`,
     appendParent: document.body,
