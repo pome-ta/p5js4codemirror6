@@ -1,6 +1,7 @@
 import DomFactory from '../utils/domFactory.js';
 
 async function runSketch(code) {
+  /*
   if (window._p5Instance) {
 
     window._p5Instance.remove();
@@ -9,6 +10,7 @@ async function runSketch(code) {
     // フェードアウトの完了を待つ
     await new Promise(resolve => setTimeout(resolve, 50));
   }
+  */
 
   const script = DomFactory.create('script', {
     setAttrs: {
@@ -20,6 +22,7 @@ async function runSketch(code) {
     }`,
     appendParent: document.body,
   });
+  /*
 
   if (window._p5Instance === null) {
     try {
@@ -28,6 +31,7 @@ async function runSketch(code) {
       console.log('Error: ' + e.message);
     }
   }
+  */
 
   document.body.removeChild(script);
 }
@@ -69,6 +73,7 @@ window.addEventListener('message', (e) => {
   runSketch(sourceCode);
 });
 
+/*
 window._p5Instance = null;
 
 window.__p5 = window.p5;
@@ -83,3 +88,4 @@ class p5 extends window.__p5 {
 
 window.p5 = p5;
 delete window.__p5;
+*/

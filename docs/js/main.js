@@ -29,7 +29,9 @@ const mainSketch = './sketchBooks/mainSketch.js';
 const devSketch = './sketchBooks/devSketch.js';
 
 const codeFilePath =
-  `${location.protocol}` === 'file:' || `${location.protocol}` === 'http:' || `${location.hostname}` === 'localhost'
+  `${location.protocol}` === 'file:' ||
+  `${location.protocol}` === 'http:' ||
+  `${location.hostname}` === 'localhost'
     ? devSketch
     : mainSketch;
 // const codeFilePath = 1 ? devSketch : mainSketch;
@@ -46,11 +48,86 @@ const editorDiv = DomFactory.create('div', {
 
 const editor = createEditorView(editorDiv);
 
+let iframeTemplateHtml = '';
+// const createIframeHtml = (userCode) => `
+// <!doctype html>
+// <html lang="ja">
+//   <head>
+//     <meta charset="utf-8" />
+//     <script src="https://cdn.jsdelivr.net/npm/p5@2.2.3/lib/p5.js"></script>
+//     <script src="https://cdn.jsdelivr.net/npm/p5.sound@0.3.0/dist/p5.sound.min.js"></script>
+//     <style>
+//       html, body { margin: 0; padding: 0; overflow: hidden; }
+//       canvas { display: block; }
+//     </style>
+//   </head>
+//   <body>
+//     <script>
+//       ${userCode}
+//     </script>
+//   </body>
+// </html>
+// `;
+
+const createIframeHtml = (userCode) => `
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <script src="https://cdn.jsdelivr.net/npm/p5@2.2.3/lib/p5.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5.sound@0.3.0/dist/p5.sound.min.js"></script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "eruda": "https://esm.sh/eruda",
+          "modules/": "./../../sketchBooks/modules/"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import eruda from 'eruda';
+
+      eruda.init();
+
+      const timeStr = new Date().toLocaleTimeString();
+      const outLog = 'p5Canvas: ' + timeStr;
+      console.log(outLog);
+    </script>
+    
+    <style>
+      html, body { margin: 0; padding: 0; overflow: hidden; }
+      canvas { display: block; }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      ${userCode}
+     
+      // (iOS Safari対策のタッチイベント等はここにあっても問題ありません)
+      document.addEventListener('touchstart', () => {
+        if (typeof userStartAudio !== 'undefined') userStartAudio();
+      }, { once: true });
+    </script>
+  </body>
+</html>
+`;
+
 // xxx: iframe 生成時と書き換え時と併用
 const reloadSketchHandleEvent = function (e) {
+  // const toStringDoc = this.targetEditor.viewState.state.doc.toString();
+  // this.targetSandbox = this.targetSandbox ? this.targetSandbox : e.target;
   const toStringDoc = this.targetEditor.viewState.state.doc.toString();
-  this.targetSandbox = this.targetSandbox ? this.targetSandbox : e.target;
-  this.targetSandbox.contentWindow.postMessage(toStringDoc, '*');
+  this.targetSandbox = this.targetSandbox
+    ? this.targetSandbox
+    : document.getElementById('sandbox');
+  // this.targetSandbox.contentWindow.postMessage(toStringDoc, '*');
+  this.targetSandbox.srcdoc = createIframeHtml(toStringDoc);
+  // this.targetSandbox.srcdoc = iframeTemplateHtml.replace(
+  //   '{{USER_CODE_HERE}}',
+  //   toStringDoc,
+  // );
 };
 
 /* --- iframe */
@@ -61,7 +138,7 @@ const sandbox = DomFactory.create('iframe', {
     allow:
       'accelerometer; ambient-light-sensor; autoplay; bluetooth; camera; encrypted-media; geolocation; gyroscope;  hid; microphone; magnetometer; midi; payment; usb; serial; vr; xr-spatial-tracking',
     loading: 'lazy',
-    src: './js/sandboxes/sandbox.html',
+    // src: './js/sandboxes/sandbox.html',
   },
   setStyles: {
     width: '100%',
@@ -74,26 +151,6 @@ const sandbox = DomFactory.create('iframe', {
     //'background-color': 'lightgray',
     'background-color': 'darkgray',
   },
-  addEventListeners: [
-    {
-      type: 'load',
-      listener: {
-        targetEditor: editor,
-        targetSandbox: null,
-        handleEvent: reloadSketchHandleEvent,
-      },
-    },
-    /*
-    {
-      type: 'visibilitychange',
-      listener: {
-        handleEvent: function (e) {
-          console.log('visibilitychange');
-        },
-      },
-    },
-    */
-  ],
 });
 
 /* --- accessory */
@@ -116,7 +173,8 @@ const initDetailsOpen = false;
 
 const summary = DomFactory.create('summary', {
   setStyles: {
-    'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    'font-family':
+      'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
     //'font-size': '0.8rem',
     padding: '0.5rem 1rem',
   },
@@ -254,7 +312,8 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
     const icon = DomFactory.create('span', {
       textContent: `${iconChar}`,
       setStyles: {
-        'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+        'font-family':
+          'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
         'font-size': '1.0rem',
         'font-style': 'normal',
         'font-weight': '400',
@@ -386,8 +445,15 @@ const footerHandleEvent = function () {
   footer.style.display = '';
 
   const offsetTop = window.visualViewport.offsetTop;
-  const offsetBottom = window.innerHeight - window.visualViewport.height + offsetTop - window.visualViewport.pageTop;
-  const tOffsetTop = visualViewport.offsetTop + visualViewport.height - document.documentElement.clientHeight;
+  const offsetBottom =
+    window.innerHeight -
+    window.visualViewport.height +
+    offsetTop -
+    window.visualViewport.pageTop;
+  const tOffsetTop =
+    visualViewport.offsetTop +
+    visualViewport.height -
+    document.documentElement.clientHeight;
   //footer.style.bottom = `${offsetBottom}px`;
   footer.style.transform = `translateY(${tOffsetTop}px)`;
 };
@@ -437,8 +503,14 @@ const footer = DomFactory.create('footer', {
 
           const selectionMain = this.targetEditor.state.selection.main;
           caret = selectionMain.anchor;
-          headLine = this.targetEditor.moveToLineBoundary(selectionMain, 0).anchor;
-          endLine = this.targetEditor.moveToLineBoundary(selectionMain, 1).anchor;
+          headLine = this.targetEditor.moveToLineBoundary(
+            selectionMain,
+            0,
+          ).anchor;
+          endLine = this.targetEditor.moveToLineBoundary(
+            selectionMain,
+            1,
+          ).anchor;
 
           swipeAreaWidth = document.querySelector('#footer').clientWidth;
           stepValue = swipeAreaWidth / divStep;
@@ -460,16 +532,26 @@ const footer = DomFactory.create('footer', {
           const swipeX = e.changedTouches[0].clientX;
 
           const moveDistance = swipeX - startX;
-          const moveCache = Math.abs(moveDistance) < stepValue ? caret : caret + Math.round(moveDistance / stepValue);
+          const moveCache =
+            Math.abs(moveDistance) < stepValue
+              ? caret
+              : caret + Math.round(moveDistance / stepValue);
 
           if (caret === moveCache) {
             return;
           }
 
-          const moveValue = moveCache < headLine ? headLine : moveCache >= endLine ? endLine : moveCache;
+          const moveValue =
+            moveCache < headLine
+              ? headLine
+              : moveCache >= endLine
+                ? endLine
+                : moveCache;
 
           this.targetEditor.dispatch({
-            selection: EditorSelection.create([EditorSelection.cursor(moveValue)]),
+            selection: EditorSelection.create([
+              EditorSelection.cursor(moveValue),
+            ]),
           });
           this.targetEditor.focus();
         },
@@ -502,10 +584,30 @@ const setLayout = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
   setLayout();
+  // Promise.all([
+  //   insertFetchDoc(codeFilePath),
+  //   insertFetchDoc('./js/sandboxes/template.html'), // テンプレートのパス
+  // ]).then(([loadedSource, loadedTemplate]) => {
+  //   // テンプレートを変数に保存
+  //   // console.log(loadedTemplate)
+  //   iframeTemplateHtml = loadedTemplate;
+  //   editor.dispatch({
+  //     changes: { from: editor.state?.doc.length, insert: loadedSource },
+  //   });
+
+  //   // 初回実行
+  //   document.getElementById('sandbox').srcdoc = iframeTemplateHtml.replace(
+  //     '{{USER_CODE_HERE}}',
+  //     loadedSource,
+  //   );
+  // });
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
     editor.dispatch({
       changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
+
+    // 【追記】初回起動時の描画処理(ここで1回だけsrcdocをセットする)
+    document.getElementById('sandbox').srcdoc = createIframeHtml(loadedSource);
   });
 });
