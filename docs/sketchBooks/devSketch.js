@@ -1,111 +1,63 @@
-// [p5.js-sound/examples/Filter_BandPass/sketch.js at main · processing/p5.js-sound · GitHub](https://github.com/processing/p5.js-sound/blob/main/examples/Filter_BandPass/sketch.js)
-
-/**
- *  Example: Apply a p5.BandPass filter to white noise.
- *  Visualize the sound with FFT.
- *  Map mouseX to the bandpass frequency
- *  and mouseY to resonance/width of the a BandPass filter
- */
-
-const interactionTraceKitPath = 'modules/interactionTraceKit.js';
+// 4.2 ケーススタディ:Wave Clock
 
 const sketch = (p) => {
-  let w, h;
-
-  let noise;
-  let fft;
-  let filter, filterFreq, filterWidth;
-
-  let pointerTracker;
-  let tapIndicator;
-
-  let description = 'loading';
-  let pTag1;
-
-  p.preload = () => {
-    p.loadModule(interactionTraceKitPath, (m) => {
-      const { PointerTracker, TapIndicator } = m;
-      pointerTracker = new PointerTracker(p);
-      tapIndicator = new TapIndicator(p);
-    });
-  };
+  let _angnoise, _radiusnosise;
+  let _xnoise, _ynoise;
+  let _angle = -p.PI / 2;
+  let _radius;
+  let _strokeCol = 254;
+  let _strokeChange = -1;
 
   p.setup = () => {
     // put setup code here
-    w = p.windowWidth;
-    h = p.windowHeight;
+    p.createCanvas(500, 300);
+    p.frameRate(30);
+    p.background(255);
+    p.noFill();
 
-    p.createCanvas(w, h);
-    p.fill(255, 40, 255);
-
-    filter = new p5.BandPass();
-
-    noise = new p5.Noise();
-
-    noise.disconnect(); // Disconnect soundfile from main output...
-    filter.process(noise); // ...and connect to filter so we'll only hear BandPass.
-    noise.start();
-
-    fft = new p5.FFT();
-
-    pTag1 = [w * 0.5, h * 0.3];
-    p.textAlign(p.CENTER);
-    p.textFont('monospace');
-    p.text(description, ...pTag1);
-
-    p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {
-      passive: false,
-    });
-
-    tapIndicator.setup();
+    _angnoise = p.random(10);
+    _radiusnosise = p.random(10);
+    _xnoise = p.random(10);
+    _ynoise = p.random(10);
   };
 
   p.draw = () => {
-    // put drawing code here
-    p.background(30);
+    _radiusnosise += 0.005;
+    _radius = p.noise(_radiusnosise) * 550 + 1;
 
-    // Map mouseX to a bandpass freq from the FFT spectrum range: 10Hz - 22050Hz
-    filterFreq = p.map(p.mouseX, 0, w, 10, 22050);
-    // Map mouseY to resonance/width
-    filterWidth = p.map(p.mouseY, 0, h, 0, 90);
-    // set filter parameters
-    filter.set(filterFreq, filterWidth);
+    _angnoise += 0.005;
+    _angle += p.noise(_angnoise) * 6 - 3;
+    if (_angle > 360) {
+      _angle -= 360;
+    }
+    if (_angle < 0) {
+      _angle += 360;
+    }
 
-    // Draw every value in the FFT spectrum analysis where
-    // x = lowest (10Hz) to highest (22050Hz) frequencies,
-    // h = energy / amplitude at that frequency
-    const spectrum = fft.analyze();
-    const length = spectrum.length;
-    p.noStroke();
+    _xnoise += 0.01;
+    _ynoise += 0.01;
+    const centerx = p.width / 2 + p.noise(_xnoise) * 100 - 50;
+    const centery = p.height / 2 + p.noise(_ynoise) * 100 - 50;
 
-    spectrum.forEach((value, idx) => {
-      const x = p.map(idx, 0, length, 0, h);
-      const _h = -h + p.map(value, 0, 255, h, 0);
-      p.rect(x, h, w / length, _h);
-    });
-    updateDescription();
-  };
+    const rad = p.radians(_angle);
+    const x1 = centerx + _radius * p.cos(rad);
+    const y1 = centery + _radius * p.sin(rad);
 
-  function updateDescription() {
-    p.push();
-    p.fill(255 - 30);
-    description =
-      'Playing! Press any key to pause.\nFilter Frequency:\n' + filterFreq + '\nFilter Width:\n' + filterWidth;
+    const opprad = rad + p.PI;
+    const x2 = centerx + _radius * p.cos(opprad);
+    const y2 = centery + _radius * p.sin(opprad);
 
-    p.text(description, ...pTag1);
-    p.pop();
-  }
+    _strokeCol += _strokeChange;
+    if (_strokeCol > 254) {
+      _strokeChange = -1;
+    }
+    if (_strokeCol < 0) {
+      _strokeChange = 1;
+    }
+    p.stroke(_strokeCol, 60);
+    p.strokeWeight(1);
 
-  p.touchStarted = (e) => {};
-
-  p.touchMoved = (e) => {};
-
-  p.touchEnded = (e) => {};
-
-  p.windowResized = (e) => {
-    w = p.windowWidth;
-    h = p.windowHeight;
-    p.resizeCanvas(w, h);
+    p.line(x1, y1, x2, y2);
   };
 };
 
