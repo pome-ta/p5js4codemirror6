@@ -48,7 +48,7 @@ const editorDiv = DomFactory.create('div', {
 
 const editor = createEditorView(editorDiv);
 
-let iframeTemplateHtml = '';
+// let iframeTemplateHtml = '';
 // const createIframeHtml = (userCode) => `
 // <!doctype html>
 // <html lang="ja">
@@ -74,14 +74,13 @@ const createIframeHtml = (userCode) => `
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
-    <script src="https://cdn.jsdelivr.net/npm/p5@2.2.3/lib/p5.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/p5.sound@0.3.0/dist/p5.sound.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5/lib/p5.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5.sound/dist/p5.sound.js"></script>
 
     <script type="importmap">
       {
         "imports": {
-          "eruda": "https://esm.sh/eruda",
-          "modules/": "./../../sketchBooks/modules/"
+          "eruda": "https://esm.sh/eruda"
         }
       }
     </script>
@@ -101,8 +100,8 @@ const createIframeHtml = (userCode) => `
       canvas { display: block; }
     </style>
   </head>
-  <body>
-    <script type="module">
+
+    <script>
       ${userCode}
      
       // (iOS Safari対策のタッチイベント等はここにあっても問題ありません)
@@ -110,6 +109,7 @@ const createIframeHtml = (userCode) => `
         if (typeof userStartAudio !== 'undefined') userStartAudio();
       }, { once: true });
     </script>
+  <body>
   </body>
 </html>
 `;
