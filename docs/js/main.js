@@ -101,7 +101,7 @@ const createIframeHtml = (userCode) => `
     </style>
   </head>
 
-    <script>
+    <script type="module">
       ${userCode}
      
       // (iOS Safari対策のタッチイベント等はここにあっても問題ありません)
