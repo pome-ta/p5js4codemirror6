@@ -29,9 +29,7 @@ const mainSketch = './sketchBooks/mainSketch.js';
 const devSketch = './sketchBooks/devSketch.js';
 
 const codeFilePath =
-  `${location.protocol}` === 'file:' ||
-  `${location.protocol}` === 'http:' ||
-  `${location.hostname}` === 'localhost'
+  `${location.protocol}` === 'file:' || `${location.protocol}` === 'http:' || `${location.hostname}` === 'localhost'
     ? devSketch
     : mainSketch;
 // const codeFilePath = 1 ? devSketch : mainSketch;
@@ -48,7 +46,6 @@ const editorDiv = DomFactory.create('div', {
 
 const editor = createEditorView(editorDiv);
 
-
 const createIframeHtml = (userCode) => `
 <!doctype html>
 <html lang="ja">
@@ -58,8 +55,14 @@ const createIframeHtml = (userCode) => `
       name="viewport"
       content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"
     />
+
     <script src="https://cdn.jsdelivr.net/npm/p5/lib/p5.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/p5.sound@0.3.0/dist/p5.sound.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5.sound/dist/p5.sound.js"></script>
+
+    <!--
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/addons/p5.sound.js"></script>
+    -->
 
     <script type="importmap">
       {
@@ -79,20 +82,27 @@ const createIframeHtml = (userCode) => `
       const outLog = 'p5Canvas: ' + timeStr;
       console.log(outLog);
     </script>
-    
+
     <style>
-      html, body { margin: 0; padding: 0; overflow: hidden; }
-      canvas { display: block; }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+      }
     </style>
   </head>
 
-    <script type="module">
-      ${userCode}
-     
-      document.addEventListener('touchstart', () => {
-        if (typeof userStartAudio !== 'undefined') userStartAudio();
-      }, { once: true });
-    </script>
+  <script type="module">
+    ${userCode}
+
+    document.addEventListener('touchstart', () => {
+      if (typeof userStartAudio !== 'undefined') userStartAudio();
+    }, { once: true });
+  </script>
   <body></body>
 </html>
 `;
@@ -100,9 +110,7 @@ const createIframeHtml = (userCode) => `
 // xxx: iframe 生成時と書き換え時と併用
 const reloadSketchHandleEvent = function (e) {
   const toStringDoc = this.targetEditor.viewState.state.doc.toString();
-  this.targetSandbox = this.targetSandbox
-    ? this.targetSandbox
-    : document.getElementById('sandbox');
+  this.targetSandbox = this.targetSandbox ? this.targetSandbox : document.getElementById('sandbox');
   this.targetSandbox.srcdoc = createIframeHtml(toStringDoc);
 };
 
@@ -148,8 +156,7 @@ const initDetailsOpen = false;
 
 const summary = DomFactory.create('summary', {
   setStyles: {
-    'font-family':
-      'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
     //'font-size': '0.8rem',
     padding: '0.5rem 1rem',
   },
@@ -286,8 +293,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
     const icon = DomFactory.create('span', {
       textContent: `${iconChar}`,
       setStyles: {
-        'font-family':
-          'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+        'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
         'font-size': '1.0rem',
         'font-style': 'normal',
         'font-weight': '400',
@@ -419,15 +425,8 @@ const footerHandleEvent = function () {
   footer.style.display = '';
 
   const offsetTop = window.visualViewport.offsetTop;
-  const offsetBottom =
-    window.innerHeight -
-    window.visualViewport.height +
-    offsetTop -
-    window.visualViewport.pageTop;
-  const tOffsetTop =
-    visualViewport.offsetTop +
-    visualViewport.height -
-    document.documentElement.clientHeight;
+  const offsetBottom = window.innerHeight - window.visualViewport.height + offsetTop - window.visualViewport.pageTop;
+  const tOffsetTop = visualViewport.offsetTop + visualViewport.height - document.documentElement.clientHeight;
   //footer.style.bottom = `${offsetBottom}px`;
   footer.style.transform = `translateY(${tOffsetTop}px)`;
 };
@@ -477,14 +476,8 @@ const footer = DomFactory.create('footer', {
 
           const selectionMain = this.targetEditor.state.selection.main;
           caret = selectionMain.anchor;
-          headLine = this.targetEditor.moveToLineBoundary(
-            selectionMain,
-            0,
-          ).anchor;
-          endLine = this.targetEditor.moveToLineBoundary(
-            selectionMain,
-            1,
-          ).anchor;
+          headLine = this.targetEditor.moveToLineBoundary(selectionMain, 0).anchor;
+          endLine = this.targetEditor.moveToLineBoundary(selectionMain, 1).anchor;
 
           swipeAreaWidth = document.querySelector('#footer').clientWidth;
           stepValue = swipeAreaWidth / divStep;
@@ -506,26 +499,16 @@ const footer = DomFactory.create('footer', {
           const swipeX = e.changedTouches[0].clientX;
 
           const moveDistance = swipeX - startX;
-          const moveCache =
-            Math.abs(moveDistance) < stepValue
-              ? caret
-              : caret + Math.round(moveDistance / stepValue);
+          const moveCache = Math.abs(moveDistance) < stepValue ? caret : caret + Math.round(moveDistance / stepValue);
 
           if (caret === moveCache) {
             return;
           }
 
-          const moveValue =
-            moveCache < headLine
-              ? headLine
-              : moveCache >= endLine
-                ? endLine
-                : moveCache;
+          const moveValue = moveCache < headLine ? headLine : moveCache >= endLine ? endLine : moveCache;
 
           this.targetEditor.dispatch({
-            selection: EditorSelection.create([
-              EditorSelection.cursor(moveValue),
-            ]),
+            selection: EditorSelection.create([EditorSelection.cursor(moveValue)]),
           });
           this.targetEditor.focus();
         },
