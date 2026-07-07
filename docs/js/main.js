@@ -101,12 +101,20 @@ const createIframeHtml = (userCode, isInstanceMode = true) => `
 
   <script ${isInstanceMode ? 'type="module"' : ''}>
 
+
+(()=>{ const audioCtx = new AudioContext()
+audioCtx.onstatechange = () => {
+  if(audioCtx.state !== 'running')
+    audioCtx.resume()
+    }
+})();
+
     ${userCode}
 
     document.addEventListener(
       'touchstart',
       () => {
-        if (typeof userStartAudio !== 'undefined') userStartAudio();
+        if (typeof userStartAudio !== 'undefined') p5.userStartAudio();
       },
       { once: true },
     );
