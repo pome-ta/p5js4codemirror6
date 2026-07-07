@@ -46,7 +46,8 @@ const editorDiv = DomFactory.create('div', {
 
 const editor = createEditorView(editorDiv);
 
-const createIframeHtml = (userCode) => `
+let isInstanceMode = true;
+const createIframeHtml = (userCode, isInstanceMode = true) => `
 <!doctype html>
 <html lang="ja">
   <head>
@@ -96,12 +97,17 @@ const createIframeHtml = (userCode) => `
     </style>
   </head>
 
-  <script type="module">
+  <script ${isInstanceMode ? 'type="module"' : ''}>
+
     ${userCode}
 
-    document.addEventListener('touchstart', () => {
-      if (typeof userStartAudio !== 'undefined') userStartAudio();
-    }, { once: true });
+    document.addEventListener(
+      'touchstart',
+      () => {
+        if (typeof userStartAudio !== 'undefined') userStartAudio();
+      },
+      { once: true },
+    );
   </script>
   <body></body>
 </html>
@@ -111,7 +117,7 @@ const createIframeHtml = (userCode) => `
 const reloadSketchHandleEvent = function (e) {
   const toStringDoc = this.targetEditor.viewState.state.doc.toString();
   this.targetSandbox = this.targetSandbox ? this.targetSandbox : document.getElementById('sandbox');
-  this.targetSandbox.srcdoc = createIframeHtml(toStringDoc);
+  this.targetSandbox.srcdoc = createIframeHtml(toStringDoc, isInstanceMode);
 };
 
 /* --- iframe */
@@ -139,6 +145,11 @@ const sandbox = DomFactory.create('iframe', {
 /* --- accessory */
 const callButton = DomFactory.create('button', {
   textContent: '🔄',
+  setStyles: {
+    'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    padding: '0.5rem 1rem',
+    cursor: 'pointer',
+  },
   addEventListeners: [
     {
       type: 'click',
@@ -180,6 +191,7 @@ const details = DomFactory.create('details', {
     id: 'details',
     open: `${initDetailsOpen}`,
   },
+  setStyles: { cursor: 'pointer' },
   addEventListeners: [
     {
       type: 'toggle',
@@ -205,12 +217,420 @@ const details = DomFactory.create('details', {
   appendChildren: [summary, wrapSummary],
 });
 
+/* --- モード切替ボタン --- */
+// const modeToggleButton = DomFactory.create('button', {
+//   textContent: isInstanceMode ? '📦 Instance' : '🌍 Global', // 初期テキスト
+//   setStyles: {
+//     'font-family':
+//       'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+//     padding: '0.5rem 1rem',
+//     cursor: 'pointer',
+//     'background-color': 'transparent',
+//     border: '1px solid var(--accessory-button-color-normal)',
+//     color: 'var(--accessory-button-color-normal)',
+//     'border-radius': '4px',
+//     'margin-left': '8px',
+//   },
+//   addEventListeners: [
+//     {
+//       type: 'click',
+//       listener: {
+//         handleEvent: function (e) {
+//           // モードを反転
+//           isInstanceMode = !isInstanceMode;
+//           // ボタンのテキストを更新
+//           e.target.textContent = isInstanceMode ? '📦 Instance' : '🌍 Global';
+
+//           // モードが切り替わったら、即座にエディタの内容で再描画する
+//           // (エディタとサンドボックスの要素を無理やり渡して再実行)
+//           reloadSketchHandleEvent.call({
+//             targetEditor: editor,
+//             targetSandbox: sandbox,
+//           });
+//         },
+//       },
+//     },
+//   ],
+// });
+
+// // 1. トグルスイッチの動くツマミ(Knob)を作成
+// const toggleKnob = DomFactory.create('div', {
+//   setStyles: {
+//     position: 'absolute',
+//     top: '1px',
+//     left: '1px',
+//     width: '24px',
+//     height: '24px',
+//     'border-radius': '50%',
+//     'background-color': 'var(--accessory-button-color-normal, #e0e0e0)', // 文字色と同じか白系
+//     'box-shadow': '0 2px 4px rgba(0,0,0,0.2)',
+//     display: 'flex',
+//     'align-items': 'center',
+//     'justify-content': 'center',
+//     'font-size': '12px',
+//     // スルッと動くアニメーションを設定
+//     transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
+//     // 初期状態 (Instance Mode = true なら右側、falseなら左側)
+//     transform: isInstanceMode ? 'translateX(28px)' : 'translateX(0px)',
+//   },
+//   textContent: isInstanceMode ? '📦' : '🌍',
+// });
+
+// // 2. トグルスイッチの背景枠(Track)を作成
+// const modeToggleSwitch = DomFactory.create('div', {
+//   setStyles: {
+//     position: 'relative',
+//     width: '56px',
+//     height: '28px',
+//     'border-radius': '14px',
+//     background: 'var(--accessory-button-backGround-normal, transparent)',
+//     border: '1px solid var(--accessory-button-color-normal)',
+//     cursor: 'pointer',
+//     'margin-left': '8px',
+//     'box-sizing': 'border-box',
+//   },
+//   appendChildren: [toggleKnob], // 背景の中にツマミを入れる
+//   addEventListeners: [
+//     {
+//       type: 'click',
+//       listener: {
+//         handleEvent: function (e) {
+//           // モードを反転
+//           isInstanceMode = !isInstanceMode;
+
+//           // ツマミの移動アニメーションとアイコンの変更
+//           toggleKnob.style.transform = isInstanceMode ? 'translateX(28px)' : 'translateX(0px)';
+//           toggleKnob.textContent = isInstanceMode ? '📦' : '🌍';
+
+//           // モードが切り替わったら即座に再描画
+//           reloadSketchHandleEvent.call({
+//             targetEditor: editor,
+//             targetSandbox: sandbox,
+//           });
+//         },
+//       },
+//     },
+//   ],
+// });
+
+// 1 上部に表示するテキストラベルを作成
+// const toggleLabel = DomFactory.create('div', {
+//   setStyles: {
+//     'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+//     'font-size': '0.62rem', // スイッチに合わせた小さめのサイズ
+//     'color': 'var(--accessory-button-color-normal, #e0e0e0)',
+//     'text-align': 'center',
+//     'margin-bottom': '3px', // 下にあるスイッチとの隙間
+//     'text-transform': 'lowercase', // 小文字に統一してミニマルに
+//   },
+//   textContent: isInstanceMode ? 'instance mode' : 'global mode', // 初期テキスト
+// });
+
+// // 2 トグルスイッチの動くツマミ(Knob)
+// const toggleKnob = DomFactory.create('div', {
+//   setStyles: {
+//     position: 'absolute',
+//     top: '1px',
+//     left: '1px',
+//     width: '24px',
+//     height: '24px',
+//     'border-radius': '50%',
+//     'background-color': 'var(--accessory-button-color-normal, #e0e0e0)',
+//     'box-shadow': '0 2px 4px rgba(0,0,0,0.2)',
+//     display: 'flex',
+//     'align-items': 'center',
+//     'justify-content': 'center',
+//     'font-size': '12px',
+//     transition: 'transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)',
+//     transform: isInstanceMode ? 'translateX(28px)' : 'translateX(0px)',
+//   },
+//   textContent: isInstanceMode ? '📦' : '🌍',
+// });
+
+// // 3 トグルスイッチの背景枠(Track)
+// const modeToggleSwitch = DomFactory.create('div', {
+//   setStyles: {
+//     position: 'relative',
+//     width: '56px',
+//     height: '28px',
+//     'border-radius': '14px',
+//     background: 'var(--accessory-button-backGround-normal, transparent)',
+//     border: '1px solid var(--accessory-button-color-normal)',
+//     cursor: 'pointer',
+//     'box-sizing': 'border-box',
+//   },
+//   appendChildren: [toggleKnob],
+//   addEventListeners: [
+//     {
+//       type: 'click',
+//       listener: {
+//         handleEvent: function (e) {
+//           // モードを反転
+//           isInstanceMode = !isInstanceMode;
+
+//           // ★クリック時に上部の文字ラベルも一緒に書き換える
+//           toggleLabel.textContent = isInstanceMode ? 'instance mode' : 'global mode';
+
+//           // ツマミのアニメーションとアイコン変更
+//           toggleKnob.style.transform = isInstanceMode ? 'translateX(28px)' : 'translateX(0px)';
+//           toggleKnob.textContent = isInstanceMode ? '📦' : '🌍';
+
+//           // スケッチ再描画
+//           reloadSketchHandleEvent.call({
+//             targetEditor: editor,
+//             targetSandbox: sandbox,
+//           });
+//         },
+//       },
+//     },
+//   ],
+// });
+
+// // 4 ラベルとスイッチを縦並び(column)にするための親コンテナ
+// const modeToggleContainer = DomFactory.create('div', {
+//   setStyles: {
+//     display: 'flex',
+//     'flex-direction': 'column',
+//     'align-items': 'center',
+//     'margin-left': '8px', // detailsとの間隔をここで確保
+//   },
+//   // 上にラベル、下にスイッチの順で入れる
+//   appendChildren: [toggleLabel, modeToggleSwitch],
+// });
+
+// const labelInstance = DomFactory.create('div', {
+//   setStyles: {
+//     'grid-area': '1 / 1', // 同じセルに重ねる
+//     'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+//     'font-size': '0.62rem',
+//     'color': 'var(--accessory-button-color-normal, #e0e0e0)',
+//     'text-transform': 'lowercase',
+//     'transition': 'opacity 0.2s',
+//     'opacity': isInstanceMode ? '1' : '0',
+//   },
+//   textContent: 'instance mode',
+// });
+
+// const labelGlobal = DomFactory.create('div', {
+//   setStyles: {
+//     'grid-area': '1 / 1', // 同じセルに重ねる
+//     'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+//     'font-size': '0.62rem',
+//     'color': 'var(--accessory-button-color-normal, #e0e0e0)',
+//     'text-transform': 'lowercase',
+//     'transition': 'opacity 0.2s',
+//     'opacity': isInstanceMode ? '0' : '1',
+//   },
+//   textContent: 'global mode',
+// });
+
+// const toggleLabelContainer = DomFactory.create('div', {
+//   setStyles: {
+//     'display': 'grid',       // 重ね合わせのためのGrid
+//     'justify-items': 'center',
+//     'margin-bottom': '4px',
+//   },
+//   appendChildren: [labelInstance, labelGlobal],
+// });
+
+// // 2 【固定値排除ハック】ツマミ(Knob)の相対移動
+// // 縦幅(top/bottom)に追従させ、aspect-ratio で自動的に正円(1:1)を維持します。
+// const toggleKnob = DomFactory.create('div', {
+//   setStyles: {
+//     'position': 'absolute',
+//     'top': '2px',
+//     'bottom': '2px',
+//     'aspect-ratio': '1 / 1',
+//     'border-radius': '50%',
+//     'background-color': 'var(--accessory-button-color-normal, #e0e0e0)',
+//     'box-shadow': '0 2px 4px rgba(0,0,0,0.2)',
+//     'display': 'flex',
+//     'align-items': 'center',
+//     'justify-content': 'center',
+//     'font-size': '0.75rem',
+
+//     // ★ 変更点1: 生成時は transition を 'none' にしておく(瞬間移動させる)
+//     'transition': 'none',
+
+//     'left': isInstanceMode ? 'calc(100% - 2px)' : '2px',
+//     'transform': isInstanceMode ? 'translateX(-100%)' : 'translateX(0)',
+//   },
+//   textContent: isInstanceMode ? '📦' : '🌍',
+// });
+
+// // ★ 変更点2: 要素が作られた直後に(少しだけ時間を空けて)本来のアニメーションを付与する
+// setTimeout(() => {
+//   toggleKnob.style.transition = 'left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)';
+// }, 100); // 50ミリ秒だけ待つのがコツ
+
+// // 3 スイッチの背景枠(Track)
+// // pxでの決め打ちを捨て、フォントサイズに連動する「em」を基準に設計します。
+// const modeToggleSwitch = DomFactory.create('div', {
+//   setStyles: {
+//     'position': 'relative',
+//     'width': '3.5em',        // フォントサイズに対して自然な横幅
+//     'height': '1.75em',      // 横幅のちょうど半分の縦幅(美しい比率)
+//     'border-radius': '0.875em', // heightの半分の値
+//     'background': 'var(--accessory-button-backGround-normal, transparent)',
+//     'border': '1px solid var(--accessory-button-color-normal)',
+//     'cursor': 'pointer',
+//     'box-sizing': 'border-box',
+//   },
+//   appendChildren: [toggleKnob],
+//   addEventListeners: [
+//     {
+//       type: 'click',
+//       listener: {
+//         handleEvent: function (e) {
+//           isInstanceMode = !isInstanceMode;
+
+//           // 文字数を変えるのではなく、重なったラベルの不透明度(opacity)を切り替える
+//           // これにより、コンテナの横幅は1ミリも変動しません
+//           labelInstance.style.opacity = isInstanceMode ? '1' : '0';
+//           labelGlobal.style.opacity = isInstanceMode ? '0' : '1';
+
+//           // ツマミを滑らかに相対移動させる
+//           toggleKnob.style.left = isInstanceMode ? 'calc(100% - 2px)' : '2px';
+//           toggleKnob.style.transform = isInstanceMode ? 'translateX(-100%)' : 'translateX(0)';
+//           toggleKnob.textContent = isInstanceMode ? '📦' : '🌍';
+
+//           // スケッチ再描画
+//           reloadSketchHandleEvent.call({
+//             targetEditor: editor,
+//             targetSandbox: sandbox,
+//           });
+//         },
+//       },
+//     },
+//   ],
+// });
+
+// // 4 全体をまとめる親コンテナ
+// const modeToggleContainer = DomFactory.create('div', {
+//   setStyles: {
+//     'display': 'flex',
+//     'flex-direction': 'column',
+//     'align-items': 'center',
+//     'margin-left': '8px',
+//   },
+//   appendChildren: [toggleLabelContainer, modeToggleSwitch],
+// });
+
+// --- 1. 共通設定の定義(マジックナンバーや重複文字列の排除) ---
+const FONT_FAMILY = 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace';
+const COLOR_NORMAL = 'var(--accessory-button-color-normal, #e0e0e0)';
+
+// --- 2. UI部品の生成 ---
+
+// ラベル生成ヘルパー(重複コードを排除)
+const createLabel = (text, isVisible) =>
+  DomFactory.create('div', {
+    setStyles: {
+      'grid-area': '1 / 1',
+      'font-family': FONT_FAMILY,
+      'font-size': '0.62rem',
+      color: COLOR_NORMAL,
+      'text-transform': 'lowercase',
+      transition: 'opacity 0.2s ease',
+      opacity: isVisible ? '1' : '0',
+    },
+    textContent: text,
+  });
+
+const labelInstance = createLabel('instance mode', isInstanceMode);
+const labelGlobal = createLabel('global mode', !isInstanceMode);
+
+const toggleLabelContainer = DomFactory.create('div', {
+  setStyles: {
+    display: 'grid',
+    'justify-items': 'center',
+    'margin-bottom': '4px',
+  },
+  appendChildren: [labelInstance, labelGlobal],
+});
+
+// ツマミ(サイズ固定値を排除した相対設計)
+const toggleKnob = DomFactory.create('div', {
+  setStyles: {
+    position: 'absolute',
+    top: '2px',
+    bottom: '2px',
+    'aspect-ratio': '1 / 1',
+    'border-radius': '50%',
+    'background-color': COLOR_NORMAL,
+    'box-shadow': '0 2px 4px rgba(0,0,0,0.2)',
+    display: 'flex',
+    'align-items': 'center',
+    'justify-content': 'center',
+    'font-size': '0.75rem',
+    transition: 'left 0.3s ease, transform 0.3s ease', // 素直にtransitionを設定
+    left: isInstanceMode ? 'calc(100% - 2px)' : '2px',
+    transform: isInstanceMode ? 'translateX(-100%)' : 'translateX(0)',
+  },
+  textContent: isInstanceMode ? '📦' : '🌍',
+});
+
+// --- 3. 状態管理とイベント処理 ---
+
+// UIの見た目を更新する専用関数(関心の分離)
+const updateToggleUI = () => {
+  labelInstance.style.opacity = isInstanceMode ? '1' : '0';
+  labelGlobal.style.opacity = isInstanceMode ? '0' : '1';
+  toggleKnob.style.left = isInstanceMode ? 'calc(100% - 2px)' : '2px';
+  toggleKnob.style.transform = isInstanceMode ? 'translateX(-100%)' : 'translateX(0)';
+  toggleKnob.textContent = isInstanceMode ? '📦' : '🌍';
+};
+const modeToggleSwitch = DomFactory.create('div', {
+  setStyles: {
+    position: 'relative',
+    width: '4rem',
+    height: '1.75rem',
+    'border-radius': '0.875rem',
+    background: 'var(--accessory-button-backGround-normal, transparent)',
+    border: `1px solid ${COLOR_NORMAL}`,
+    // cursor: 'pointer', ← ここから親に移動するため削除
+    'box-sizing': 'border-box',
+  },
+  appendChildren: [toggleKnob],
+});
+
+// --- 4. 親コンテナ ---
+const modeToggleContainer = DomFactory.create('div', {
+  setStyles: {
+    display: 'flex',
+    'flex-direction': 'column',
+    'align-items': 'center',
+    margin: '0 1rem',
+    cursor: 'pointer', // ★ 追加: 親コンテナ全体(文字+スイッチ)をクリッカブルにする
+  },
+  appendChildren: [toggleLabelContainer, modeToggleSwitch],
+  addEventListeners: [
+    {
+      type: 'click',
+      listener: {
+        handleEvent: function () {
+          // 1. 状態を反転
+          isInstanceMode = !isInstanceMode;
+          // 2. UIを描画
+          updateToggleUI();
+          // 3. スケッチを再実行
+          reloadSketchHandleEvent.call({
+            targetEditor: editor,
+            targetSandbox: sandbox,
+          });
+        },
+      },
+    },
+  ],
+});
+
 const headerControlWrap = DomFactory.create('div', {
   setStyles: {
     display: 'grid',
-    'grid-template-columns': 'auto 1fr',
+    'grid-template-columns': 'auto 1fr auto',
+    'align-items': 'center',
   },
-  appendChildren: [callButton, details],
+  appendChildren: [callButton, details, modeToggleContainer],
 });
 
 const headerHandleEvent = function () {
@@ -547,6 +967,6 @@ document.addEventListener('DOMContentLoaded', () => {
     editor.dispatch({
       changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
-    document.getElementById('sandbox').srcdoc = createIframeHtml(loadedSource);
+    document.getElementById('sandbox').srcdoc = createIframeHtml(loadedSource, isInstanceMode);
   });
 });
