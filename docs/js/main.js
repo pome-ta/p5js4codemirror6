@@ -45,6 +45,8 @@ const editorDiv = DomFactory.create('div', {
 });
 
 const editor = createEditorView(editorDiv);
+// todo: `div` にインスタンスを渡し、外部から`.state.doc.toString()` を叩く用
+editorDiv.cmEditorView = editor;
 
 let isInstanceMode = true;
 const createIframeHtml = (userCode, isInstanceMode = true) => `

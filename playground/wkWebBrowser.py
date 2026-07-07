@@ -26,7 +26,7 @@ from pathlib import Path
 
 from pyrubicon.objc.api import ObjCClass, ObjCProtocol
 from pyrubicon.objc.api import ObjCInstance, NSObject, Block
-from pyrubicon.objc.api import objc_method, objc_property
+from pyrubicon.objc.api import objc_method, objc_property, at
 from pyrubicon.objc.runtime import send_super, objc_id, SEL
 
 from objc_frameworks.CoreGraphics import CGRectZero
@@ -164,6 +164,7 @@ class WebDelegate(
 class WebViewController(UIViewController):
 
   locationResource: Path | str = objc_property(object)
+  sevaFilePath: Path | None = objc_property(object)
 
   webView: WKWebView = objc_property()
   webDelegate: WebDelegate = objc_property()
@@ -190,6 +191,7 @@ class WebViewController(UIViewController):
       raise FileNotFoundError(f'{indexPath}')
 
     self.locationResource = locationResource
+    self.sevaFilePath = None
     self.titleIdentifier = 'title'
     return self
 
@@ -251,8 +253,16 @@ class WebViewController(UIViewController):
       handler=Block(self.reloadFromOrigin_, None, ctypes.c_void_p),
     )
 
+    saveFileAction = UIAction.actionWithTitle(
+      'saveFile',
+      image=UIImage.systemImageNamed_('arrow.down.document'),
+      identifier=None,
+      handler=Block(self.saveFileAction_, None, ctypes.c_void_p),
+    )
+
     buttonMenu = UIMenu.menuWithChildren_([
       superReloadAction,
+      saveFileAction,
     ])
 
     ellipsisButtonItem = UIBarButtonItem.alloc().initWithImage(
@@ -434,6 +444,50 @@ class WebViewController(UIViewController):
     self.webView.reloadFromOrigin()
 
   @objc_method
+  def saveFileAction_(self, sender):
+    if self.sevaFilePath is None or not (self.sevaFilePath.exists()):
+      return
+
+    javaScriptString = '''
+    (function getSourceCode() {
+       const div = document.querySelector('#editor-div');
+       const sliceDoc = div.cmEditorView?.state?.sliceDoc();
+       return sliceDoc;
+    }());
+    '''
+
+    def completionHandler(object_id, error_id):
+      objc_instance = ObjCInstance(object_id)
+      if objc_instance is None:
+        return
+      self.sevaFilePath.write_text(str(objc_instance), encoding='utf-8')
+
+    self.webView.evaluateJavaScript_completionHandler_(
+      at(javaScriptString),
+      Block(completionHandler, None, *[
+        objc_id,
+        objc_id,
+      ]))
+
+    try:
+      import editor
+    except (ModuleNotFoundError, LookupError):
+      return
+
+    def open_file(url: Path, tab: bool):
+      editor.open_file(f'{url.resolve()}', tab)
+
+    # todo: save したfile editor 上のバッファを最新にする
+    open_file(self.sevaFilePath, True)
+    dummy_path = Path(editor.__file__)
+    while _path := dummy_path:
+      if (dummy_path := _path).name == 'Pythonista3.app':
+        break
+      dummy_path = _path.parent
+    open_file(Path('./', dummy_path, 'Welcome3.md'), False)
+    open_file(self.sevaFilePath, False)
+
+  @objc_method
   def removeWebViewInputAccessoryView(self):
     # ref: [Objective-Cの黒魔術がよくわからなかったので覗いてみた👻 #Swift - Qiita](https://qiita.com/mopiemon/items/8d0dd7d678c4dadeadd4)
     for subview in self.webView.scrollView.subviews():
@@ -494,22 +548,26 @@ if __name__ == '__main__':
 
   def run_app(
     url_path,
+    save_path,
     presentation_style=UIModalPresentationStyle.fullScreen,
   ):
     main_vc = WebViewController.alloc().initWithLocationResource_(url_path)
+    main_vc.setSevaFilePath_(save_path if save_path.exists() else None)
+
     #presentation_style = UIModalPresentationStyle.pageSheet
     app = App(main_vc, presentation_style)
     app.present(NavigationController)
 
   ROOT_PATH = Path(__file__).parents[0]
   index_path = ROOT_PATH / '../docs'
+  sketch_code_path = index_path / 'sketchBooks/devSketch.js'
 
   if (resolve_path := index_path.resolve()) and IS_SERVER:
     from localServer import LocalServer
 
     with LocalServer(root_dir=str(resolve_path)) as server:
-      run_app(server.url)
+      run_app(server.url, sketch_code_path)
   else:
-    run_app(resolve_path / 'index.html')
+    run_app(resolve_path / 'index.html', sketch_code_path)
 
 
