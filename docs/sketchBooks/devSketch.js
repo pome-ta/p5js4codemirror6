@@ -8,6 +8,7 @@ const sketch = (p) => {
     const cnv = p.createCanvas(v, v);
     p.colorMode(p.HSL, v, 1, 1);
     // cnv.mousePressed(playOscillator);
+    p.userStartAudio()
     osc = new p5.Oscillator('sawtooth');
 
     let s = p.second();
