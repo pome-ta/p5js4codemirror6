@@ -1,22 +1,28 @@
 const sketch = (p) => {
   const v = 360;
   let osc, playing, freq, amp;
-  let scale = [261.6, 311.1, 349.2, 370, 392, 466.2];
+  let musicalScale = [261.6, 311.1, 349.2, 370, 392, 466.2];
 
   p.setup = () => {
     // put setup code here
-    p.createCanvas(v, v);
+    const cnv = p.createCanvas(v, v);
     p.colorMode(p.HSL, v, 1, 1);
+    // cnv.mousePressed(playOscillator);
     osc = new p5.Oscillator('sawtooth');
-    osc.freq(440);
-    osc.amp(0.8);
+
+    let s = p.second();
+    // console.log(s);
+    console.log(s % musicalScale.length);
+    // osc.freq(440);
+    osc.freq(musicalScale[s % musicalScale.length]);
+    osc.amp(0.1);
     osc.start();
   };
 
   p.draw = () => {
     // put drawing code here
     p.background(p.frameCount % v, 1, 0.5);
-    freq = p.scale[p.floor(p.map(p.mouseX, 0, p.width, 0, 5))];
+    freq = musicalScale[p.floor(p.map(p.mouseX, 0, p.width, 0, 5))];
 
     amp = p.constrain(p.map(p.mouseY, p.height, 0, 0, 1), 0, 1);
     p.text('tap to play', 20, 20);
