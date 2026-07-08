@@ -78,6 +78,7 @@ const createIframeHtml = (userCode, isInstanceMode = true) => `
 
     <script type="module">
       import eruda from 'eruda';
+      
 
       eruda.init();
 
@@ -101,23 +102,8 @@ const createIframeHtml = (userCode, isInstanceMode = true) => `
 
   <script ${isInstanceMode ? 'type="module"' : ''}>
 
-
-(()=>{ const audioCtx = new AudioContext()
-audioCtx.onstatechange = () => {
-  if(audioCtx.state !== 'running')
-    audioCtx.resume()
-    }
-})();
-
     ${userCode}
-
-    document.addEventListener(
-      'touchstart',
-      () => {
-        if (typeof userStartAudio !== 'undefined') p5.userStartAudio();
-      },
-      { once: true },
-    );
+    
   </script>
   <body></body>
 </html>
