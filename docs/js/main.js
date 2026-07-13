@@ -29,9 +29,7 @@ const mainSketch = './sketchBooks/mainSketch.js';
 const devSketch = './sketchBooks/devSketch.js';
 
 const codeFilePath =
-  `${location.protocol}` === 'file:' ||
-  `${location.protocol}` === 'http:' ||
-  `${location.hostname}` === 'localhost'
+  `${location.protocol}` === 'file:' || `${location.protocol}` === 'http:' || `${location.hostname}` === 'localhost'
     ? devSketch
     : mainSketch;
 // const codeFilePath = 1 ? devSketch : mainSketch;
@@ -51,117 +49,36 @@ const editor = createEditorView(editorDiv);
 editorDiv.cmEditorView = editor;
 
 let isInstanceMode = true;
-const createIframeHtml = (userCode, isInstanceMode = true) => `
-<!doctype html>
-<html lang="ja">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"
-    />
-    <script>
-      window._capturedAudioContexts = [];
-      const OrigAudioContext = window.AudioContext || window.webkitAudioContext;
-      if (OrigAudioContext) {
-        // Proxyを使って生成を監視し、作られたContextを配列に保存しておく
-        window.AudioContext = new Proxy(OrigAudioContext, {
-          construct(target, args) {
-            const ctx = new target(...args);
-            window._capturedAudioContexts.push(ctx);
-            return ctx;
-          }
-        });
-        window.webkitAudioContext = window.AudioContext;
-      }
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/p5/lib/p5.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/p5.sound/dist/p5.sound.js"></script>
 
-    <!--
-    <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/addons/p5.sound.js"></script>
-    -->
+// todo: MouseEvent TouchEvent wrapper
+const { touchBegan, touchMoved, touchEnded } = {
+  touchBegan: typeof document.ontouchstart !== 'undefined' ? 'touchstart' : 'mousedown',
+  touchMoved: typeof document.ontouchmove !== 'undefined' ? 'touchmove' : 'mousemove',
+  touchEnded: typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup',
+};
 
-    <script type="importmap">
-      {
-        "imports": {
-          "eruda": "https://esm.sh/eruda",
-          "modules/": "./sketchBooks/modules/"
-        }
-      }
-    </script>
+document.addEventListener(touchEnded, () => {
+  //console.log(`--- ${Date.now()}: document`);
+  const auCtx = window.frames[0]?.auCtx;
+  if (auCtx) {
+    if (auCtx.state === 'suspended') {
+      auCtx.resume().then(() => {
+        console.log('🔊: AudioContext is now running');
+      });
+    }
+  }
+});
 
-    <script type="module">
-      import eruda from 'eruda';
-     
-
-      eruda.init();
-
-      const timeStr = new Date().toLocaleTimeString();
-      const outLog = 'p5Canvas: ' + timeStr;
-      console.log(outLog);
-    </script>
-
-    <style>
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-      }
-      canvas {
-        display: block;
-      }
-    </style>
-  </head>
-
-  <script ${isInstanceMode ? 'type="module"' : ''}>
-
-    ${userCode}
-
-    const forceResumeAudio = async () => {
-      // 1. Tone.js (p5.sound v2) が存在する場合は、その作法に従う
-      if (typeof window.Tone !== 'undefined' && typeof window.Tone.start === 'function') {
-        try {
-          await window.Tone.start();
-          console.log('Tone.js audio context started!');
-        } catch (e) {
-          console.warn('Tone.js start failed:', e);
-        }
-      }
-
-      // 2. ネイティブな AudioContext の横取り再開(フォールバック)
-      if (window._capturedAudioContexts) {
-        window._capturedAudioContexts.forEach(ctx => {
-          if (ctx.state === 'suspended') {
-            ctx.resume()
-              .then(() => console.log('Native AudioContext auto-resumed!'))
-              .catch(e => console.warn('Native Auto-resume failed:', e));
-          }
-        });
-      }
-    };
-
-    // PC/Android用: 読み込み完了時に自動再開を試みる
-    window.addEventListener('load', forceResumeAudio);
-
-    // iOS Safari用(保険): ユーザー操作時に再開を試みる
-    document.addEventListener('touchend', forceResumeAudio, { once: true });
-    document.addEventListener('click', forceResumeAudio, { once: true }); // マウスクリックにも対応
-   
-  </script>
-  <body></body>
-</html>
-`;
-
+const srcPath = './js/sandboxes/sandbox.html';
 // xxx: iframe 生成時と書き換え時と併用
 const reloadSketchHandleEvent = function (e) {
   const toStringDoc = this.targetEditor.viewState.state.doc.toString();
-  this.targetSandbox = this.targetSandbox
-    ? this.targetSandbox
-    : document.getElementById('sandbox');
-  this.targetSandbox.srcdoc = createIframeHtml(toStringDoc, isInstanceMode);
+  this.targetSandbox = this.targetSandbox ? this.targetSandbox : e.target;
+  if (e.type !== 'load') {
+    //console.log(`--- ${Date.now()}: touchBegan`);
+    this.targetSandbox.src = srcPath;
+  }
+  this.targetSandbox.contentWindow.postMessage({ code: toStringDoc, isInstanceMode: isInstanceMode }, '*');
 };
 
 /* --- iframe */
@@ -172,6 +89,7 @@ const sandbox = DomFactory.create('iframe', {
     allow:
       'accelerometer; ambient-light-sensor; autoplay; bluetooth; camera; encrypted-media; geolocation; gyroscope;  hid; microphone; magnetometer; midi; payment; usb; serial; vr; xr-spatial-tracking',
     loading: 'lazy',
+    src: srcPath,
   },
   setStyles: {
     width: '100%',
@@ -184,20 +102,39 @@ const sandbox = DomFactory.create('iframe', {
     //'background-color': 'lightgray',
     'background-color': 'darkgray',
   },
+  addEventListeners: [
+    {
+      type: 'load',
+      listener: {
+        targetEditor: editor,
+        targetSandbox: null,
+        handleEvent: reloadSketchHandleEvent,
+      },
+    },
+    /*
+    {
+      type: 'visibilitychange',
+      listener: {
+        handleEvent: function (e) {
+          console.log('visibilitychange');
+        },
+      },
+    },
+    */
+  ],
 });
 
 /* --- accessory */
 const callButton = DomFactory.create('button', {
   textContent: '🔄',
   setStyles: {
-    'font-family':
-      'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
     padding: '0.5rem 1rem',
     cursor: 'pointer',
   },
   addEventListeners: [
     {
-      type: 'click',
+      type: touchBegan,
       listener: {
         targetSandbox: sandbox,
         targetEditor: editor,
@@ -212,8 +149,7 @@ const initDetailsOpen = false;
 
 const summary = DomFactory.create('summary', {
   setStyles: {
-    'font-family':
-      'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
     //'font-size': '0.8rem',
     padding: '0.5rem 1rem',
   },
@@ -264,8 +200,7 @@ const details = DomFactory.create('details', {
 });
 
 // --- 共通設定の定義(マジックナンバーや重複文字列の排除) ---
-const FONT_FAMILY =
-  'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace';
+const FONT_FAMILY = 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace';
 const COLOR_NORMAL = 'var(--accessory-button-color-normal, #e0e0e0)';
 
 // --- UI部品の生成 ---
@@ -323,9 +258,7 @@ const updateToggleUI = () => {
   labelInstance.style.opacity = isInstanceMode ? '1' : '0';
   labelGlobal.style.opacity = isInstanceMode ? '0' : '1';
   toggleKnob.style.left = isInstanceMode ? 'calc(100% - 2px)' : '2px';
-  toggleKnob.style.transform = isInstanceMode
-    ? 'translateX(-100%)'
-    : 'translateX(0)';
+  toggleKnob.style.transform = isInstanceMode ? 'translateX(-100%)' : 'translateX(0)';
   toggleKnob.textContent = isInstanceMode ? '📦' : '🌍';
 };
 const modeToggleSwitch = DomFactory.create('div', {
@@ -354,9 +287,9 @@ const modeToggleContainer = DomFactory.create('div', {
   appendChildren: [toggleLabelContainer, modeToggleSwitch],
   addEventListeners: [
     {
-      type: 'click',
+      type: touchEnded,
       listener: {
-        handleEvent: function () {
+        handleEvent: function (e) {
           // 状態を反転
           isInstanceMode = !isInstanceMode;
           // UIを描画
@@ -461,8 +394,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
     const icon = DomFactory.create('span', {
       textContent: `${iconChar}`,
       setStyles: {
-        'font-family':
-          'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+        'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
         'font-size': '1.0rem',
         'font-style': 'normal',
         'font-weight': '400',
@@ -594,15 +526,8 @@ const footerHandleEvent = function () {
   footer.style.display = '';
 
   const offsetTop = window.visualViewport.offsetTop;
-  const offsetBottom =
-    window.innerHeight -
-    window.visualViewport.height +
-    offsetTop -
-    window.visualViewport.pageTop;
-  const tOffsetTop =
-    visualViewport.offsetTop +
-    visualViewport.height -
-    document.documentElement.clientHeight;
+  const offsetBottom = window.innerHeight - window.visualViewport.height + offsetTop - window.visualViewport.pageTop;
+  const tOffsetTop = visualViewport.offsetTop + visualViewport.height - document.documentElement.clientHeight;
   //footer.style.bottom = `${offsetBottom}px`;
   footer.style.transform = `translateY(${tOffsetTop}px)`;
 };
@@ -652,14 +577,8 @@ const footer = DomFactory.create('footer', {
 
           const selectionMain = this.targetEditor.state.selection.main;
           caret = selectionMain.anchor;
-          headLine = this.targetEditor.moveToLineBoundary(
-            selectionMain,
-            0,
-          ).anchor;
-          endLine = this.targetEditor.moveToLineBoundary(
-            selectionMain,
-            1,
-          ).anchor;
+          headLine = this.targetEditor.moveToLineBoundary(selectionMain, 0).anchor;
+          endLine = this.targetEditor.moveToLineBoundary(selectionMain, 1).anchor;
 
           swipeAreaWidth = document.querySelector('#footer').clientWidth;
           stepValue = swipeAreaWidth / divStep;
@@ -681,26 +600,16 @@ const footer = DomFactory.create('footer', {
           const swipeX = e.changedTouches[0].clientX;
 
           const moveDistance = swipeX - startX;
-          const moveCache =
-            Math.abs(moveDistance) < stepValue
-              ? caret
-              : caret + Math.round(moveDistance / stepValue);
+          const moveCache = Math.abs(moveDistance) < stepValue ? caret : caret + Math.round(moveDistance / stepValue);
 
           if (caret === moveCache) {
             return;
           }
 
-          const moveValue =
-            moveCache < headLine
-              ? headLine
-              : moveCache >= endLine
-                ? endLine
-                : moveCache;
+          const moveValue = moveCache < headLine ? headLine : moveCache >= endLine ? endLine : moveCache;
 
           this.targetEditor.dispatch({
-            selection: EditorSelection.create([
-              EditorSelection.cursor(moveValue),
-            ]),
+            selection: EditorSelection.create([EditorSelection.cursor(moveValue)]),
           });
           this.targetEditor.focus();
         },
@@ -739,10 +648,5 @@ document.addEventListener('DOMContentLoaded', () => {
     editor.dispatch({
       changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
-    document.getElementById('sandbox').srcdoc = createIframeHtml(
-      loadedSource,
-      isInstanceMode,
-    );
   });
 });
-
