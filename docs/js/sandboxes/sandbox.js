@@ -18,7 +18,8 @@ function runSketch(code, isInstanceMode) {
 
 window.addEventListener('message', (e) => {
   const sourceCode = e.data.code;
-  const isInstance = e.data.isInstanceMode;
+  const isInstanceMode = e.data.isInstanceMode;
+  console.log(`[mode] ${isInstanceMode ? 'instance' : 'global'}`);
 
-  runSketch(sourceCode, isInstance);
+  runSketch(sourceCode, isInstanceMode);
 });

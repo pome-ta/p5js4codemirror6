@@ -32,7 +32,6 @@ const codeFilePath =
   `${location.protocol}` === 'file:' || `${location.protocol}` === 'http:' || `${location.hostname}` === 'localhost'
     ? devSketch
     : mainSketch;
-// const codeFilePath = 1 ? devSketch : mainSketch;
 
 /* --- editor(View) */
 const editorDiv = DomFactory.create('div', {
@@ -58,18 +57,18 @@ const { touchBegan, touchMoved, touchEnded } = {
 };
 
 document.addEventListener(touchEnded, () => {
-  //console.log(`--- ${Date.now()}: document`);
   const auCtx = window.frames[0]?.auCtx;
-  if (auCtx) {
-    if (auCtx.state === 'suspended') {
-      auCtx.resume().then(() => {
-        console.log('🔊: AudioContext is now running');
-      });
-    }
+  console.log(auCtx);
+  if (!auCtx || auCtx.state !== 'suspended') {
+    return;
   }
+  auCtx.resume().then(() => {
+    console.log('🔊: AudioContext is now running');
+  });
 });
 
 const srcPath = './js/sandboxes/sandbox.html';
+/*
 // xxx: iframe 生成時と書き換え時と併用
 const reloadSketchHandleEvent = function (e) {
   const toStringDoc = this.targetEditor.viewState.state.doc.toString();
@@ -79,6 +78,24 @@ const reloadSketchHandleEvent = function (e) {
     this.targetSandbox.src = srcPath;
   }
   this.targetSandbox.contentWindow.postMessage({ code: toStringDoc, isInstanceMode: isInstanceMode }, '*');
+};
+*/
+function postSketch(targetEditor, targetSandbox) {
+  targetSandbox.contentWindow.postMessage(
+    {
+      code: targetEditor.viewState.state.doc.toString(),
+      isInstanceMode: isInstanceMode,
+    },
+    '*',
+  );
+}
+
+function reloadSandbox(targetSandbox) {
+  targetSandbox.src = srcPath;
+}
+
+const reloadSketchHandleEvent = function (e) {
+  postSketch(this.targetEditor, e.currentTarget);
 };
 
 /* --- iframe */
@@ -107,7 +124,6 @@ const sandbox = DomFactory.create('iframe', {
       type: 'load',
       listener: {
         targetEditor: editor,
-        targetSandbox: null,
         handleEvent: reloadSketchHandleEvent,
       },
     },
@@ -135,10 +151,11 @@ const callButton = DomFactory.create('button', {
   addEventListeners: [
     {
       type: touchBegan,
+
       listener: {
-        targetSandbox: sandbox,
-        targetEditor: editor,
-        handleEvent: reloadSketchHandleEvent,
+        handleEvent() {
+          reloadSandbox(sandbox);
+        },
       },
     },
   ],
@@ -150,7 +167,7 @@ const initDetailsOpen = false;
 const summary = DomFactory.create('summary', {
   setStyles: {
     'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
-    //'font-size': '0.8rem',
+    'font-size': '0.8rem',
     padding: '0.5rem 1rem',
   },
   textContent: summaryTextContent(initDetailsOpen),
@@ -287,18 +304,12 @@ const modeToggleContainer = DomFactory.create('div', {
   appendChildren: [toggleLabelContainer, modeToggleSwitch],
   addEventListeners: [
     {
-      type: touchEnded,
+      type: touchBegan,
       listener: {
-        handleEvent: function (e) {
-          // 状態を反転
+        handleEvent() {
           isInstanceMode = !isInstanceMode;
-          // UIを描画
           updateToggleUI();
-          // スケッチを再実行
-          reloadSketchHandleEvent.call({
-            targetEditor: editor,
-            targetSandbox: sandbox,
-          });
+          reloadSandbox(sandbox);
         },
       },
     },
