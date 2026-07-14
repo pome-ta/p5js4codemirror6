@@ -1,7 +1,6 @@
 import DomFactory from '../utils/domFactory.js';
 
-console.log(`[sandbox] top`);
-
+//console.log(`[sandbox] top`);
 function runSketch(code, isInstanceMode) {
   const script = DomFactory.create('script', {
     setAttrs: {

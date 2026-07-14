@@ -58,7 +58,6 @@ const { touchBegan, touchMoved, touchEnded } = {
 
 document.addEventListener(touchEnded, () => {
   const auCtx = window.frames[0]?.auCtx;
-  console.log(auCtx);
   if (!auCtx || auCtx.state !== 'suspended') {
     return;
   }
@@ -167,7 +166,7 @@ const initDetailsOpen = false;
 const summary = DomFactory.create('summary', {
   setStyles: {
     'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
-    'font-size': '0.8rem',
+    //'font-size': '0.8rem',
     padding: '0.5rem 1rem',
   },
   textContent: summaryTextContent(initDetailsOpen),
@@ -577,7 +576,7 @@ const footer = DomFactory.create('footer', {
   ],
   addEventListeners: [
     {
-      type: 'touchstart',
+      type: touchBegan,
       listener: {
         targetEditor: editor,
         handleEvent: function (e) {
@@ -599,7 +598,7 @@ const footer = DomFactory.create('footer', {
     },
 
     {
-      type: 'touchmove',
+      type: touchMoved,
       listener: {
         targetEditor: editor,
         handleEvent: function (e) {
@@ -655,7 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setLayout();
 
   insertFetchDoc(codeFilePath).then((loadedSource) => {
-    // todo: 事前に`doc` が存在するなら、`doc` 以降にテキストを挿入
+    // todo: 事前に`doc` が存在するなら、`doc` 以降に挿入
     editor.dispatch({
       changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
