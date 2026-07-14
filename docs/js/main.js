@@ -16,6 +16,13 @@ import {
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
+// MouseEvent TouchEvent wrapper
+const { touchBegan, touchMoved, touchEnded } = {
+  touchBegan: typeof document.ontouchstart !== 'undefined' ? 'touchstart' : 'mousedown',
+  touchMoved: typeof document.ontouchmove !== 'undefined' ? 'touchmove' : 'mousemove',
+  touchEnded: typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup',
+};
+
 /* --- load Source */
 async function insertFetchDoc(filePath) {
   const fetchFilePath = async (path) => {
@@ -47,15 +54,11 @@ const editor = createEditorView(editorDiv);
 // todo: `div` にインスタンスを渡し、外部から`.state.doc.toString()` を叩く用
 editorDiv.cmEditorView = editor;
 
+/* --- iframe(Sandbox) */
 let isInstanceMode = true;
+const srcPath = './js/sandboxes/sandbox.html';
 
-// todo: MouseEvent TouchEvent wrapper
-const { touchBegan, touchMoved, touchEnded } = {
-  touchBegan: typeof document.ontouchstart !== 'undefined' ? 'touchstart' : 'mousedown',
-  touchMoved: typeof document.ontouchmove !== 'undefined' ? 'touchmove' : 'mousemove',
-  touchEnded: typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup',
-};
-
+// sandbox 側のAudioContext 解除
 document.addEventListener(touchEnded, () => {
   const auCtx = window.frames[0]?.auCtx;
   if (!auCtx || auCtx.state !== 'suspended') {
@@ -66,19 +69,10 @@ document.addEventListener(touchEnded, () => {
   });
 });
 
-const srcPath = './js/sandboxes/sandbox.html';
-/*
-// xxx: iframe 生成時と書き換え時と併用
-const reloadSketchHandleEvent = function (e) {
-  const toStringDoc = this.targetEditor.viewState.state.doc.toString();
-  this.targetSandbox = this.targetSandbox ? this.targetSandbox : e.target;
-  if (e.type !== 'load') {
-    //console.log(`--- ${Date.now()}: touchBegan`);
-    this.targetSandbox.src = srcPath;
-  }
-  this.targetSandbox.contentWindow.postMessage({ code: toStringDoc, isInstanceMode: isInstanceMode }, '*');
-};
-*/
+function reloadSandbox(targetSandbox) {
+  targetSandbox.src = srcPath;
+}
+
 function postSketch(targetEditor, targetSandbox) {
   targetSandbox.contentWindow.postMessage(
     {
@@ -89,15 +83,10 @@ function postSketch(targetEditor, targetSandbox) {
   );
 }
 
-function reloadSandbox(targetSandbox) {
-  targetSandbox.src = srcPath;
-}
-
 const reloadSketchHandleEvent = function (e) {
   postSketch(this.targetEditor, e.currentTarget);
 };
 
-/* --- iframe */
 const sandbox = DomFactory.create('iframe', {
   setAttrs: {
     id: 'sandbox',
@@ -150,7 +139,6 @@ const callButton = DomFactory.create('button', {
   addEventListeners: [
     {
       type: touchBegan,
-
       listener: {
         handleEvent() {
           reloadSandbox(sandbox);
@@ -285,7 +273,6 @@ const modeToggleSwitch = DomFactory.create('div', {
     'border-radius': '0.875rem',
     background: 'var(--accessory-button-backGround-normal, transparent)',
     border: `1px solid ${COLOR_NORMAL}`,
-    // cursor: 'pointer', ← ここから親に移動するため削除
     'box-sizing': 'border-box',
   },
   appendChildren: [toggleKnob],
