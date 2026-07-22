@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
@@ -18,16 +18,16 @@
     -->
 
     <script src="https://cdn.jsdelivr.net/npm/p5@2.3.1/lib/p5.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/p5.sound@0.4.1/dist/p5.sound.js"></script>
-    
+    <!-- <script src="https://cdn.jsdelivr.net/npm/p5.sound@0.4.1/dist/p5.sound.js"></script> -->
 
     <script>
       //console.log(`--- ${Date.now()}: [sb] af`);
-      try {
-        p5.prototype.setAudioContext(window.auCtx);
-      } catch (error) {
-        console.error(`p5.sound.js: ${error}`);
-      }
+      p5.prototype.setAudioContext?.(window.auCtx);
+      // try {
+      //   p5.prototype.setAudioContext(window.auCtx);
+      // } catch (error) {
+      //   console.error(`p5.sound.js: ${error}`);
+      // }
     </script>
 
     <script type="importmap">
@@ -40,11 +40,11 @@
 
     <!-- eruda -->
     <script type="module">
-      import eruda from 'eruda';
+      import eruda from "eruda";
 
       eruda.init();
       const timeStr = new Date().toLocaleTimeString();
-      const outLog = 'p5Canvas: ' + timeStr;
+      const outLog = "p5Canvas: " + timeStr;
       console.log(outLog);
     </script>
 

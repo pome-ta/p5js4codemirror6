@@ -12,6 +12,7 @@ function runSketch(code, isInstanceMode) {
   });
 
   isInstanceMode ? null : new p5();
+  // !isInstanceMode && new p5();
   // document.body.removeChild(script);
 }
 
