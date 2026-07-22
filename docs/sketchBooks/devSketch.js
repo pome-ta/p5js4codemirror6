@@ -1,188 +1,113 @@
-class PointerTracker {
-  #p;
-
-  constructor(mainInstance) {
-    this.#p = mainInstance;
-
-    this.x = null;
-    this.y = null;
-
-    [this.click, this.start, this.move, this.end, this.isTouchDevice] = window.matchMedia('(hover: none)').matches
-      ? ['click', 'touchstart', 'touchmove', 'touchend', true]
-      : ['click', 'mousedown', 'mousemove', 'mouseup', false];
-  }
-
-  updateXY() {
-    this.isTouchDevice ? this.#touchUpdate() : this.#mouseUpdate();
-  }
-
-  #touchUpdate() {
-    // xxx: 最初の指だけなら`[0]`、マルチなら座標並列
-    for (let touch of this.#p.touches) {
-      this.x = 0 <= touch.x && touch.x <= this.#p.width ? touch.x : null;
-      this.y = 0 <= touch.y && touch.y <= this.#p.height ? touch.y : null;
-    }
-  }
-
-  #mouseUpdate() {
-    if (!this.#p.mouseIsPressed) {
-      this.x = null;
-      this.y = null;
-      return;
-    }
-    this.x = 0 <= this.#p.mouseX && this.#p.mouseX <= this.#p.width ? this.#p.mouseX : null;
-    this.y = 0 <= this.#p.mouseY && this.#p.mouseY <= this.#p.height ? this.#p.mouseY : null;
-  }
-}
-
 class TapIndicator {
   #p;
   #pg;
-  #pointerTracker;
   #markSize;
-  #pgColor;
-
   baseColorHSB = [0.3, 0.1, 0.9];
 
-  constructor(mainInstance, markSize = 48) {
-    this.#p = mainInstance;
-    this.#pg = null;
-    this.#pointerTracker = new PointerTracker(mainInstance);
+  constructor(p, markSize = 48) {
+    this.#p = p;
     this.#markSize = markSize;
 
-    this.isTapped = null;
+    this.#initGraphics();
+    this.#hookDraw();
   }
 
-  setup() {
-    this.isTapped = false;
-
-    this.#initCreateGraphics();
-    this.#setUseHooks();
+  #hookDraw() {
+    const originalDraw = this.#p.draw;
+    this.#p.draw = (...args) => {
+      /*
+      if (typeof originalDraw === 'function') {
+        originalDraw.apply(this.#p, args);
+      }
+      */
+      typeof originalDraw === 'function' && originalDraw.apply(this.#p, args);
+      this.#render();
+    };
   }
 
-  #initCreateGraphics = () => {
+  #initGraphics() {
+    /*
+    if (this.#pg) {
+      this.#pg.remove();
+    }
+    */
     this.#pg && this.#pg.remove();
     this.#pg = this.#p.createGraphics(this.#p.width, this.#p.height);
 
-    this.#pg.colorMode(this.#pg.HSB, 1.0, 1.0, 1.0, 1.0);
-    this.#pg.blendMode(this.#pg.SCREEN);
-    this.#pgColor = this.#pg.color(...this.baseColorHSB);
-    this.#pgColor.setAlpha(0.5);
-    this.#pg.fill(this.#pgColor);
-    this.#pg.noStroke();
-
+    // スタイル設定(白の半透明 + 黒枠線)
+    this.#pg.fill(255, 255, 255, 180);
+    this.#pg.stroke(0, 0, 0, 220);
+    this.#pg.strokeWeight(3);
     this.#pg.ellipseMode(this.#pg.CENTER);
-  };
+  }
 
-  #showMark = () => {
-    this.#pg.circle(this.#pointerTracker.x, this.#pointerTracker.y, this.#markSize);
-    this.#p.image(this.#pg, 0, 0);
-  };
+  // 毎フレーム p.draw() の直後に走る描画処理
+  #render() {
+    if (!this.#pg) return;
 
-  #drawHook = () => {
-    this.#pg.clear();
-    if (!this.isTapped || this.#pointerTracker.x === null || this.#pointerTracker.y === null) {
-      return;
+    // キャンバスリサイズ(p.resizeCanvas)への自動追従
+    if (this.#pg.width !== this.#p.width || this.#pg.height !== this.#p.height) {
+      this.#initGraphics();
     }
-    this.#showMark();
-  };
 
-  #touchStartedHook = (e) => {
-    this.isTapped = true;
-    this.#pointerTracker.updateXY();
-  };
-  #touchMovedHook = (e) => {
-    this.#pointerTracker.updateXY();
-  };
-  #touchEndedHook = (e) => {
-    this.isTapped = false;
-    // xxx: `ended` 判定で`null` が取れるが必要か?
-    this.#pointerTracker.updateXY();
-  };
+    this.#pg.clear();
+    let hasInput = false;
 
-  #setUseHooks = () => {
-    this.#useDraw();
-    this.#useTouchEvents();
-    this.#useWindowResized();
-  };
+    // 1. スマホ等のタッチ入力チェック (マルチタッチ対応)
+    if (Array.isArray(this.#p.touches) && this.#p.touches.length > 0) {
+      for (const touch of this.#p.touches) {
+        if (this.#isInsideCanvas(touch.x, touch.y)) {
+          this.#pg.circle(touch.x, touch.y, this.#markSize);
+          hasInput = true;
+        }
+      }
+    }
+    // 2. PC等のマウス入力チェック (タッチがない場合)
+    else if (this.#p.mouseIsPressed) {
+      if (this.#isInsideCanvas(this.#p.mouseX, this.#p.mouseY)) {
+        this.#pg.circle(this.#p.mouseX, this.#p.mouseY, this.#markSize);
+        hasInput = true;
+      }
+    }
 
-  #useDraw() {
-    const instance = this;
-    const originalFunction = instance.#p.draw;
-
-    instance.#p.draw = function (...args) {
-      const result = originalFunction.apply(this, args);
-      instance.#drawHook();
-      return result;
-    };
+    // 入力がある場合のみメインキャンバスの最前面に転送
+    hasInput && this.#p.image(this.#pg, 0, 0);
+    /*
+    if (hasInput) {
+      this.#p.image(this.#pg, 0, 0);
+    }
+    */
   }
 
-  #useTouchEvents() {
-    const instance = this;
-
-    // touchStarted
-    const touchStartedFunction = instance.#p.touchStarted === void 0 ? (e) => {} : instance.#p.touchStarted;
-    instance.#p.touchStarted = function (...args) {
-      const result = touchStartedFunction.apply(this, args);
-      instance.#touchStartedHook(args);
-      return result;
-    };
-
-    // touchMoved
-    const touchMovedFunction = instance.#p.touchMoved === void 0 ? (e) => {} : instance.#p.touchMoved;
-    instance.#p.touchMoved = function (...args) {
-      const result = touchMovedFunction.apply(this, args);
-      instance.#touchMovedHook(args);
-      return result;
-    };
-
-    // touchEnded
-    const touchEndedFunction = instance.#p.touchEnded === void 0 ? (e) => {} : instance.#p.touchEnded;
-    instance.#p.touchEnded = function (...args) {
-      const result = touchEndedFunction.apply(this, args);
-      instance.#touchEndedHook(args);
-      return result;
-    };
+  #isInsideCanvas(x, y) {
+    return x >= 0 && x <= this.#p.width && y >= 0 && y <= this.#p.height;
   }
 
-  #useWindowResized() {
-    const instance = this;
-    const originalFunction = instance.#p.windowResized === void 0 ? (e) => {} : instance.#p.windowResized;
-    instance.#p.windowResized = function (...args) {
-      const result = originalFunction.apply(this, args);
-      instance.#initCreateGraphics();
-      return result;
-    };
+  destroy() {
+    if (this.#pg) {
+      this.#pg.remove();
+      this.#pg = null;
+    }
   }
 }
 
 const sketch = (p) => {
   const v = 360;
   let tapIndicator;
-  let pointerTracker;
 
   p.setup = () => {
     //p.noCanvas();
     // put setup code here
     p.createCanvas(v, v);
     p.colorMode(p.HSL, v, 1, 1);
-    
-    tapIndicator = new TapIndicator(p);  
-    pointerTracker = new PointerTracker(p);  
-      
-    // キャンバス作成後にsetupを呼ぶ  
-    tapIndicator.setup();  
-      
-    p.canvas.addEventListener(pointerTracker.move, (e) => e.preventDefault(), {  
-      passive: false,  
-    });  
 
+    tapIndicator = new TapIndicator(p);
   };
 
   p.draw = () => {
     // put drawing code here
-    p.background(p.frameCount % v, 1, 0.5);
-
+    //p.background(p.frameCount % v, 1, 0.5);
+    //tapIndicator.destroy()
   };
 };
 

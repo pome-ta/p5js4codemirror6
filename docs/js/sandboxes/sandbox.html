@@ -8,22 +8,28 @@
     />
 
     <script>
-      console.log(`--- ${Date.now()}: [sb] bf`);
+      //console.log(`--- ${Date.now()}: [sb] bf`);
       window.auCtx = new AudioContext();
-      console.log(`${window.auCtx.state} : top`);
+      //console.log(`${window.auCtx.state} : top`);
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/p5@11.11.1/lib/p5.js"></script>
     <!--
-    <script src="https://cdn.jsdelivr.net/npm/p5@2.2.3/lib/p5.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5@11.11.1/lib/p5.js"></script>
     -->
+
+    <script src="https://cdn.jsdelivr.net/npm/p5@2.2.3/lib/p5.js"></script>
+
     <!--
     <!--<script src="https://cdn.jsdelivr.net/npm/p5.sound@0.3.0/dist/p5.sound.js"></script>
     -->
 
     <script>
-      console.log(`--- ${Date.now()}: [sb] af`);
-      p5.prototype.setAudioContext(window.auCtx);
+      //console.log(`--- ${Date.now()}: [sb] af`);
+      try {
+        p5.prototype.setAudioContext(window.auCtx);
+      } catch (error) {
+        console.error(`p5.sound.js: ${error}`);
+      }
     </script>
 
     <script type="importmap">
