@@ -1,44 +1,71 @@
-// [p5.sound.js/examples/001-Oscillator-FrequencyAmplitude/sketch.js at main · processing/p5.sound.js · GitHub](https://github.com/processing/p5.sound.js/blob/main/examples/001-Oscillator-FrequencyAmplitude/sketch.js)
+// [p5.sound.js/examples/002-Amplitude-VisualizingLoudness/sketch.js at main · processing/p5.sound.js · GitHub](https://github.com/processing/p5.sound.js/blob/main/examples/002-Amplitude-VisualizingLoudness/sketch.js)
+let sound, amp;
 
+async function setup() {
+  sound = loadSound('https://tonejs.github.io/audio/berklee/gong_1.mp3');
+  
+  console.log(sound)
+  createCanvas(400, 400);
+  textAlign(CENTER);
+  fill(25);
+
+  amp = new p5.Amplitude();
+  sound.connect(amp);
+
+  describe('The color of the background changes based on the amplitude of the sound.');
+}
+ 
+function mousePressed() {
+  sound.play();
+}
+ 
+function draw() {
+  let level = amp.getLevel();
+  level = map(level, 0, 0.2, 0, 255);
+  background(level, 0, 0);
+  text('click to play', width/2, height/2);
+}
+
+/*
 import TapIndicator from '../../sketchBooks/modules/TapIndicator.js';
 
 const sketch = (p) => {
   let tapIndicator;
 
-  let osc, playing, freq, amp;
-  let toneScale = [261.6, 311.1, 349.2, 370, 392, 466.2];
+  let sound;
+  let amp;
+  
 
-  p.setup = () => {
+  p.setup = async () => {
     // put setup code here
     tapIndicator = new TapIndicator(p);
 
-    const cnv = p.createCanvas(500, 500);
-    cnv.mousePressed(playOscillator);
-    osc = new p5.Oscillator('sawtooth');
+    sound = p.loadSound('https://tonejs.github.io/audio/berklee/gong_1.mp3');
+    console.log(sound)
+    p.createCanvas(400, 400);
+    p.textAlign(p.CENTER);
+    p.fill(255);
+
+    amp = new p5.Amplitude();
+    sound.connect(amp);
+
+    p.describe('The color of the background changes based on the amplitude of the sound.');
   };
 
   p.draw = () => {
     // put drawing code here
-    p.background(220);
-    freq = toneScale[p.floor(p.map(p.mouseX, 0, p.width, 0, 5))];
-
-    amp = p.constrain(p.map(p.mouseY, p.height, 0, 0, 1), 0, 1);
-    p.text('tap to play', 20, 20);
-    p.text('freq: ' + freq, 20, 40);
-    p.text('amp: ' + amp, 20, 60);
-
-    if (playing === true) {
-      osc.freq(freq);
-      osc.amp(amp);
-    }
+    let level = amp.getLevel();
+    level = p.map(level, 0, 0.2, 0, 255);
+    p.background(level, 0, 0);
+    p.text('click to play', p.width/2, p.height/2);
   };
+  
+  p.mousePressed = () => {
+  sound.play();
+}
 
-  function playOscillator() {
-    // starting an oscillator on a user gesture will enable audio
-    // in browsers that have a strict autoplay policy.
-    osc.start();
-    playing = true;
-  }
+
 };
 
 new p5(sketch);
+*/
