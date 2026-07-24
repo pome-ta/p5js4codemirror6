@@ -9,9 +9,10 @@ const sketch = (p) => {
 
   const v = 360;
 
+  let mainMixer;
   let mainOsc;
   let lfo;
-  let subTone;
+  let subOsc;
 
   p.setup = () => {
     // put setup code here
@@ -26,52 +27,24 @@ const sketch = (p) => {
 
     mainOsc = new p5.Oscillator(440 + p.random() * 440, types[2]);
     mainOsc.amp(0.3);
+    mainOsc.disconnect();
 
-    lfo = new p5.Oscillator(6, 'sine'); // 速さ
-    lfo.amp(30); // 幅
-
-    lfo.node.connect(mainOsc.node.frequency);
+    lfo = new p5.Oscillator(0.3, 'sine'); // 速さ
+    lfo.amp(180); // 幅
     lfo.disconnect();
 
+    subOsc = new p5.Oscillator(440 + p.random() * 440, types[3]);
+    subOsc.amp(0.3);
+    subOsc.disconnect();
+
+    mainMixer = new p5.Gain();
+    lfo.node.connect(mainOsc.node.frequency);
+    mainOsc.connect(mainMixer);
+    subOsc.connect(mainMixer);
+
     lfo.start();
     mainOsc.start();
-
-    /*
-    const audioCtx = p.getAudioContext();
-
-    // Initialize the global Web Audio Context
-
-    // 1. Create the primary sound source (Audible Main Oscillator)
-    mainOsc = audioCtx.createOscillator();
-    mainOsc.type = 'sawtooth';
-    mainOsc.frequency.value = 440 + p.random() * 440; // Base note: A4
-
-    // 2. Create the Main Volume Node
-    const mainGain = audioCtx.createGain();
-    mainGain.gain.value = 0.3; // Lower volume to avoid clipping
-
-    // 3. Create the LFO Node
-    lfo = audioCtx.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.value = 6; // 6 oscillations per second (Hz)
-
-    // 4. Create the LFO Depth Node (Modulation Intensity)
-    const lfoDepth = audioCtx.createGain();
-    lfoDepth.gain.value = 30; // Modulates frequency by +/- 30Hz
-
-    // --- THE CONNECTIONS ---
-    // Route the modulation path: LFO -> Depth -> Main Oscillator Pitch
-    lfo.connect(lfoDepth);
-    lfoDepth.connect(mainOsc.frequency);
-
-    // Route the audio path: Main Oscillator -> Master Volume -> Speakers
-    mainOsc.connect(mainGain);
-    mainGain.connect(audioCtx.destination);
-
-    // Start both oscillators simultaneously
-    lfo.start();
-    mainOsc.start();
-    */
+    subOsc.start();
   };
 
   p.draw = () => {
