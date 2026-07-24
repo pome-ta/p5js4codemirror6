@@ -9,7 +9,7 @@ const sketch = (p) => {
 
   const v = 360;
 
-  let mainOsc;
+  let mainTone;
   let lfo;
   let subTone;
 
@@ -22,27 +22,12 @@ const sketch = (p) => {
 
     p.colorMode(p.HSL, v, 1, 1);
 
-    const types = ['sine', 'triangle', 'sawtooth', 'square'];
-
-    mainOsc = new p5.Oscillator(440 + p.random() * 440, types[2]);
-    mainOsc.amp(0.3);
-
-    lfo = new p5.Oscillator(6, 'sine'); // 速さ
-    lfo.amp(30); // 幅
-
-    lfo.node.connect(mainOsc.node.frequency);
-    lfo.disconnect();
-
-    lfo.start();
-    mainOsc.start();
-
-    /*
     const audioCtx = p.getAudioContext();
 
     // Initialize the global Web Audio Context
 
     // 1. Create the primary sound source (Audible Main Oscillator)
-    mainOsc = audioCtx.createOscillator();
+    const mainOsc = audioCtx.createOscillator();
     mainOsc.type = 'sawtooth';
     mainOsc.frequency.value = 440 + p.random() * 440; // Base note: A4
 
@@ -51,7 +36,7 @@ const sketch = (p) => {
     mainGain.gain.value = 0.3; // Lower volume to avoid clipping
 
     // 3. Create the LFO Node
-    lfo = audioCtx.createOscillator();
+    const lfo = audioCtx.createOscillator();
     lfo.type = 'sine';
     lfo.frequency.value = 6; // 6 oscillations per second (Hz)
 
@@ -71,6 +56,25 @@ const sketch = (p) => {
     // Start both oscillators simultaneously
     lfo.start();
     mainOsc.start();
+
+    /*
+    const types = ['sine', 'triangle', 'sawtooth', 'square'];
+    
+    mainTone = new p5.Oscillator(440 + p.random() * 440, types[3]);
+    mainTone.amp(0.4);
+    mainTone.start();
+    console.log(mainTone)
+    console.log(mainTone.node.frequency)
+
+    
+    lfo = new p5.Oscillator(10, 'sine'); // 速さ
+    lfo.amp(1); // 幅
+    lfo.start();
+    lfo.disconnect();
+    //lfo.connect(mainTone.output);
+    mainTone.connect(lfo)
+    
+    //mainTone.freq(lfo)
     */
   };
 
