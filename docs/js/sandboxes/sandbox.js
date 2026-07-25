@@ -8,7 +8,7 @@ function runSketch(code, isInstanceMode) {
     },
     // xxx: スコープを切る
     textContent: isInstanceMode ? `${code}` : `{\n${code}\n}`,
-    appendParent: document.body,
+    appendParent: document.head,
   });
 
   isInstanceMode ? null : new p5();
