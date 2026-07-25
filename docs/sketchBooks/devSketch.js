@@ -12,14 +12,14 @@ async function setup() {
 
   describe('The color of the background changes based on the amplitude of the sound.');
 }
- 
+
 function mousePressed() {
   sound.play();
 }
- 
+
 function draw() {
   let level = amp.getLevel();
   level = map(level, 0, 0.2, 0, 255);
   background(level, 0, 0);
-  text('click to play', width/2, height/2);
+  text('click to play', width / 2, height / 2);
 }
