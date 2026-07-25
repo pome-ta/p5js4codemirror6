@@ -1,25 +1,31 @@
-//[p5.sound.js/examples/002-Amplitude-VisualizingLoudness/sketch.js at main · processing/p5.sound.js · GitHub](https://github.com/processing/p5.sound.js/blob/main/examples/002-Amplitude-VisualizingLoudness/sketch.js)
-let sound, amp;
+const sketch = (p) => {
+  const v = 360;
+  let sound;
+  let amp;
 
-async function setup() {
-  sound = loadSound('https://tonejs.github.io/audio/berklee/gong_1.mp3');
-  createCanvas(400, 400);
-  textAlign(CENTER);
-  fill(255);
+  p.setup = async () => {
+    // put setup code here
+    sound = await p.loadSound('https://tonejs.github.io/audio/berklee/gong_1.mp3');
+    console.log(sound);
+    
+    const cnv = p.createCanvas(v, v);
+    cnv.mouseReleased(p.userStartAudio);
+    p.colorMode(p.HSL, v, 1, 1);
 
-  amp = new p5.Amplitude();
-  sound.connect(amp);
+    amp = new p5.Amplitude();
+    sound.connect(amp);
+  };
 
-  describe('The color of the background changes based on the amplitude of the sound.');
-}
+  p.draw = () => {
+    // put drawing code here
+    p.background(p.frameCount % v, 1, 0.5);
+    let level = amp.getLevel();
+    level = p.map(level, 0, 0.2, 0, 255);
+  };
 
-function mousePressed() {
-  sound.play();
-}
+  p.mouseReleased = () => {
+    sound.play();
+  }
+};
 
-function draw() {
-  let level = amp.getLevel();
-  level = map(level, 0, 0.2, 0, 255);
-  background(level, 0, 0);
-  text('click to play', width / 2, height / 2);
-}
+new p5(sketch);

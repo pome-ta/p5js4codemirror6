@@ -62,6 +62,8 @@ editorDiv.cmEditorView = editor;
 /* --- iframe(Sandbox) */
 let isInstanceMode = true;
 const srcPath = './js/sandboxes/sandbox.html';
+let sandboxHTMLstr;
+// console.log(sandboxHTMLstr)
 
 // sandbox 側のAudioContext 解除
 document.addEventListener(touchEnded, () => {
