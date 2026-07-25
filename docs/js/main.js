@@ -18,12 +18,9 @@ const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
 // MouseEvent TouchEvent wrapper
 const { touchBegan, touchMoved, touchEnded } = {
-  touchBegan:
-    typeof document.ontouchstart !== 'undefined' ? 'touchstart' : 'mousedown',
-  touchMoved:
-    typeof document.ontouchmove !== 'undefined' ? 'touchmove' : 'mousemove',
-  touchEnded:
-    typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup',
+  touchBegan: typeof document.ontouchstart !== 'undefined' ? 'touchstart' : 'mousedown',
+  touchMoved: typeof document.ontouchmove !== 'undefined' ? 'touchmove' : 'mousemove',
+  touchEnded: typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup',
 };
 
 /* --- load Source */
@@ -39,9 +36,7 @@ const mainSketch = './sketchBooks/mainSketch.js';
 const devSketch = './sketchBooks/devSketch.js';
 
 const codeFilePath =
-  `${location.protocol}` === 'file:' ||
-  `${location.protocol}` === 'http:' ||
-  `${location.hostname}` === 'localhost'
+  `${location.protocol}` === 'file:' || `${location.protocol}` === 'http:' || `${location.hostname}` === 'localhost'
     ? devSketch
     : mainSketch;
 
@@ -62,8 +57,6 @@ editorDiv.cmEditorView = editor;
 /* --- iframe(Sandbox) */
 let isInstanceMode = true;
 const srcPath = './js/sandboxes/sandbox.html';
-let sandboxHTMLstr;
-// console.log(sandboxHTMLstr)
 
 // sandbox 側のAudioContext 解除
 document.addEventListener(touchEnded, () => {
@@ -139,8 +132,7 @@ const sandbox = DomFactory.create('iframe', {
 const callButton = DomFactory.create('button', {
   textContent: '🔄',
   setStyles: {
-    'font-family':
-      'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
     padding: '0.5rem 1rem',
     cursor: 'pointer',
   },
@@ -161,8 +153,7 @@ const initDetailsOpen = false;
 
 const summary = DomFactory.create('summary', {
   setStyles: {
-    'font-family':
-      'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
     //'font-size': '0.8rem',
     padding: '0.5rem 1rem',
   },
@@ -213,8 +204,7 @@ const details = DomFactory.create('details', {
 });
 
 // --- 共通設定の定義(マジックナンバーや重複文字列の排除) ---
-const FONT_FAMILY =
-  'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace';
+const FONT_FAMILY = 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace';
 const COLOR_NORMAL = 'var(--accessory-button-color-normal, #e0e0e0)';
 
 // --- UI部品の生成 ---
@@ -272,9 +262,7 @@ const updateToggleUI = () => {
   labelInstance.style.opacity = isInstanceMode ? '1' : '0';
   labelGlobal.style.opacity = isInstanceMode ? '0' : '1';
   toggleKnob.style.left = isInstanceMode ? 'calc(100% - 2px)' : '2px';
-  toggleKnob.style.transform = isInstanceMode
-    ? 'translateX(-100%)'
-    : 'translateX(0)';
+  toggleKnob.style.transform = isInstanceMode ? 'translateX(-100%)' : 'translateX(0)';
   toggleKnob.textContent = isInstanceMode ? '📦' : '🌍';
 };
 const modeToggleSwitch = DomFactory.create('div', {
@@ -403,8 +391,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
     const icon = DomFactory.create('span', {
       textContent: `${iconChar}`,
       setStyles: {
-        'font-family':
-          'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+        'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
         'font-size': '1.0rem',
         'font-style': 'normal',
         'font-weight': '400',
@@ -536,15 +523,8 @@ const footerHandleEvent = function () {
   footer.style.display = '';
 
   const offsetTop = window.visualViewport.offsetTop;
-  const offsetBottom =
-    window.innerHeight -
-    window.visualViewport.height +
-    offsetTop -
-    window.visualViewport.pageTop;
-  const tOffsetTop =
-    visualViewport.offsetTop +
-    visualViewport.height -
-    document.documentElement.clientHeight;
+  const offsetBottom = window.innerHeight - window.visualViewport.height + offsetTop - window.visualViewport.pageTop;
+  const tOffsetTop = visualViewport.offsetTop + visualViewport.height - document.documentElement.clientHeight;
   //footer.style.bottom = `${offsetBottom}px`;
   footer.style.transform = `translateY(${tOffsetTop}px)`;
 };
@@ -594,14 +574,8 @@ const footer = DomFactory.create('footer', {
 
           const selectionMain = this.targetEditor.state.selection.main;
           caret = selectionMain.anchor;
-          headLine = this.targetEditor.moveToLineBoundary(
-            selectionMain,
-            0,
-          ).anchor;
-          endLine = this.targetEditor.moveToLineBoundary(
-            selectionMain,
-            1,
-          ).anchor;
+          headLine = this.targetEditor.moveToLineBoundary(selectionMain, 0).anchor;
+          endLine = this.targetEditor.moveToLineBoundary(selectionMain, 1).anchor;
 
           swipeAreaWidth = document.querySelector('#footer').clientWidth;
           stepValue = swipeAreaWidth / divStep;
@@ -623,26 +597,16 @@ const footer = DomFactory.create('footer', {
           const swipeX = e.changedTouches[0].clientX;
 
           const moveDistance = swipeX - startX;
-          const moveCache =
-            Math.abs(moveDistance) < stepValue
-              ? caret
-              : caret + Math.round(moveDistance / stepValue);
+          const moveCache = Math.abs(moveDistance) < stepValue ? caret : caret + Math.round(moveDistance / stepValue);
 
           if (caret === moveCache) {
             return;
           }
 
-          const moveValue =
-            moveCache < headLine
-              ? headLine
-              : moveCache >= endLine
-                ? endLine
-                : moveCache;
+          const moveValue = moveCache < headLine ? headLine : moveCache >= endLine ? endLine : moveCache;
 
           this.targetEditor.dispatch({
-            selection: EditorSelection.create([
-              EditorSelection.cursor(moveValue),
-            ]),
+            selection: EditorSelection.create([EditorSelection.cursor(moveValue)]),
           });
           this.targetEditor.focus();
         },

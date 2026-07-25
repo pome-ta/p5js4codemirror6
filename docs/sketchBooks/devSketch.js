@@ -1,16 +1,20 @@
+// [p5.sound.js/examples/002-Amplitude-VisualizingLoudness/sketch.js at main · processing/p5.sound.js · GitHub](https://github.com/processing/p5.sound.js/blob/main/examples/002-Amplitude-VisualizingLoudness/sketch.js)
+
+import TapIndicator from 'modules/TapIndicator.js';
+
 const sketch = (p) => {
-  const v = 360;
   let sound;
   let amp;
 
   p.setup = async () => {
     // put setup code here
     sound = await p.loadSound('https://tonejs.github.io/audio/berklee/gong_1.mp3');
-    console.log(sound);
-    
-    const cnv = p.createCanvas(v, v);
+
+    const cnv = p.createCanvas(400, 400);
     cnv.mouseReleased(p.userStartAudio);
-    p.colorMode(p.HSL, v, 1, 1);
+
+    p.textAlign(p.CENTER);
+    p.fill(255);
 
     amp = new p5.Amplitude();
     sound.connect(amp);
@@ -18,14 +22,15 @@ const sketch = (p) => {
 
   p.draw = () => {
     // put drawing code here
-    p.background(p.frameCount % v, 1, 0.5);
     let level = amp.getLevel();
     level = p.map(level, 0, 0.2, 0, 255);
+    p.background(level, 0, 0);
+    p.text('click to play', p.width / 2, p.height / 2);
   };
 
   p.mouseReleased = () => {
     sound.play();
-  }
+  };
 };
 
 new p5(sketch);
