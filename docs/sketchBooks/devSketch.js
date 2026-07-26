@@ -6,10 +6,12 @@ const sketch = (p) => {
 
   p.setup = () => {
     // put setup code here
-    p.describe("a sketch that accesses the user's microphone and connects it to a delay line and filter effect.");
+    p.describe(
+      "a sketch that accesses the user's microphone and connects it to a delay line and filter effect.",
+    );
 
     const cnv = p.createCanvas(400, 400);
-    //cnv.mouseReleased(p.userStartAudio);
+    cnv.mouseReleased(p.userStartAudio);
     cnv.mousePressed(startMic);
 
     p.fill(220);
