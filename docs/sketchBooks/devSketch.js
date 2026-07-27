@@ -11,7 +11,7 @@ const sketch = (p) => {
     );
 
     const cnv = p.createCanvas(400, 400);
-    cnv.mouseReleased(p.userStartAudio);
+    //cnv.mouseReleased(p.userStartAudio);
     cnv.mousePressed(startMic);
 
     p.fill(220);
@@ -41,6 +41,7 @@ const sketch = (p) => {
   function startMic() {
     console.log(mic);
     console.log(micStarted);
+    p.userStartAudio()
     if (!micStarted) {
       mic.start();
       micStarted = true;

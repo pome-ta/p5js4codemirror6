@@ -62,6 +62,19 @@ editorDiv.cmEditorView = editor;
 /* --- iframe(Sandbox) */
 let isInstanceMode = true;
 const srcPath = './js/sandboxes/sandbox.html';
+//const sandboxHTMLstr = await insertFetchDoc(srcPath);
+
+
+let sandboxHTMLstr;
+insertFetchDoc(srcPath).then((loadedSource) => {
+  sandboxHTMLstr = loadedSource;
+});
+
+/*
+const sandboxHTMLstr = insertFetchDoc(srcPath).then((loadedSource) => {
+  return loadedSource;
+});
+*/
 
 // sandbox 側のAudioContext 解除
 document.addEventListener(touchEnded, () => {
@@ -75,6 +88,7 @@ document.addEventListener(touchEnded, () => {
 });
 
 function reloadSandbox(targetSandbox) {
+  console.log(sandboxHTMLstr);
   targetSandbox.src = srcPath;
 }
 
@@ -680,4 +694,5 @@ document.addEventListener('DOMContentLoaded', () => {
       changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
   });
+  
 });
