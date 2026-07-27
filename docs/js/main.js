@@ -70,8 +70,9 @@ insertFetchDoc(srcPath).then((loadedSource) => {
   sandboxHTMLstr = loadedSource;
 });
 
+
 /*
-const sandboxHTMLstr = insertFetchDoc(srcPath).then((loadedSource) => {
+const sandboxHTMLstr = await insertFetchDoc(srcPath).then((loadedSource) => {
   return loadedSource;
 });
 */
@@ -88,7 +89,7 @@ document.addEventListener(touchEnded, () => {
 });
 
 function reloadSandbox(targetSandbox) {
-  console.log(sandboxHTMLstr);
+  
   targetSandbox.src = srcPath;
 }
 
@@ -687,9 +688,11 @@ const setLayout = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
   setLayout();
+  console.log(sandboxHTMLstr);
 
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降に挿入
+    
     editor.dispatch({
       changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
