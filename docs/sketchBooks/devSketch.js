@@ -1,57 +1,42 @@
-// [p5.sound.js/examples/003-Microphone-Effects/sketch.js at main · processing/p5.sound.js · GitHub](https://github.com/processing/p5.sound.js/blob/main/examples/003-Microphone-Effects/sketch.js)
+// [p5.sound.js/examples/002-Amplitude-VisualizingLoudness/sketch.js at main · processing/p5.sound.js · GitHub](https://github.com/processing/p5.sound.js/blob/main/examples/002-Amplitude-VisualizingLoudness/sketch.js)
+
+import TapIndicator from 'modules/TapIndicator.js';
+
 
 const sketch = (p) => {
-  let mic, delay, filty;
-  let micStarted = false;
+  let sound;
+  let amp;
+  
+  let tapIndicator;
 
-  p.setup = () => {
+  p.setup = async () => {
     // put setup code here
-    p.describe(
-      "a sketch that accesses the user's microphone and connects it to a delay line and filter effect.",
-    );
+    sound = await p.loadSound('https://tonejs.github.io/audio/berklee/gong_1.mp3');
+    
+    tapIndicator = new TapIndicator(p);
 
     const cnv = p.createCanvas(400, 400);
-    //cnv.mouseReleased(p.userStartAudio);
-    cnv.mousePressed(startMic);
-
-    p.fill(220);
-
-    mic = new p5.AudioIn();
-    delay = new p5.Delay(0.74, 0.1);
-    filty = new p5.Biquad(600, 'bandpass');
-
-    mic.disconnect();
-    mic.connect(delay);
-    delay.disconnect();
-    delay.connect(filty);
+    cnv.mouseReleased(p.userStartAudio);
 
     p.textAlign(p.CENTER);
-    p.textWrap(p.WORD);
-    p.textSize(10);
+    p.fill(255);
+
+    amp = new p5.Amplitude();
+    sound.connect(amp);
   };
 
   p.draw = () => {
     // put drawing code here
-    p.text('click to open mic, watch out for feedback', 0, 200, 400);
-    p.text('move the mouse to change the delay time', 0, 220, 400);
-    const d = p.map(p.mouseX, 0, p.width, 0.1, 0.5);
-    delay.delayTime(d);
+    let level = amp.getLevel();
+    level = p.map(level, 0, 0.2, 0, 255);
+    p.background(level, 0, 0);
+    p.text('click to play', p.width / 2, p.height / 2);
   };
 
-  function startMic() {
-    console.log(mic);
-    console.log(micStarted);
-    p.userStartAudio()
-    if (!micStarted) {
-      mic.start();
-      micStarted = true;
-      console.log('t');
-    } else {
-      mic.stop();
-      micStarted = false;
-      console.log('f');
-    }
-  }
+  p.mouseReleased = () => {
+    sound.play();
+  };
 };
 
 new p5(sketch);
+
