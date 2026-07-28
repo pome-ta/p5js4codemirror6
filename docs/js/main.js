@@ -18,30 +18,30 @@ const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
 // MouseEvent TouchEvent wrapper
 const { touchBegan, touchMoved, touchEnded } = {
-  touchBegan:
-    typeof document.ontouchstart !== 'undefined' ? 'touchstart' : 'mousedown',
-  touchMoved:
-    typeof document.ontouchmove !== 'undefined' ? 'touchmove' : 'mousemove',
-  touchEnded:
-    typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup',
+  touchBegan: typeof document.ontouchstart !== 'undefined' ? 'touchstart' : 'mousedown',
+  touchMoved: typeof document.ontouchmove !== 'undefined' ? 'touchmove' : 'mousemove',
+  touchEnded: typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup',
 };
 
 /* --- load Source */
+// async function insertFetchDoc(filePath) {
+//   const fetchFilePath = async (path) => {
+//     const res = await fetch(path);
+//     return await res.text();
+//   };
+//   return await fetchFilePath(filePath);
+// }
+
 async function insertFetchDoc(filePath) {
-  const fetchFilePath = async (path) => {
-    const res = await fetch(path);
-    return await res.text();
-  };
-  return await fetchFilePath(filePath);
+  const res = await fetch(filePath);
+  return await res.text();
 }
 
 const mainSketch = './sketchBooks/mainSketch.js';
 const devSketch = './sketchBooks/devSketch.js';
 
 const codeFilePath =
-  `${location.protocol}` === 'file:' ||
-  `${location.protocol}` === 'http:' ||
-  `${location.hostname}` === 'localhost'
+  `${location.protocol}` === 'file:' || `${location.protocol}` === 'http:' || `${location.hostname}` === 'localhost'
     ? devSketch
     : mainSketch;
 
@@ -61,15 +61,12 @@ editorDiv.cmEditorView = editor;
 
 /* --- iframe(Sandbox) */
 let isInstanceMode = true;
-const srcPath = './js/sandboxes/sandbox.html';
-//const sandboxHTMLstr = await insertFetchDoc(srcPath);
-
+const srcPath = './sketchBooks/sketchCanvas.html';
 
 let sandboxHTMLstr;
 insertFetchDoc(srcPath).then((loadedSource) => {
   sandboxHTMLstr = loadedSource;
 });
-
 
 /*
 const sandboxHTMLstr = await insertFetchDoc(srcPath).then((loadedSource) => {
@@ -89,22 +86,90 @@ document.addEventListener(touchEnded, () => {
 });
 
 function reloadSandbox(targetSandbox) {
-  
-  targetSandbox.src = srcPath;
+  const toStringDoc = editor.viewState.state.doc.toString();
+  targetSandbox.src = createIframeURL(toStringDoc);
+  // targetSandbox.srcdoc = createIframeHtml(toStringDoc);
 }
 
-function postSketch(targetEditor, targetSandbox) {
-  targetSandbox.contentWindow.postMessage(
-    {
-      code: targetEditor.viewState.state.doc.toString(),
-      isInstanceMode: isInstanceMode,
-    },
-    '*',
-  );
+// function postSketch(targetEditor, targetSandbox) {
+//   targetSandbox.contentWindow.postMessage(
+//     {
+//       code: targetEditor.viewState.state.doc.toString(),
+//       isInstanceMode: isInstanceMode,
+//     },
+//     '*',
+//   );
+// }
+
+const originalUrl = new URL('./', window.location.href);
+
+const importMap = {
+  imports: {
+    eruda: 'https://cdn.jsdelivr.net/npm/eruda/+esm',
+    'modules/': new URL('./sketchBooks/modules/', originalUrl).href,
+  },
+};
+const importMapJSON = JSON.stringify(importMap, null, 2);
+
+// function replacePlaceholder(html, tag, marker, content) {
+//   const re = new RegExp(
+//     `(<${tag}\\b[^>]*>[\\s\\S]*?)<!--\\s*@${marker}\\s*-->([\\s\\S]*?<\\/${tag}>)`,
+//   );
+//   return html.replace(re, (_, before, after) => `${before}${content}${after}`);
+// }
+
+function replacePlaceholder(html, tag, attrs, marker, content) {
+  const attrsPattern = attrs ? `[^>]*${attrs}[^>]*` : '[^>]*';
+  const re = new RegExp(`(<${tag}\\b${attrsPattern}>[\\s\\S]*?)<!--\\s*@${marker}\\s*-->([\\s\\S]*?<\\/${tag}>)`, 'i');
+  return html.replace(re, (_, before, after) => `${before}${content}${after}`);
 }
 
+let currentBlobScript = null;
+const createIframeHtml = (userCode) => {
+  const blob = new Blob([`${userCode}\n//# sourceURL=${codeFilePath}`], {
+    type: 'text/javascript',
+  });
+  currentBlobScript ? URL.revokeObjectURL(currentBlobScript) : null;
+  currentBlobScript = URL.createObjectURL(blob);
+
+  const scriptType = isInstanceMode ? 'type="module"' : '';
+  const scriptCode = `<script ${scriptType} src="${currentBlobScript}"></script>`;
+  // const scriptCode = `<script ${scriptType}>\n${userCode}\n</script>`;
+  // console.log(sandboxHTMLstr);
+  // sketchHTML = sandboxHTMLstr.replace(
+  //   /(<body\b[^>]*>[\s\S]*?)<!--\s*@sketch-script\s*-->([\s\S]*?<\/body>)/,
+  //   (_, before, after) => `${before}${scriptCode}${after}`,
+  // );
+
+  let sketchHTML = sandboxHTMLstr;
+  sketchHTML = replacePlaceholder(sketchHTML, 'body', '', 'sketch-script', scriptCode);
+
+  sketchHTML = replacePlaceholder(sketchHTML, 'script', 'type=["\']importmap["\']', 'import-map', importMapJSON);
+
+  return sketchHTML;
+};
+
+let currentBlobUrl = null;
+const createBlobURL = (htmlCode) => {
+  const blob = new Blob([htmlCode], { type: 'text/html' });
+  currentBlobUrl ? URL.revokeObjectURL(currentBlobUrl) : '';
+  currentBlobUrl = URL.createObjectURL(blob);
+  return currentBlobUrl;
+};
+
+const createIframeURL = (userCode) => {
+  const htmlStr = createIframeHtml(userCode);
+  const iframeURL = createBlobURL(htmlStr);
+  return iframeURL;
+};
+
+// const reloadSketchHandleEvent = function (e) {
+//   postSketch(this.targetEditor, e.currentTarget);
+// };
 const reloadSketchHandleEvent = function (e) {
-  postSketch(this.targetEditor, e.currentTarget);
+  const toStringDoc = editor.viewState.state.doc.toString();
+  sandbox.src = createIframeURL(toStringDoc);
+  // sandbox.srcdoc = createIframeHtml(toStringDoc);
 };
 
 const sandbox = DomFactory.create('iframe', {
@@ -114,7 +179,7 @@ const sandbox = DomFactory.create('iframe', {
     allow:
       'accelerometer; ambient-light-sensor; autoplay; bluetooth; camera; encrypted-media; geolocation; gyroscope;  hid; microphone; magnetometer; midi; payment; usb; serial; vr; xr-spatial-tracking',
     loading: 'lazy',
-    src: srcPath,
+    // src: srcPath,
   },
   setStyles: {
     width: '100%',
@@ -127,33 +192,32 @@ const sandbox = DomFactory.create('iframe', {
     //'background-color': 'lightgray',
     'background-color': 'darkgray',
   },
-  addEventListeners: [
-    {
-      type: 'load',
-      listener: {
-        targetEditor: editor,
-        handleEvent: reloadSketchHandleEvent,
-      },
-    },
-    /*
-    {
-      type: 'visibilitychange',
-      listener: {
-        handleEvent: function (e) {
-          console.log('visibilitychange');
-        },
-      },
-    },
-    */
-  ],
+  // addEventListeners: [
+  //   {
+  //     type: 'load',
+  //     listener: {
+  //       targetEditor: editor,
+  //       handleEvent: reloadSketchHandleEvent,
+  //     },
+  //   },
+  //   /*
+  //   {
+  //     type: 'visibilitychange',
+  //     listener: {
+  //       handleEvent: function (e) {
+  //         console.log('visibilitychange');
+  //       },
+  //     },
+  //   },
+  //   */
+  // ],
 });
 
 /* --- accessory */
 const callButton = DomFactory.create('button', {
   textContent: '🔄',
   setStyles: {
-    'font-family':
-      'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
     padding: '0.5rem 1rem',
     cursor: 'pointer',
   },
@@ -174,8 +238,7 @@ const initDetailsOpen = false;
 
 const summary = DomFactory.create('summary', {
   setStyles: {
-    'font-family':
-      'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+    'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
     //'font-size': '0.8rem',
     padding: '0.5rem 1rem',
   },
@@ -226,8 +289,7 @@ const details = DomFactory.create('details', {
 });
 
 // --- 共通設定の定義(マジックナンバーや重複文字列の排除) ---
-const FONT_FAMILY =
-  'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace';
+const FONT_FAMILY = 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace';
 const COLOR_NORMAL = 'var(--accessory-button-color-normal, #e0e0e0)';
 
 // --- UI部品の生成 ---
@@ -285,9 +347,7 @@ const updateToggleUI = () => {
   labelInstance.style.opacity = isInstanceMode ? '1' : '0';
   labelGlobal.style.opacity = isInstanceMode ? '0' : '1';
   toggleKnob.style.left = isInstanceMode ? 'calc(100% - 2px)' : '2px';
-  toggleKnob.style.transform = isInstanceMode
-    ? 'translateX(-100%)'
-    : 'translateX(0)';
+  toggleKnob.style.transform = isInstanceMode ? 'translateX(-100%)' : 'translateX(0)';
   toggleKnob.textContent = isInstanceMode ? '📦' : '🌍';
 };
 const modeToggleSwitch = DomFactory.create('div', {
@@ -416,8 +476,7 @@ const buttonFactory = (buttonIconChar, actionHandle) => {
     const icon = DomFactory.create('span', {
       textContent: `${iconChar}`,
       setStyles: {
-        'font-family':
-          'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
+        'font-family': 'Consolas, Menlo, Monaco, source-code-pro, Courier New, monospace',
         'font-size': '1.0rem',
         'font-style': 'normal',
         'font-weight': '400',
@@ -549,15 +608,8 @@ const footerHandleEvent = function () {
   footer.style.display = '';
 
   const offsetTop = window.visualViewport.offsetTop;
-  const offsetBottom =
-    window.innerHeight -
-    window.visualViewport.height +
-    offsetTop -
-    window.visualViewport.pageTop;
-  const tOffsetTop =
-    visualViewport.offsetTop +
-    visualViewport.height -
-    document.documentElement.clientHeight;
+  const offsetBottom = window.innerHeight - window.visualViewport.height + offsetTop - window.visualViewport.pageTop;
+  const tOffsetTop = visualViewport.offsetTop + visualViewport.height - document.documentElement.clientHeight;
   //footer.style.bottom = `${offsetBottom}px`;
   footer.style.transform = `translateY(${tOffsetTop}px)`;
 };
@@ -607,14 +659,8 @@ const footer = DomFactory.create('footer', {
 
           const selectionMain = this.targetEditor.state.selection.main;
           caret = selectionMain.anchor;
-          headLine = this.targetEditor.moveToLineBoundary(
-            selectionMain,
-            0,
-          ).anchor;
-          endLine = this.targetEditor.moveToLineBoundary(
-            selectionMain,
-            1,
-          ).anchor;
+          headLine = this.targetEditor.moveToLineBoundary(selectionMain, 0).anchor;
+          endLine = this.targetEditor.moveToLineBoundary(selectionMain, 1).anchor;
 
           swipeAreaWidth = document.querySelector('#footer').clientWidth;
           stepValue = swipeAreaWidth / divStep;
@@ -636,26 +682,16 @@ const footer = DomFactory.create('footer', {
           const swipeX = e.changedTouches[0].clientX;
 
           const moveDistance = swipeX - startX;
-          const moveCache =
-            Math.abs(moveDistance) < stepValue
-              ? caret
-              : caret + Math.round(moveDistance / stepValue);
+          const moveCache = Math.abs(moveDistance) < stepValue ? caret : caret + Math.round(moveDistance / stepValue);
 
           if (caret === moveCache) {
             return;
           }
 
-          const moveValue =
-            moveCache < headLine
-              ? headLine
-              : moveCache >= endLine
-                ? endLine
-                : moveCache;
+          const moveValue = moveCache < headLine ? headLine : moveCache >= endLine ? endLine : moveCache;
 
           this.targetEditor.dispatch({
-            selection: EditorSelection.create([
-              EditorSelection.cursor(moveValue),
-            ]),
+            selection: EditorSelection.create([EditorSelection.cursor(moveValue)]),
           });
           this.targetEditor.focus();
         },
@@ -688,14 +724,13 @@ const setLayout = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
   setLayout();
-  console.log(sandboxHTMLstr);
 
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降に挿入
-    
     editor.dispatch({
       changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
+    sandbox.src = createIframeURL(loadedSource);
+    // sandbox.srcdoc = createIframeHtml(loadedSource);
   });
-  
 });
