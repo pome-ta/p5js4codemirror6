@@ -27,12 +27,17 @@ const { touchBegan, touchMoved, touchEnded } = {
 };
 
 /* --- load Source */
+// async function insertFetchDoc(filePath) {
+//   const fetchFilePath = async (path) => {
+//     const res = await fetch(path);
+//     return await res.text();
+//   };
+//   return await fetchFilePath(filePath);
+// }
+
 async function insertFetchDoc(filePath) {
-  const fetchFilePath = async (path) => {
-    const res = await fetch(path);
-    return await res.text();
-  };
-  return await fetchFilePath(filePath);
+  const res = await fetch(filePath);
+  return await res.text();
 }
 
 const mainSketch = './sketchBooks/mainSketch.js';
@@ -61,15 +66,12 @@ editorDiv.cmEditorView = editor;
 
 /* --- iframe(Sandbox) */
 let isInstanceMode = true;
-const srcPath = './js/sandboxes/sandbox.html';
-//const sandboxHTMLstr = await insertFetchDoc(srcPath);
-
+const srcPath = './sketchBooks/sketchCanvas.html';
 
 let sandboxHTMLstr;
 insertFetchDoc(srcPath).then((loadedSource) => {
   sandboxHTMLstr = loadedSource;
 });
-
 
 /*
 const sandboxHTMLstr = await insertFetchDoc(srcPath).then((loadedSource) => {
@@ -89,22 +91,105 @@ document.addEventListener(touchEnded, () => {
 });
 
 function reloadSandbox(targetSandbox) {
-  
-  targetSandbox.src = srcPath;
+  const toStringDoc = editor.viewState.state.doc.toString();
+  targetSandbox.src = createIframeURL(toStringDoc);
+  // targetSandbox.srcdoc = createIframeHtml(toStringDoc);
 }
 
-function postSketch(targetEditor, targetSandbox) {
-  targetSandbox.contentWindow.postMessage(
-    {
-      code: targetEditor.viewState.state.doc.toString(),
-      isInstanceMode: isInstanceMode,
-    },
-    '*',
+// function postSketch(targetEditor, targetSandbox) {
+//   targetSandbox.contentWindow.postMessage(
+//     {
+//       code: targetEditor.viewState.state.doc.toString(),
+//       isInstanceMode: isInstanceMode,
+//     },
+//     '*',
+//   );
+// }
+
+const originalUrl = new URL('./', window.location.href);
+
+const importMap = {
+  imports: {
+    eruda: 'https://cdn.jsdelivr.net/npm/eruda/+esm',
+    'modules/': new URL('./sketchBooks/modules/', originalUrl).href,
+  },
+};
+const importMapJSON = JSON.stringify(importMap, null, 2);
+
+// function replacePlaceholder(html, tag, marker, content) {
+//   const re = new RegExp(
+//     `(<${tag}\\b[^>]*>[\\s\\S]*?)<!--\\s*@${marker}\\s*-->([\\s\\S]*?<\\/${tag}>)`,
+//   );
+//   return html.replace(re, (_, before, after) => `${before}${content}${after}`);
+// }
+
+function replacePlaceholder(html, tag, attrs, marker, content) {
+  const attrsPattern = attrs ? `[^>]*${attrs}[^>]*` : '[^>]*';
+  const re = new RegExp(
+    `(<${tag}\\b${attrsPattern}>[\\s\\S]*?)<!--\\s*@${marker}\\s*-->([\\s\\S]*?<\\/${tag}>)`,
+    'i',
   );
+  return html.replace(re, (_, before, after) => `${before}${content}${after}`);
 }
 
+let currentBlobScript = null;
+const createIframeHtml = (userCode) => {
+  const blob = new Blob([`${userCode}\n//# sourceURL=${codeFilePath}`], {
+    type: 'text/javascript',
+  });
+  currentBlobScript ? URL.revokeObjectURL(currentBlobScript) : null;
+  currentBlobScript = URL.createObjectURL(blob);
+
+  const scriptType = isInstanceMode ? 'type="module"' : '';
+  const scriptCode = `<script ${scriptType} src="${currentBlobScript}"></script>`;
+  // const scriptCode = `<script ${scriptType}>\n${userCode}\n</script>`;
+  // console.log(sandboxHTMLstr);
+  // sketchHTML = sandboxHTMLstr.replace(
+  //   /(<body\b[^>]*>[\s\S]*?)<!--\s*@sketch-script\s*-->([\s\S]*?<\/body>)/,
+  //   (_, before, after) => `${before}${scriptCode}${after}`,
+  // );
+
+  let sketchHTML = sandboxHTMLstr;
+  sketchHTML = replacePlaceholder(
+    sketchHTML,
+    'body',
+    '',
+    'sketch-script',
+    scriptCode,
+  );
+
+  sketchHTML = replacePlaceholder(
+    sketchHTML,
+    'script',
+    'type=["\']importmap["\']',
+    'import-map',
+    importMapJSON,
+  );
+
+  return sketchHTML;
+};
+
+let currentBlobUrl = null;
+const createBlobURL = (htmlCode) => {
+  const blob = new Blob([htmlCode], { type: 'text/html' });
+  currentBlobUrl ? URL.revokeObjectURL(currentBlobUrl) : '';
+  currentBlobUrl = URL.createObjectURL(blob);
+  return currentBlobUrl;
+};
+
+const createIframeURL = (userCode) => {
+  const htmlStr = createIframeHtml(userCode);
+  const iframeURL = createBlobURL(htmlStr);
+  return iframeURL;
+};
+
+// const reloadSketchHandleEvent = function (e) {
+//   postSketch(this.targetEditor, e.currentTarget);
+// };
 const reloadSketchHandleEvent = function (e) {
-  postSketch(this.targetEditor, e.currentTarget);
+  const toStringDoc = editor.viewState.state.doc.toString();
+  sandbox.src = createIframeURL(toStringDoc);
+  // sandbox.srcdoc = createIframeHtml(toStringDoc);
 };
 
 const sandbox = DomFactory.create('iframe', {
@@ -114,7 +199,7 @@ const sandbox = DomFactory.create('iframe', {
     allow:
       'accelerometer; ambient-light-sensor; autoplay; bluetooth; camera; encrypted-media; geolocation; gyroscope;  hid; microphone; magnetometer; midi; payment; usb; serial; vr; xr-spatial-tracking',
     loading: 'lazy',
-    src: srcPath,
+    // src: srcPath,
   },
   setStyles: {
     width: '100%',
@@ -127,25 +212,25 @@ const sandbox = DomFactory.create('iframe', {
     //'background-color': 'lightgray',
     'background-color': 'darkgray',
   },
-  addEventListeners: [
-    {
-      type: 'load',
-      listener: {
-        targetEditor: editor,
-        handleEvent: reloadSketchHandleEvent,
-      },
-    },
-    /*
-    {
-      type: 'visibilitychange',
-      listener: {
-        handleEvent: function (e) {
-          console.log('visibilitychange');
-        },
-      },
-    },
-    */
-  ],
+  // addEventListeners: [
+  //   {
+  //     type: 'load',
+  //     listener: {
+  //       targetEditor: editor,
+  //       handleEvent: reloadSketchHandleEvent,
+  //     },
+  //   },
+  //   /*
+  //   {
+  //     type: 'visibilitychange',
+  //     listener: {
+  //       handleEvent: function (e) {
+  //         console.log('visibilitychange');
+  //       },
+  //     },
+  //   },
+  //   */
+  // ],
 });
 
 /* --- accessory */
@@ -688,14 +773,14 @@ const setLayout = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
   setLayout();
-  console.log(sandboxHTMLstr);
 
   insertFetchDoc(codeFilePath).then((loadedSource) => {
     // todo: 事前に`doc` が存在するなら、`doc` 以降に挿入
-    
     editor.dispatch({
       changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
+    sandbox.src = createIframeURL(loadedSource);
+    // sandbox.srcdoc = createIframeHtml(loadedSource);
   });
-  
 });
+

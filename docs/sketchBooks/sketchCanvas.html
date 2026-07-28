@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
@@ -21,14 +21,8 @@
       p5.prototype.setAudioContext?.(window.auCtx);
     </script>
 
-    <!-- `modules/` は、`js/main.js` がroot -->
     <script type="importmap">
-      {
-        "imports": {
-          "eruda": "https://cdn.jsdelivr.net/npm/eruda/+esm",
-          "modules/": "./../sketchBooks/modules/"
-        }
-      }
+      <!-- @import-map -->
     </script>
 
     <!-- eruda -->
@@ -60,3 +54,4 @@
     <!-- @sketch-script -->
   </body>
 </html>
+
