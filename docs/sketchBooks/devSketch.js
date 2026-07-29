@@ -1,5 +1,6 @@
 // [p5.sound.js/examples/004-OscillatorAmplitudeLFOmodulation/sketch.js at main · processing/p5.sound.js · GitHub](https://github.com/processing/p5.sound.js/blob/main/examples/004-OscillatorAmplitudeLFOmodulation/sketch.js)
 
+/*
 let osc, lfo;
 let cnv;
 
@@ -31,8 +32,8 @@ function draw() {
   let freq = map(mouseX, 0, width, 0, 10);
   lfo.freq(freq);
 }
+*/
 
-/*
 const sketch = (p) => {
   let osc, lfo;
   let cnv;
@@ -58,7 +59,7 @@ const sketch = (p) => {
     p.text('click to play sound', 0, p.height / 2 - 20, 100);
     p.text('control lfo with mouseX position', 0, p.height / 2, 100);
 
-    let freq = map(p.mouseX, 0, p.width, 0, 10);
+    let freq = p.map(p.mouseX, 0, p.width, 0, 10);
     lfo.freq(freq);
   };
 
@@ -69,4 +70,4 @@ const sketch = (p) => {
 };
 
 new p5(sketch);
-*/
+
