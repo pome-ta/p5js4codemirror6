@@ -1,34 +1,71 @@
-// [p5.sound.js/examples/002-Amplitude-VisualizingLoudness/sketch.js at main · processing/p5.sound.js · GitHub](https://github.com/processing/p5.sound.js/blob/main/examples/002-Amplitude-VisualizingLoudness/sketch.js)
+// [p5.sound.js/examples/004-OscillatorAmplitudeLFOmodulation/sketch.js at main · processing/p5.sound.js · GitHub](https://github.com/processing/p5.sound.js/blob/main/examples/004-OscillatorAmplitudeLFOmodulation/sketch.js)
 
+let osc, lfo;
+let cnv;
+
+function setup() {
+  describe('a sketch that demonstrates amplitude modulation with an LFO and sine tone');
+  cnv = createCanvas(100, 100);
+  cnv.mousePressed(startSound);
+  textAlign(CENTER);
+  textWrap(WORD);
+  textSize(10);
+
+  osc = new p5.Oscillator('sine');
+  lfo = new p5.Oscillator(1);
+  lfo.disconnect();
+  osc.amp(lfo);
+}
+
+function startSound() {
+  lfo.start();
+  osc.start();
+}
+
+function draw() {
+  background(220);
+  text('click to play sound', 0, height / 2 - 20, 100);
+  text('control lfo with mouseX position', 0, height / 2, 100);
+
+  let freq = map(mouseX, 0, width, 0, 10);
+  lfo.freq(freq);
+}
+
+/*
 const sketch = (p) => {
-  let sound;
-  let amp;
+  let osc, lfo;
+  let cnv;
 
-  p.setup = async () => {
+  p.setup = () => {
     // put setup code here
-    sound = await p.loadSound('https://tonejs.github.io/audio/berklee/gong_1.mp3');
-
-    const cnv = p.createCanvas(400, 400);
-    cnv.mouseReleased(p.userStartAudio);
-
+    cnv = p.createCanvas(100, 100);
+    //cnv.mouseReleased(p.userStartAudio);
+    cnv.mousePressed(startSound);
     p.textAlign(p.CENTER);
-    p.fill(255);
+    p.textWrap(p.WORD);
+    p.textSize(10);
 
-    amp = new p5.Amplitude();
-    sound.connect(amp);
+    osc = new p5.Oscillator('sine');
+    lfo = new p5.Oscillator(1);
+    lfo.disconnect();
+    osc.amp(lfo);
   };
 
   p.draw = () => {
     // put drawing code here
-    let level = amp.getLevel();
-    level = p.map(level, 0, 0.2, 0, 255);
-    p.background(level, 0, 0);
-    p.text('click to play', p.width / 2, p.height / 2);
+    p.background(220);
+    p.text('click to play sound', 0, p.height / 2 - 20, 100);
+    p.text('control lfo with mouseX position', 0, p.height / 2, 100);
+
+    let freq = map(p.mouseX, 0, p.width, 0, 10);
+    lfo.freq(freq);
   };
 
-  p.mouseReleased = () => {
-    sound.play();
-  };
+  function startSound() {
+    lfo.start();
+    osc.start();
+  }
 };
 
 new p5(sketch);
+*/
