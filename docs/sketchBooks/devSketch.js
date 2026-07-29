@@ -15,6 +15,7 @@ function setup() {
   lfo = new p5.Oscillator(1);
   lfo.disconnect();
   osc.amp(lfo);
+  console.log(osc)
 }
 
 function startSound() {
