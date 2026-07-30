@@ -1,5 +1,7 @@
 // [p5.sound.js/examples/005-Oscillator-Reverb/sketch.js at main · processing/p5.sound.js · GitHub](https://github.com/processing/p5.sound.js/blob/main/examples/005-Oscillator-Reverb/sketch.js)
 
+import * as Tone from 'tone';
+
 const sketch = (p) => {
   let osc, reverb;
   let playing = false;
