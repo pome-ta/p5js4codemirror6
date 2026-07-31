@@ -2,6 +2,32 @@ import * as Tone from 'tone';
 
 import TapIndicator from 'modules/TapIndicator.js';
 
+class SpectrumAnalyzer {
+  #p;
+  #fft;
+
+  constructor(mainInstance) {
+    this.#p = mainInstance;
+    this.#fft = null;
+  }
+  setup(fft) {
+    this.#fft = fft;
+    this.#hookWindowResized();
+  }
+
+  #hookWindowResized() {
+    const originalWindowResized = this.#p.windowResized;
+    this.#p.windowResized = (...args) => {
+      if (typeof originalWindowResized !== 'function') {
+        return;
+      }
+      console.log('前class');
+      originalWindowResized.apply(this.#p, args);
+      console.log('後class');
+    };
+  }
+}
+
 const sketch = (p) => {
   let tapIndicator;
 
@@ -18,9 +44,11 @@ const sketch = (p) => {
 
   let fft;
 
+  const spectrumAnalyzer = new SpectrumAnalyzer(p);
+
   p.setup = () => {
     // put setup code here
-    tapIndicator = new TapIndicator(p);
+    //tapIndicator = new TapIndicator(p);
     Tone.setContext(p.getAudioContext());
 
     cnvs = p.createCanvas(w, h);
@@ -45,6 +73,7 @@ const sketch = (p) => {
     //subOsc.disconnect();
 
     mainMixer = new p5.Gain();
+    //console.log(mainMixer.amp)
     lfo.node.connect(mainOsc.node.frequency);
     mainOsc.connect(mainMixer);
     //subOsc.connect(mainMixer);
@@ -53,9 +82,12 @@ const sketch = (p) => {
     lfo.start();
     mainOsc.start();
     subOsc.start();
+    
+    mainMixer.amp(0.3);
 
     fft = new p5.FFT(64);
     mainMixer.connect(fft);
+    spectrumAnalyzer.setup(fft);
   };
 
   p.draw = () => {
@@ -89,7 +121,7 @@ const sketch = (p) => {
   };
 
   p.windowResized = (e) => {
-    //console.log('windowResized');
+    console.log('windowResized');
     w = p.windowWidth;
     h = p.windowHeight;
     cnvs = p.resizeCanvas(w, h);
