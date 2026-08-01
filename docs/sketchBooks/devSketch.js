@@ -69,9 +69,6 @@ const sketch = (p) => {
     subOsc = new Tone.Oscillator(880 + p.random() * 440, types[3]);
     subOsc.volume.value = -20;
     //subOsc.disconnect();
-    //subOsc = new p5.Oscillator(880 + p.random() * 440, types[3]);
-    //subOsc.amp(0.3);
-    //subOsc.disconnect();
 
     mainMixer = new p5.Gain(0.1);
 
@@ -86,7 +83,6 @@ const sketch = (p) => {
 
     fft = new p5.FFT(64);
     mainMixer.connect(fft);
-    //subOsc.connect(fft)
     spectrumAnalyzer.setup(fft);
   };
 
