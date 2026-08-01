@@ -67,7 +67,8 @@ const sketch = (p) => {
     lfo.disconnect();
 
     subOsc = new Tone.Oscillator(880 + p.random() * 440, types[3]);
-    subOsc.volume.value = -12;
+    subOsc.volume.value = -20;
+    //subOsc.disconnect();
     //subOsc = new p5.Oscillator(880 + p.random() * 440, types[3]);
     //subOsc.amp(0.3);
     //subOsc.disconnect();
@@ -77,7 +78,7 @@ const sketch = (p) => {
     lfo.node.connect(mainOsc.node.frequency);
     mainOsc.connect(mainMixer);
     //subOsc.connect(mainMixer);
-    subOsc.connect(mainMixer.output);
+    //subOsc.connect(mainMixer.output);
 
     lfo.start();
     mainOsc.start();
