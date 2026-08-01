@@ -78,17 +78,15 @@ const sketch = (p) => {
     lfo.node.connect(mainOsc.node.frequency);
     mainOsc.connect(mainMixer);
     //subOsc.connect(mainMixer);
-    //subOsc.connect(mainMixer.output);
+    subOsc.connect(mainMixer.input);
 
     lfo.start();
     mainOsc.start();
     subOsc.start();
 
-    
-    console.log(mainMixer)
-
     fft = new p5.FFT(64);
     mainMixer.connect(fft);
+    //subOsc.connect(fft)
     spectrumAnalyzer.setup(fft);
   };
 
