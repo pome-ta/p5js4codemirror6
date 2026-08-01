@@ -72,8 +72,8 @@ const sketch = (p) => {
     //subOsc.amp(0.3);
     //subOsc.disconnect();
 
-    mainMixer = new p5.Gain();
-    //console.log(mainMixer.amp)
+    mainMixer = new p5.Gain(0.1);
+
     lfo.node.connect(mainOsc.node.frequency);
     mainOsc.connect(mainMixer);
     //subOsc.connect(mainMixer);
@@ -82,8 +82,9 @@ const sketch = (p) => {
     lfo.start();
     mainOsc.start();
     subOsc.start();
+
     
-    mainMixer.amp(0.3);
+    console.log(mainMixer)
 
     fft = new p5.FFT(64);
     mainMixer.connect(fft);
