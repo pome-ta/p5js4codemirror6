@@ -5,14 +5,36 @@ import TapIndicator from 'modules/TapIndicator.js';
 class SpectrumAnalyzer {
   #p;
   #fft;
+  #audioContext;
+  #minFreq;
+  #maxFreq;
 
   constructor(mainInstance) {
     this.#p = mainInstance;
     this.#fft = null;
+    this.#audioContext = mainInstance.getAudioContext();
+  }
+
+  get #sampleRate() {
+    return this.#audioContext.sampleRate;
   }
   setup(fft) {
     this.#fft = fft;
     this.#hookWindowResized();
+    console.log(fft.fftSize);
+    console.log(this.#sampleRate);
+  }
+
+  #setBaseGraphics() {
+    this.nyquist = this.#sampleRate / 2;
+    this.bandWidth = this.nyquist / this.#fft.fftSize;
+
+    this.#minFreq = this.bandWidth;
+    this.#maxFreq = this.nyquist;
+
+    this.#setSize();
+    this.#createBase();
+    this.#drawBaseGraphics();
   }
 
   #hookWindowResized() {
