@@ -4,38 +4,188 @@ import TapIndicator from 'modules/TapIndicator.js';
 
 class SpectrumAnalyzer {
   #p;
-  #fft;
   #audioContext;
+  #fft;
+
   #minFreq;
   #maxFreq;
 
-  constructor(mainInstance) {
+  #labelsLayer;
+  #gridLayer;
+  #spectrumLayer;
+
+  #labelsSize;
+  #labelsPosition;
+  #gridSize;
+  #gridPosition;
+
+  isLinear = false;
+  // todo: マージン設定方法要検討
+  ratio = 0.96;
+
+  // todo: どこで定義するか要検討
+  minDb = -60;
+  maxDb = +6;
+  dbStep = 6;
+
+  constructor(mainInstance, isLinear = false) {
     this.#p = mainInstance;
-    this.#fft = null;
     this.#audioContext = mainInstance.getAudioContext();
+    this.#fft = null;
+
+    this.#labelsLayer = null;
+    this.#gridLayer = null;
+    this.#spectrumLayer = null;
+
+    this.isLinear = isLinear;
+  }
+
+  setup(fft) {
+    this.#fft = fft;
+    this.#setBaseGraphics();
+
+    this.#hookWindowResized();
   }
 
   get #sampleRate() {
     return this.#audioContext.sampleRate;
   }
-  setup(fft) {
-    this.#fft = fft;
-    this.#hookWindowResized();
-    console.log(fft.fftSize);
-    console.log(this.#sampleRate);
-  }
 
   #setBaseGraphics() {
-    this.nyquist = this.#sampleRate / 2;
-    this.bandWidth = this.nyquist / this.#fft.fftSize;
+    const nyquist = this.#sampleRate / 2;
+    const bins = this.#fft.fftSize;
+    const bandWidth = nyquist / bins;
 
-    this.#minFreq = this.bandWidth;
-    this.#maxFreq = this.nyquist;
+    this.#minFreq = bandWidth;
+    this.#maxFreq = nyquist;
 
     this.#setSize();
     this.#createBase();
     this.#drawBaseGraphics();
+    
   }
+
+  #setSize() {
+    this.#labelsLayer && this.#labelsLayer.remove();
+    this.#gridLayer && this.#gridLayer.remove();
+    this.#spectrumLayer && this.#spectrumLayer.remove();
+
+    this.#labelsLayer = this.#p.createGraphics(this.#p.windowWidth * this.ratio, this.#p.windowHeight * this.ratio);
+    
+
+    this.#gridLayer = this.#p.createGraphics(
+      this.#labelsLayer.width * this.ratio,
+      this.#labelsLayer.height * this.ratio,
+    );
+
+    this.#spectrumLayer = this.#p.createGraphics(this.#gridLayer.width, this.#gridLayer.height);
+
+    this.#labelsSize = [this.#labelsLayer.width, this.#labelsLayer.height];
+    this.#labelsPosition = [
+      (this.#p.windowWidth - this.#labelsLayer.width) / 2,
+      (this.#p.windowHeight - this.#labelsLayer.height) / 2,
+    ];
+
+    this.#gridSize = [this.#gridLayer.width, this.#gridLayer.height];
+    this.#gridPosition = [
+      (this.#p.windowWidth - this.#gridLayer.width) / 2,
+      (this.#p.windowHeight - this.#gridLayer.height) / 2,
+    ];
+  }
+
+
+  #createBase() {
+    this.#labelsLayer.clear();
+    this.#gridLayer.clear();
+
+    const [lw, lh] = this.#labelsSize;
+    const [lx, ly] = this.#labelsPosition;
+    const [gw, gh] = this.#gridSize;
+    const [gx, gy] = this.#gridPosition;
+
+    const xDistance = (lw - gw) / 2;
+    const yDistance = (lh - gh) / 2;
+
+    const minLog = Math.log10(this.#minFreq);
+    const maxLog = Math.log10(this.#maxFreq);
+
+    // x: hz
+    const decades = Array.from(
+      { length: Math.floor(maxLog) - Math.floor(minLog) + 1 },
+      (_, d) => d + Math.floor(minLog),
+    );
+
+    const ticks = [...Array(9)].map((_, i) => i + 1);
+
+    const digits = Math.floor(Math.log10(this.#minFreq));
+    // 20hz 用
+    const minimumFreq = Math.floor(this.#minFreq / 10 ** digits) * 10 ** digits;
+
+    
+    const baseColor = 25;
+    
+    this.#labelsLayer.textFont('monospace');
+    this.#labelsLayer.textSize(8);
+    this.#labelsLayer.fill('pink');
+    this.#labelsLayer.background('green');
+
+    const hiColor = 100;
+    const midColor = 'blue';
+    const lowColor = 'red';
+    this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
+    decades.forEach((d, idx) => {
+      ticks.forEach((i) => {
+        const freq = i * 10 ** d;
+
+        if (freq < minimumFreq || freq >= this.#maxFreq) {
+          return;
+        }
+
+        const x = this.#p.map(Math.log10(freq), minLog, maxLog, 0, gw);
+        const isMajor = i === 1;
+
+        if (i % 2 === 0 || isMajor) {
+          this.#gridLayer.stroke(isMajor ? hiColor : midColor);
+          this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
+
+          const ty = isMajor ? gh + ly : lh - yDistance / 2;
+          this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` : `${freq}`, x + xDistance, ty);
+        } else {
+          this.#gridLayer.stroke(lowColor);
+          this.#gridLayer.strokeWeight(0.4);
+        }
+
+        this.#gridLayer.line(x, 0, x, gh);
+      });
+    });
+
+    // y: db
+    const dbTicks = Array.from(
+      { length: Math.floor((this.maxDb - this.minDb) / this.dbStep) + 1 },
+      (_, i) => this.minDb + i * this.dbStep,
+    );
+
+    //this.#labelsLayer.textAlign(this.#p.RIGHT, this.#p.CENTER);
+    this.#labelsLayer.textAlign(this.#p.RIGHT, this.#p.BOTTOM);
+    dbTicks.forEach((db) => {
+      if (db <= this.minDb || db >= this.maxDb) {
+        return;
+      }
+      const y = this.#p.map(db, this.minDb, this.maxDb, gh, 0);
+      const isMajor = db % 12 === 0;
+
+      this.#gridLayer.stroke(isMajor ? 100 : 50);
+      this.#gridLayer.strokeWeight(db === 0 ? 2 : isMajor ? 1 : 0.8);
+      this.#gridLayer.line(0, y, gw, y);
+      this.#labelsLayer.text(`${db}`, lw, y + yDistance);
+    });
+  }
+
+  #drawBaseGraphics() {
+    this.#p.image(this.#labelsLayer, ...this.#labelsPosition);
+    this.#p.image(this.#gridLayer, ...this.#gridPosition);
+  }
+
 
   #hookWindowResized() {
     const originalWindowResized = this.#p.windowResized;
@@ -43,9 +193,10 @@ class SpectrumAnalyzer {
       if (typeof originalWindowResized !== 'function') {
         return;
       }
-      console.log('前class');
+      //console.log('前class');
       originalWindowResized.apply(this.#p, args);
       console.log('後class');
+      this.#setBaseGraphics();
     };
   }
 }
@@ -110,6 +261,7 @@ const sketch = (p) => {
 
   p.draw = () => {
     // put drawing code here
+    /*
     p.background((p.frameCount * 0.5) % v, 1, 0.5);
 
     let spectrum = fft.analyze();
@@ -136,6 +288,7 @@ const sketch = (p) => {
       p.vertex(x, y);
     }
     p.endShape();
+    */
   };
 
   p.windowResized = (e) => {
