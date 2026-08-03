@@ -62,7 +62,6 @@ class SpectrumAnalyzer {
     this.#setSize();
     this.#createBase();
     this.#drawBaseGraphics();
-    
   }
 
   #setSize() {
@@ -71,7 +70,6 @@ class SpectrumAnalyzer {
     this.#spectrumLayer && this.#spectrumLayer.remove();
 
     this.#labelsLayer = this.#p.createGraphics(this.#p.windowWidth * this.ratio, this.#p.windowHeight * this.ratio);
-    
 
     this.#gridLayer = this.#p.createGraphics(
       this.#labelsLayer.width * this.ratio,
@@ -92,7 +90,6 @@ class SpectrumAnalyzer {
       (this.#p.windowHeight - this.#gridLayer.height) / 2,
     ];
   }
-
 
   #createBase() {
     this.#labelsLayer.clear();
@@ -121,18 +118,19 @@ class SpectrumAnalyzer {
     // 20hz 用
     const minimumFreq = Math.floor(this.#minFreq / 10 ** digits) * 10 ** digits;
 
-    
     const baseColor = 25;
-    
+
     this.#labelsLayer.textFont('monospace');
-    this.#labelsLayer.textSize(8);
+    this.#labelsLayer.textSize(10);
     this.#labelsLayer.fill('pink');
     this.#labelsLayer.background('green');
 
-    const hiColor = 100;
+    const hiColor = 'magenta';
     const midColor = 'blue';
     const lowColor = 'red';
     this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
+
+    // x: hz
     decades.forEach((d, idx) => {
       ticks.forEach((i) => {
         const freq = i * 10 ** d;
@@ -148,7 +146,7 @@ class SpectrumAnalyzer {
           this.#gridLayer.stroke(isMajor ? hiColor : midColor);
           this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
 
-          const ty = isMajor ? gh + ly : lh - yDistance / 2;
+          const ty = (isMajor ? gh + ly : lh - yDistance / 2) + ly / 2;
           this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` : `${freq}`, x + xDistance, ty);
         } else {
           this.#gridLayer.stroke(lowColor);
@@ -185,7 +183,6 @@ class SpectrumAnalyzer {
     this.#p.image(this.#labelsLayer, ...this.#labelsPosition);
     this.#p.image(this.#gridLayer, ...this.#gridPosition);
   }
-
 
   #hookWindowResized() {
     const originalWindowResized = this.#p.windowResized;
