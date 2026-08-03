@@ -106,7 +106,7 @@ class SpectrumAnalyzer {
     const minLog = Math.log10(this.#minFreq);
     const maxLog = Math.log10(this.#maxFreq);
 
-    // x: hz
+    // x: hz set
     const decades = Array.from(
       { length: Math.floor(maxLog) - Math.floor(minLog) + 1 },
       (_, d) => d + Math.floor(minLog),
@@ -115,20 +115,18 @@ class SpectrumAnalyzer {
     const ticks = [...Array(9)].map((_, i) => i + 1);
 
     const digits = Math.floor(Math.log10(this.#minFreq));
-    // 20hz 用
+    // 最低（20）hz 用
     const minimumFreq = Math.floor(this.#minFreq / 10 ** digits) * 10 ** digits;
 
+    const majorColor = 100;
+    const minorColor = 50;
     const baseColor = 25;
+    const textColor = 25;
 
     this.#labelsLayer.textFont('monospace');
-    this.#labelsLayer.textSize(10);
-    this.#labelsLayer.fill('pink');
-    this.#labelsLayer.background('green');
-
-    const hiColor = 'magenta';
-    const midColor = 'blue';
-    const lowColor = 'red';
+    this.#labelsLayer.textSize(8);
     this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
+    this.#labelsLayer.fill(textColor);
 
     // x: hz
     decades.forEach((d, idx) => {
@@ -143,13 +141,13 @@ class SpectrumAnalyzer {
         const isMajor = i === 1;
 
         if (i % 2 === 0 || isMajor) {
-          this.#gridLayer.stroke(isMajor ? hiColor : midColor);
+          this.#gridLayer.stroke(isMajor ? majorColor : minorColor);
           this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
 
-          const ty = (isMajor ? gh + ly : lh - yDistance / 2) + ly / 2;
+          const ty = isMajor ? lh - yDistance / 2 : lh;
           this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` : `${freq}`, x + xDistance, ty);
         } else {
-          this.#gridLayer.stroke(lowColor);
+          this.#gridLayer.stroke(baseColor);
           this.#gridLayer.strokeWeight(0.4);
         }
 
@@ -163,7 +161,6 @@ class SpectrumAnalyzer {
       (_, i) => this.minDb + i * this.dbStep,
     );
 
-    //this.#labelsLayer.textAlign(this.#p.RIGHT, this.#p.CENTER);
     this.#labelsLayer.textAlign(this.#p.RIGHT, this.#p.BOTTOM);
     dbTicks.forEach((db) => {
       if (db <= this.minDb || db >= this.maxDb) {
@@ -237,10 +234,10 @@ const sketch = (p) => {
     lfo.disconnect();
 
     subOsc = new Tone.Oscillator(880 + p.random() * 440, types[3]);
-    subOsc.volume.value = -20;
+    subOsc.volume.value = -24;
     //subOsc.disconnect();
 
-    mainMixer = new p5.Gain(0.1);
+    mainMixer = new p5.Gain(0.01);
 
     lfo.node.connect(mainOsc.node.frequency);
     mainOsc.connect(mainMixer);
