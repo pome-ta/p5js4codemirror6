@@ -24,8 +24,8 @@ class SpectrumAnalyzer {
   ratio = 0.96;
 
   // todo: どこで定義するか要検討
-  minDb = -60;
   maxDb = +6;
+  minDb = -60;
   dbStep = 6;
 
   #xyListOld;
@@ -52,20 +52,23 @@ class SpectrumAnalyzer {
 
   drawSpectrum(spectrum) {
     this.#drawBaseGraphics();
-    /*
+    
+
+    console.log(Math.max(...spectrum));
+    
     if (this.#p.frameCount % 9 !== 0) {
       // 描画悪あがき
       this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
       return;
     }
-    */
+    
 
     this.#spectrumLayer.clear();
 
     const [pgw, pgh] = this.#gridSize;
     const [pgx, pgy] = this.#gridPosition;
     
-    console.log(spectrum)
+    
 
     const xyList = Array.from(spectrum, (amplitude, index) => {
       const bin = index * this.#minFreq;
@@ -80,10 +83,10 @@ class SpectrumAnalyzer {
 
       //const amplitudeRatio = amplitude / 255;
       const amplitudeRatio = amplitude / 1;
-      const logDb = 20 * Math.log10(amplitudeRatio || 1e-10);
-      //const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
-      const y = this.#p.map(amplitude, this.minDb, this.maxDb, pgh, 0);
-      //console.log(amplitude)
+      //const logDb = 20 * Math.log10(amplitudeRatio || 1e-10);
+      const logDb = 20 * Math.log10(amplitude || 1e-10);
+      const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
+      //const y = this.#p.map(amplitude, this.minDb, this.maxDb, pgh, 0);
       //const y = amplitude;
       return [x, y];
     });
@@ -306,7 +309,8 @@ const sketch = (p) => {
   p.setup = () => {
     // put setup code here
     //tapIndicator = new TapIndicator(p);
-    Tone.setContext(p.getAudioContext());
+    const ctx = p.getAudioContext()
+    Tone.setContext(ctx);
 
     cnvs = p.createCanvas(w, h);
     cnvs.mouseReleased(p.userStartAudio);
@@ -329,13 +333,24 @@ const sketch = (p) => {
     //subOsc.disconnect();
     */
 
-    mainOsc = new Tone.Oscillator(2000, types[0]);
-    mainOsc.disconnect();
+    //mainOsc = new Tone.Oscillator(2000, types[0]);
+    mainOsc = new p5.Oscillator(440, types[0]);
+    //mainOsc.disconnect();
+    //mainOsc.node.volume.value=1;
+    console.log(mainOsc.node.volume.value);
+    console.log(mainOsc);
+    //mainOsc.amp(6);
+    console.log(p.getAudioContext());
+    
+    console.log(Math.pow(10, -12 / 20));
+    
+    //mainOsc.disconnect();
 
-    mainMixer = new p5.Gain(0.5);
+    //mainMixer = new p5.Gain(1);
 
     //lfo.node.connect(mainOsc.node.frequency);
-    mainOsc.connect(mainMixer.input);
+    //mainOsc.connect(mainMixer);
+    //mainOsc.connect(mainMixer.input);
     //subOsc.connect(mainMixer);
     //subOsc.connect(mainMixer.input);
 
@@ -343,16 +358,20 @@ const sketch = (p) => {
     mainOsc.start();
     //subOsc.start();
 
-    fft = new p5.FFT(64);
-    mainMixer.connect(fft);
+    fft = new p5.FFT(1024);
+    //mainMixer.connect(fft);
+    //mainOsc.connect(fft);
+    //ctx.destination.connect(fft);
+
+    
     spectrumAnalyzer.setup(fft);
 
-    p.noLoop();
+    //p.noLoop();
   };
 
   p.draw = () => {
     // put drawing code here
-    console.log('h');
+    //console.log('h');
     p.background((p.frameCount * 0.5) % v, 1, 0.5);
     spectrum = fft.analyze();
     //console.log(spectrum)
