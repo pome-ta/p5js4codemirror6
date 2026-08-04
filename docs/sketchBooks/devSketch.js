@@ -52,17 +52,20 @@ class SpectrumAnalyzer {
 
   drawSpectrum(spectrum) {
     this.#drawBaseGraphics();
-
+    /*
     if (this.#p.frameCount % 9 !== 0) {
       // 描画悪あがき
       this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
       return;
     }
+    */
 
     this.#spectrumLayer.clear();
 
     const [pgw, pgh] = this.#gridSize;
     const [pgx, pgy] = this.#gridPosition;
+    
+    console.log(spectrum)
 
     const xyList = Array.from(spectrum, (amplitude, index) => {
       const bin = index * this.#minFreq;
@@ -78,7 +81,10 @@ class SpectrumAnalyzer {
       //const amplitudeRatio = amplitude / 255;
       const amplitudeRatio = amplitude / 1;
       const logDb = 20 * Math.log10(amplitudeRatio || 1e-10);
-      const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
+      //const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
+      const y = this.#p.map(amplitude, this.minDb, this.maxDb, pgh, 0);
+      //console.log(amplitude)
+      //const y = amplitude;
       return [x, y];
     });
 
@@ -326,7 +332,7 @@ const sketch = (p) => {
     mainOsc = new Tone.Oscillator(2000, types[0]);
     mainOsc.disconnect();
 
-    mainMixer = new p5.Gain(1);
+    mainMixer = new p5.Gain(0.5);
 
     //lfo.node.connect(mainOsc.node.frequency);
     mainOsc.connect(mainMixer.input);
@@ -341,11 +347,12 @@ const sketch = (p) => {
     mainMixer.connect(fft);
     spectrumAnalyzer.setup(fft);
 
-    //p.noLoop();
+    p.noLoop();
   };
 
   p.draw = () => {
     // put drawing code here
+    console.log('h');
     p.background((p.frameCount * 0.5) % v, 1, 0.5);
     spectrum = fft.analyze();
     //console.log(spectrum)
