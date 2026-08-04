@@ -309,7 +309,6 @@ const sketch = (p) => {
 
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
 
-    /*
     mainOsc = new p5.Oscillator(440 + p.random() * 440, types[0]);
     mainOsc.amp(0.3);
     mainOsc.disconnect();
@@ -321,23 +320,19 @@ const sketch = (p) => {
     subOsc = new Tone.Oscillator(880 + p.random() * 440, types[3]);
     subOsc.volume.value = -24;
     //subOsc.disconnect();
-    */
 
-    mainOsc = new Tone.Oscillator(2000, types[0]);
-    mainOsc.disconnect();
+    mainMixer = new p5.Gain(0.1);
 
-    mainMixer = new p5.Gain(1);
-
-    //lfo.node.connect(mainOsc.node.frequency);
-    mainOsc.connect(mainMixer.input);
+    lfo.node.connect(mainOsc.node.frequency);
+    mainOsc.connect(mainMixer);
     //subOsc.connect(mainMixer);
-    //subOsc.connect(mainMixer.input);
+    subOsc.connect(mainMixer.input);
 
-    //lfo.start();
+    lfo.start();
     mainOsc.start();
-    //subOsc.start();
+    subOsc.start();
 
-    fft = new p5.FFT(64);
+    fft = new p5.FFT(1024);
     mainMixer.connect(fft);
     spectrumAnalyzer.setup(fft);
 
