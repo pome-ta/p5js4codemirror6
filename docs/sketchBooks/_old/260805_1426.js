@@ -52,19 +52,23 @@ class SpectrumAnalyzer {
 
   drawSpectrum(spectrum) {
     this.#drawBaseGraphics();
+    
 
     console.log(Math.max(...spectrum));
-
+    
     if (this.#p.frameCount % 9 !== 0) {
       // 描画悪あがき
       this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
       return;
     }
+    
 
     this.#spectrumLayer.clear();
 
     const [pgw, pgh] = this.#gridSize;
     const [pgx, pgy] = this.#gridPosition;
+    
+    
 
     const xyList = Array.from(spectrum, (amplitude, index) => {
       const bin = index * this.#minFreq;
@@ -305,7 +309,7 @@ const sketch = (p) => {
   p.setup = () => {
     // put setup code here
     //tapIndicator = new TapIndicator(p);
-    const ctx = p.getAudioContext();
+    const ctx = p.getAudioContext()
     Tone.setContext(ctx);
 
     cnvs = p.createCanvas(w, h);
@@ -329,13 +333,20 @@ const sketch = (p) => {
     //subOsc.disconnect();
     */
 
-    //mainOsc = new Tone.Oscillator(440, types[0]);
-    mainOsc = new p5.Oscillator(440, types[0]);
-    mainOsc.amp(5);
-
+    //mainOsc = new Tone.Oscillator(2000, types[0]);
+    //mainOsc = new p5.Oscillator(440, types[0]);
+    mainOsc=ctx.createOscillator();
+    mainOsc.type = 'sine';
+    mainOsc.frequency.setValueAtTime(440, ctx.currentTime);
     //mainOsc.disconnect();
     //mainOsc.node.volume.value=1;
 
+    console.log(ctx.destination);
+    //mainOsc.amp(6);
+    console.log(p.getAudioContext());
+    
+    console.log(Math.pow(10, -12 / 20));
+    
     //mainOsc.disconnect();
 
     //mainMixer = new p5.Gain(1);
@@ -350,10 +361,16 @@ const sketch = (p) => {
     mainOsc.start();
     //subOsc.start();
 
-    fft = new p5.FFT(2048);
+    fft = new p5.FFT(1024);
     //mainMixer.connect(fft);
-    mainOsc.connect(fft);
+    mainOsc.connect(fft.input);
+    fft.connect(ctx.destination);
+    
+    //mainOsc.connect(ctx.destination);
+    //ctx.destination.connect(fft.input);
 
+
+    
     spectrumAnalyzer.setup(fft);
 
     //p.noLoop();
