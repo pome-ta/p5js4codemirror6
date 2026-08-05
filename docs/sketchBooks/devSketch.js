@@ -334,10 +334,13 @@ const sketch = (p) => {
     */
 
     //mainOsc = new Tone.Oscillator(2000, types[0]);
-    mainOsc = new p5.Oscillator(440, types[0]);
+    //mainOsc = new p5.Oscillator(440, types[0]);
+    mainOsc=ctx.createOscillator();
+    mainOsc.type = 'sine';
+    mainOsc.frequency.setValueAtTime(440, ctx.currentTime);
     //mainOsc.disconnect();
     //mainOsc.node.volume.value=1;
-    console.log(mainOsc.node.volume.value);
+
     console.log(mainOsc);
     //mainOsc.amp(6);
     console.log(p.getAudioContext());
@@ -360,7 +363,7 @@ const sketch = (p) => {
 
     fft = new p5.FFT(1024);
     //mainMixer.connect(fft);
-    //mainOsc.connect(fft);
+    mainOsc.connect(fft.node);
     //ctx.destination.connect(fft);
 
     
