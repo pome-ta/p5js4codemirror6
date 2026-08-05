@@ -341,7 +341,7 @@ const sketch = (p) => {
     //mainOsc.disconnect();
     //mainOsc.node.volume.value=1;
 
-    console.log(mainOsc);
+    console.log(ctx.destination);
     //mainOsc.amp(6);
     console.log(p.getAudioContext());
     
@@ -363,8 +363,12 @@ const sketch = (p) => {
 
     fft = new p5.FFT(1024);
     //mainMixer.connect(fft);
-    mainOsc.connect(fft.node);
-    //ctx.destination.connect(fft);
+    mainOsc.connect(fft.input);
+    fft.connect(ctx.destination);
+    
+    //mainOsc.connect(ctx.destination);
+    //ctx.destination.connect(fft.input);
+
 
     
     spectrumAnalyzer.setup(fft);
