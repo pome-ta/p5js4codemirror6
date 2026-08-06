@@ -77,13 +77,8 @@ class SpectrumAnalyzer {
         pgw,
       );
 
-      //const amplitudeRatio = amplitude / 255;
-      const amplitudeRatio = amplitude / 1;
-      //const logDb = 20 * Math.log10(amplitudeRatio || 1e-10);
       const logDb = 20 * Math.log10(amplitude || 1e-10);
       const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
-      //const y = this.#p.map(amplitude, this.minDb, this.maxDb, pgh, 0);
-      //const y = amplitude;
       return [x, y];
     });
 
@@ -149,10 +144,6 @@ class SpectrumAnalyzer {
   }
 
   #setSize() {
-    //this.#labelsLayer && this.#labelsLayer.remove();
-    //this.#gridLayer && this.#gridLayer.remove();
-    //this.#spectrumLayer && this.#spectrumLayer.remove();
-
     this.#labelsLayer?.remove();
     this.#gridLayer?.remove();
     this.#spectrumLayer?.remove();
@@ -277,7 +268,7 @@ class SpectrumAnalyzer {
       }
       //console.log('前class');
       originalWindowResized.apply(this.#p, args);
-      console.log('後class');
+      //console.log('後class');
       this.#setBaseGraphics();
     };
   }
@@ -329,11 +320,14 @@ const sketch = (p) => {
     //subOsc.disconnect();
     */
 
-    //mainOsc = new Tone.Oscillator(440, types[0]);
-    mainOsc = new p5.Oscillator(440, types[0]);
-    mainOsc.amp(5);
+    mainOsc = new Tone.Oscillator(440, types[0]);
+    //mainOsc = new p5.Oscillator(440, types[0]);
+    //mainOsc.amp(5);
+    //mainOsc = ctx.createOscillator();
+    //mainOsc.type = 'sine';
+    //mainOsc.frequency.setValueAtTime(440, ctx.currentTime);
 
-    //mainOsc.disconnect();
+    mainOsc.disconnect();
     //mainOsc.node.volume.value=1;
 
     //mainOsc.disconnect();
@@ -350,9 +344,10 @@ const sketch = (p) => {
     mainOsc.start();
     //subOsc.start();
 
-    fft = new p5.FFT(2048);
+    fft = new p5.FFT(1024);
     //mainMixer.connect(fft);
-    mainOsc.connect(fft);
+    //mainOsc.connect(fft);
+    mainOsc.connect(fft.input);
 
     spectrumAnalyzer.setup(fft);
 
