@@ -148,20 +148,14 @@ class SpectrumAnalyzer {
     this.#gridLayer?.remove();
     this.#spectrumLayer?.remove();
 
-    this.#labelsLayer = this.#p.createGraphics(
-      this.#p.windowWidth * this.ratio,
-      this.#p.windowHeight * this.ratio,
-    );
+    this.#labelsLayer = this.#p.createGraphics(this.#p.windowWidth * this.ratio, this.#p.windowHeight * this.ratio);
 
     this.#gridLayer = this.#p.createGraphics(
       this.#labelsLayer.width * this.ratio,
       this.#labelsLayer.height * this.ratio,
     );
 
-    this.#spectrumLayer = this.#p.createGraphics(
-      this.#gridLayer.width,
-      this.#gridLayer.height,
-    );
+    this.#spectrumLayer = this.#p.createGraphics(this.#gridLayer.width, this.#gridLayer.height);
 
     this.#labelsSize = [this.#labelsLayer.width, this.#labelsLayer.height];
     this.#labelsPosition = [
@@ -230,11 +224,7 @@ class SpectrumAnalyzer {
           this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
 
           const ty = isMajor ? lh - yDistance / 2 : lh;
-          this.#labelsLayer.text(
-            freq >= 1000 ? `${freq / 1000}k` : `${freq}`,
-            x + xDistance,
-            ty,
-          );
+          this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` : `${freq}`, x + xDistance, ty);
         } else {
           this.#gridLayer.stroke(baseColor);
           this.#gridLayer.strokeWeight(0.4);
