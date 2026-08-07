@@ -53,7 +53,7 @@ class SpectrumAnalyzer {
   drawSpectrum(spectrum) {
     this.#drawBaseGraphics();
 
-    console.log(Math.max(...spectrum));
+    //console.log(Math.max(...spectrum));
 
     if (this.#p.frameCount % 9 !== 0) {
       // 描画悪あがき
