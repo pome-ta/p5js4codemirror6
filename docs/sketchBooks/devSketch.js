@@ -1,7 +1,10 @@
 import * as Tone from 'tone';
 
 import TapIndicator from 'modules/TapIndicator.js';
-import SpectrumAnalyzer from 'modules/SpectrumAnalyzer01.js';
+//import SpectrumAnalyzer from 'modules/SpectrumAnalyzer01.js';
+//import SpectrumAnalyzer from 'modules/SpectrumAnalyzer02.js';
+import SpectrumAnalyzer from 'modules/SpectrumAnalyzer03.js';
+//import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
 
 const sketch = (p) => {
   let tapIndicator;
@@ -35,15 +38,15 @@ const sketch = (p) => {
 
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
 
-    mainOsc = new p5.Oscillator(440 + p.random() * 440, types[0]);
+    mainOsc = new p5.Oscillator(440, types[0]);
     mainOsc.amp(0.8);
     mainOsc.disconnect();
 
     lfo = new p5.Oscillator(0.1, 'sine'); // 速さ
-    lfo.amp(200); // 幅
+    lfo.amp(360); // 幅
     lfo.disconnect();
 
-    subOsc = new p5.Oscillator(880 + p.random() * 440, types[2]);
+    subOsc = new p5.Oscillator(880, types[2]);
     subOsc.amp(0.3);
     subOsc.disconnect();
 
