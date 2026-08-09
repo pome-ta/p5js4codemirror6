@@ -131,6 +131,7 @@ class SpectrumAnalyzer {
   }
 
   #setBaseGraphics() {
+    //attributes
     const nyquist = this.#sampleRate / 2;
     const bins = this.#fft.fftSize;
     const bandWidth = nyquist / bins;
@@ -142,7 +143,7 @@ class SpectrumAnalyzer {
     this.#createBase();
     this.#drawBaseGraphics();
   }
-
+  #setSpecs() {}
   #setSize() {
     this.#labelsLayer?.remove();
     this.#gridLayer?.remove();
