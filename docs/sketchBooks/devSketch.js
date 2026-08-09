@@ -3,9 +3,6 @@ class SpectrumAnalyzer {
   #audioContext;
   #fft;
 
-  #minFreq;
-  #maxFreq;
-
   #labelsLayer;
   #gridLayer;
   #spectrumLayer;
@@ -19,6 +16,11 @@ class SpectrumAnalyzer {
   // todo: マージン設定方法要検討
   ratio = 0.96;
 
+  // --- specs
+  #sampleRate;
+  #FFT_SIZE;
+  #minFreq;
+  #maxFreq;
   // todo: どこで定義するか要検討
   maxDb = +6;
   minDb = -60;
@@ -36,8 +38,6 @@ class SpectrumAnalyzer {
     this.#spectrumLayer = null;
 
     this.isLinear = isLinear;
-
-    this.#xyListOld = [];
   }
 
   setup(fft) {
@@ -47,6 +47,7 @@ class SpectrumAnalyzer {
   }
 
   drawSpectrum(spectrum) {
+    // console.log(spectrum)
     const start = window.performance.now();
     this.#drawBaseGraphics();
 
@@ -61,7 +62,48 @@ class SpectrumAnalyzer {
     const [pgw, pgh] = this.#gridSize;
     const [pgx, pgy] = this.#gridPosition;
 
-    const xyList = Array.from(spectrum, (amplitude, index) => {
+    // //this.#spectrumLayer.noFill();
+    // this.#spectrumLayer.noStroke();
+    // this.#spectrumLayer.fill(0, 255, 255, 64);
+    // this.#spectrumLayer.beginShape();
+    // this.#spectrumLayer.vertex(0, pgh);
+
+    // for (let index=0; index<this.#FFT_SIZE; index++) {
+    //   const amplitude = spectrum[index];
+    //   const bin = index * this.#minFreq;
+    //   const x = this.#p.map(
+    //     Math.log10(bin ? bin : 1e-12),
+    //     Math.log10(this.#minFreq),
+    //     Math.log10(this.#maxFreq),
+    //     0,
+    //     pgw,
+    //   );
+    //   const logDb = 20 * Math.log10(amplitude || 1e-10);
+    //   const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
+
+    //   this.#spectrumLayer.vertex(x,y);
+
+    // }
+    // this.#spectrumLayer.vertex(pgw, pgh);
+    // this.#spectrumLayer.endShape();
+
+    // const xyList = Array.from(spectrum, (amplitude, index) => {
+    //   const bin = index * this.#minFreq;
+
+    //   const x = this.#p.map(
+    //     Math.log10(bin ? bin : 1e-12),
+    //     Math.log10(this.#minFreq),
+    //     Math.log10(this.#maxFreq),
+    //     0,
+    //     pgw,
+    //   );
+
+    //   const logDb = 20 * Math.log10(amplitude || 1e-10);
+    //   const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
+    //   return [x, y];
+    // });
+
+    Array.from(spectrum, (amplitude, index) => {
       const bin = index * this.#minFreq;
 
       const x = this.#p.map(
@@ -74,9 +116,9 @@ class SpectrumAnalyzer {
 
       const logDb = 20 * Math.log10(amplitude || 1e-10);
       const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
-      return [x, y];
+      // return [x, y];
+      this.xyList[index] = [x, y];
     });
-
     // xxx: 今後の場合分け用?
 
     //this.#spectrumLayer.noFill();
@@ -85,7 +127,8 @@ class SpectrumAnalyzer {
     this.#spectrumLayer.beginShape();
     this.#spectrumLayer.vertex(0, pgh);
 
-    [...xyList].forEach((xy) => {
+    // [...xyList].forEach((xy) => {
+    [...this.xyList].forEach((xy) => {
       this.#spectrumLayer.vertex(...xy);
     });
 
@@ -107,17 +150,20 @@ class SpectrumAnalyzer {
     }
 
     this.#spectrumLayer.stroke(0, 255, 255, 192);
+    // this.#spectrumLayer.stroke(0);
     this.#spectrumLayer.beginShape();
     //this.#spectrumLayer.vertex(0, pgh);
 
-    [...xyList].forEach((xy) => {
+    // [...xyList].forEach((xy) => {
+    [...this.xyList].forEach((xy) => {
       this.#spectrumLayer.vertex(...xy);
     });
 
     //this.#spectrumLayer.vertex(pgw, pgh);
     this.#spectrumLayer.endShape();
 
-    this.#xyListOld = xyList;
+    // this.#xyListOld = xyList;
+    this.#xyListOld = this.xyList;
     this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
 
     if (this.#p.frameCount >= 60 * 2 && this.#p.frameCount < 60 * 4) {
@@ -126,37 +172,52 @@ class SpectrumAnalyzer {
     }
   }
 
-  get #sampleRate() {
-    return this.#audioContext.sampleRate;
-  }
+  // get #sampleRate() {
+  //   return this.#audioContext.sampleRate;
+  // }
 
   #setBaseGraphics() {
-    //attributes
+    this.#setSpecs();
+    this.#setSize();
+    this.#createBase();
+    this.#drawBaseGraphics();
+  }
+
+  #setSpecs() {
+    this.#sampleRate = this.#audioContext.sampleRate;
+    this.#FFT_SIZE = this.#fft.fftSize;
     const nyquist = this.#sampleRate / 2;
-    const bins = this.#fft.fftSize;
+    const bins = this.#FFT_SIZE;
     const bandWidth = nyquist / bins;
 
     this.#minFreq = bandWidth;
     this.#maxFreq = nyquist;
 
-    this.#setSize();
-    this.#createBase();
-    this.#drawBaseGraphics();
+    // this.#xyListOld = new Float32Array(this.#FFT_SIZE);
+    // this.xyList = [];
+    this.xyList = new Array(this.#FFT_SIZE);
+    this.#xyListOld = [];
   }
-  #setSpecs() {}
+
   #setSize() {
     this.#labelsLayer?.remove();
     this.#gridLayer?.remove();
     this.#spectrumLayer?.remove();
 
-    this.#labelsLayer = this.#p.createGraphics(this.#p.windowWidth * this.ratio, this.#p.windowHeight * this.ratio);
+    this.#labelsLayer = this.#p.createGraphics(
+      this.#p.windowWidth * this.ratio,
+      this.#p.windowHeight * this.ratio,
+    );
 
     this.#gridLayer = this.#p.createGraphics(
       this.#labelsLayer.width * this.ratio,
       this.#labelsLayer.height * this.ratio,
     );
 
-    this.#spectrumLayer = this.#p.createGraphics(this.#gridLayer.width, this.#gridLayer.height);
+    this.#spectrumLayer = this.#p.createGraphics(
+      this.#gridLayer.width,
+      this.#gridLayer.height,
+    );
 
     this.#labelsSize = [this.#labelsLayer.width, this.#labelsLayer.height];
     this.#labelsPosition = [
@@ -225,7 +286,11 @@ class SpectrumAnalyzer {
           this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
 
           const ty = isMajor ? lh - yDistance / 2 : lh;
-          this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` : `${freq}`, x + xDistance, ty);
+          this.#labelsLayer.text(
+            freq >= 1000 ? `${freq / 1000}k` : `${freq}`,
+            x + xDistance,
+            ty,
+          );
         } else {
           this.#gridLayer.stroke(baseColor);
           this.#gridLayer.strokeWeight(0.4);
@@ -344,7 +409,8 @@ const sketch = (p) => {
   p.draw = () => {
     // put drawing code here
 
-    p.background((p.frameCount * 0.5) % v, 1, 0.5);
+    // p.background((p.frameCount * 0.5) % v, 1, 0.5);
+    p.background(1);
     spectrum = fft.analyze();
 
     spectrumAnalyzer.drawSpectrum(spectrum);
