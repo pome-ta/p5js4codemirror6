@@ -50,12 +50,13 @@ export default class SpectrumAnalyzer {
     // console.log(spectrum)
     const start = window.performance.now();
     this.#drawBaseGraphics();
-
+    /*
     if (this.#p.frameCount % 9 !== 0) {
       // 描画悪あがき
       this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
       return;
     }
+    */
 
     this.#spectrumLayer.clear();
 
@@ -163,18 +164,28 @@ export default class SpectrumAnalyzer {
     this.#spectrumLayer.endShape();
 
     // this.#xyListOld = xyList;
-    this.#xyListOld = this.xyList;
+    this.#xyListOld = [...this.xyList];
     this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
 
-    if (this.#p.frameCount >= 60 * 2 && this.#p.frameCount < 60 * 4) {
+    if (this.#p.frameCount >= 60 * 2 && this.#p.frameCount < 60 * 6) {
       const end = window.performance.now();
-      console.log(end - start);
+      //console.log(end - start);
+      this.timelog[this.cnt] = end - start;
+      this.cnt = this.cnt + 1;
+    } else if (this.cnt === 240) {
+      const average =
+        [...this.timelog].reduce((sum, num) => sum + num, 0) /
+        this.timelog.length;
+      const logmax = Math.max(...this.timelog);
+      const logmin = Math.min(...this.timelog);
+      console.log(`--- end`);
+      console.log(this.timelog);
+      console.log(`ave: ${average}`);
+      console.log(`max: ${logmax}`);
+      console.log(`min: ${logmin}`);
+      this.cnt = this.cnt + 1;
     }
   }
-
-  // get #sampleRate() {
-  //   return this.#audioContext.sampleRate;
-  // }
 
   #setBaseGraphics() {
     this.#setSpecs();
@@ -197,6 +208,8 @@ export default class SpectrumAnalyzer {
     // this.xyList = [];
     this.xyList = new Array(this.#FFT_SIZE);
     this.#xyListOld = [];
+    this.cnt = 0;
+    this.timelog = new Array(240);
   }
 
   #setSize() {
@@ -338,4 +351,4 @@ export default class SpectrumAnalyzer {
       this.#setBaseGraphics();
     };
   }
-} 
+}

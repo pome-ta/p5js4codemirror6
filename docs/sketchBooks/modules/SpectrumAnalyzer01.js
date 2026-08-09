@@ -170,22 +170,22 @@ export default class SpectrumAnalyzer {
     if (this.#p.frameCount >= 60 * 2 && this.#p.frameCount < 60 * 6) {
       const end = window.performance.now();
       //console.log(end - start);
-      //console.log(this.cnt);
       this.timelog[this.cnt] = end - start;
-      this.cnt = this.cnt+1;
-      
+      this.cnt = this.cnt + 1;
     } else if (this.cnt === 240) {
-      console.log(`${this.cnt}: end`);
+      const average =
+        [...this.timelog].reduce((sum, num) => sum + num, 0) /
+        this.timelog.length;
+      const logmax = Math.max(...this.timelog);
+      const logmin = Math.min(...this.timelog);
+      console.log(`--- end`);
       console.log(this.timelog);
-      const average = [...this.timelog].reduce((sum, num) => sum + num, 0) / this.timelog.length;
-      this.cnt = this.cnt+1;
-      
+      console.log(`ave: ${average}`);
+      console.log(`max: ${logmax}`);
+      console.log(`min: ${logmin}`);
+      this.cnt = this.cnt + 1;
     }
   }
-
-  // get #sampleRate() {
-  //   return this.#audioContext.sampleRate;
-  // }
 
   #setBaseGraphics() {
     this.#setSpecs();
@@ -351,4 +351,4 @@ export default class SpectrumAnalyzer {
       this.#setBaseGraphics();
     };
   }
-} 
+}

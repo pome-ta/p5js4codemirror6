@@ -1,4 +1,3 @@
-
 import * as Tone from 'tone';
 
 import TapIndicator from 'modules/TapIndicator.js';
@@ -58,9 +57,7 @@ const sketch = (p) => {
     subOsc.start();
 
     fft = new p5.FFT(1024);
-
     mainMixer.connect(fft);
-
     spectrumAnalyzer.setup(fft);
 
     //p.noLoop();
@@ -68,11 +65,9 @@ const sketch = (p) => {
 
   p.draw = () => {
     // put drawing code here
-
     // p.background((p.frameCount * 0.5) % v, 1, 0.5);
     p.background(1);
     spectrum = fft.analyze();
-
     spectrumAnalyzer.drawSpectrum(spectrum);
   };
 
