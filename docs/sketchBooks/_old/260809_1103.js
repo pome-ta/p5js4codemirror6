@@ -1,3 +1,7 @@
+import * as Tone from 'tone';
+
+import TapIndicator from 'modules/TapIndicator.js';
+
 class SpectrumAnalyzer {
   #p;
   #audioContext;
@@ -47,8 +51,9 @@ class SpectrumAnalyzer {
   }
 
   drawSpectrum(spectrum) {
-    const start = window.performance.now();
     this.#drawBaseGraphics();
+
+    //console.log(Math.max(...spectrum));
 
     if (this.#p.frameCount % 9 !== 0) {
       // 描画悪あがき
@@ -119,11 +124,6 @@ class SpectrumAnalyzer {
 
     this.#xyListOld = xyList;
     this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
-
-    if (this.#p.frameCount >= 60 * 2 && this.#p.frameCount < 60 * 4) {
-      const end = window.performance.now();
-      console.log(end - start);
-    }
   }
 
   get #sampleRate() {
@@ -274,10 +274,6 @@ class SpectrumAnalyzer {
   }
 }
 
-import * as Tone from 'tone';
-
-import TapIndicator from 'modules/TapIndicator.js';
-
 const sketch = (p) => {
   let tapIndicator;
 
@@ -310,30 +306,48 @@ const sketch = (p) => {
 
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
 
+    /*
     mainOsc = new p5.Oscillator(440 + p.random() * 440, types[0]);
-    mainOsc.amp(0.8);
+    mainOsc.amp(0.3);
     mainOsc.disconnect();
 
-    lfo = new p5.Oscillator(0.1, 'sine'); // 速さ
-    lfo.amp(200); // 幅
+    lfo = new p5.Oscillator(0.3, 'sine'); // 速さ
+    lfo.amp(360); // 幅
     lfo.disconnect();
 
-    subOsc = new p5.Oscillator(880 + p.random() * 440, types[2]);
-    subOsc.amp(0.3);
-    subOsc.disconnect();
+    subOsc = new Tone.Oscillator(880 + p.random() * 440, types[3]);
+    subOsc.volume.value = -24;
+    //subOsc.disconnect();
+    */
 
-    mainMixer = new p5.Gain();
-    lfo.node.connect(mainOsc.node.frequency);
-    mainOsc.connect(mainMixer);
-    subOsc.connect(mainMixer);
+    mainOsc = new Tone.Oscillator(440, types[0]);
+    //mainOsc = new p5.Oscillator(440, types[0]);
+    //mainOsc.amp(5);
+    //mainOsc = ctx.createOscillator();
+    //mainOsc.type = 'sine';
+    //mainOsc.frequency.setValueAtTime(440, ctx.currentTime);
 
-    lfo.start();
+    mainOsc.disconnect();
+    //mainOsc.node.volume.value=1;
+
+    //mainOsc.disconnect();
+
+    //mainMixer = new p5.Gain(1);
+
+    //lfo.node.connect(mainOsc.node.frequency);
+    //mainOsc.connect(mainMixer);
+    //mainOsc.connect(mainMixer.input);
+    //subOsc.connect(mainMixer);
+    //subOsc.connect(mainMixer.input);
+
+    //lfo.start();
     mainOsc.start();
-    subOsc.start();
+    //subOsc.start();
 
     fft = new p5.FFT(1024);
-
-    mainMixer.connect(fft);
+    //mainMixer.connect(fft);
+    //mainOsc.connect(fft);
+    mainOsc.connect(fft.input);
 
     spectrumAnalyzer.setup(fft);
 
@@ -342,11 +356,40 @@ const sketch = (p) => {
 
   p.draw = () => {
     // put drawing code here
-
+    //console.log('h');
     p.background((p.frameCount * 0.5) % v, 1, 0.5);
     spectrum = fft.analyze();
-
+    //console.log(spectrum)
     spectrumAnalyzer.drawSpectrum(spectrum);
+
+    /*
+    
+
+    let spectrum = fft.analyze();
+
+    p.fill(v, 0.5, 0.1);
+    p.noStroke();
+
+    for (let i = 0; i < spectrum.length; i++) {
+      let x = p.map(i, 0, spectrum.length, 0, w);
+      let y = -h + p.map(spectrum[i], 0, 0.1, h, 0);
+      p.rect(x, h, w / spectrum.length, y);
+    }
+
+    let waveform = fft.waveform();
+
+    p.noFill();
+
+    p.beginShape();
+    p.stroke(20);
+
+    for (let i = 0; i < waveform.length; i++) {
+      let x = p.map(i, 0, waveform.length, 0, w);
+      let y = p.map(waveform[i], -1, 1, 0, h);
+      p.vertex(x, y);
+    }
+    p.endShape();
+    */
   };
 
   p.windowResized = (e) => {
