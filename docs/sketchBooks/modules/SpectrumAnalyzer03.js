@@ -138,6 +138,7 @@ export default class SpectrumAnalyzer {
       this.#spectrumLayer.vertex(...xy);
     });
     */
+
     for (let index = 0; index < this.#FFT_SIZE; index++) {
       this.#spectrumLayer.vertex(...this.xyList[index]);
     }
