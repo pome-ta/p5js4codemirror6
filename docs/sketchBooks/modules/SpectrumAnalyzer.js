@@ -27,9 +27,10 @@ export default class SpectrumAnalyzer {
   dbStep = 6;
 
   #xyListOld;
-  
-  blackmanOverdrive = 1 / 0.42;
 
+  // blackmanOverdrive = (1 / 0.42) * (1 / 0.5);
+  // todo: モノの換算で2倍とする？
+  blackmanOverdrive = 1 / (0.42 * 0.5);
 
   constructor(mainInstance, isLinear = false) {
     this.#p = mainInstance;
@@ -75,11 +76,9 @@ export default class SpectrumAnalyzer {
         0,
         pgw,
       );
-      
-      const amp = amplitude || 1e-10
-      
 
-      const logDb = 20 * Math.log10(amp * this.blackmanOverdrive);
+      const amp = amplitude ? amplitude * this.blackmanOverdrive : 1e-10;
+      const logDb = 20 * Math.log10(amp);
       const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
       return [x, y];
     });
@@ -134,7 +133,9 @@ export default class SpectrumAnalyzer {
       this.timelog[this.cnt] = end - start;
       this.cnt = this.cnt + 1;
     } else if (this.cnt === 240) {
-      const average = [...this.timelog].reduce((sum, num) => sum + num, 0) / this.timelog.length;
+      const average =
+        [...this.timelog].reduce((sum, num) => sum + num, 0) /
+        this.timelog.length;
       const logmax = Math.max(...this.timelog);
       const logmin = Math.min(...this.timelog);
       console.log(`--- end`);
@@ -172,14 +173,20 @@ export default class SpectrumAnalyzer {
     this.#gridLayer?.remove();
     this.#spectrumLayer?.remove();
 
-    this.#labelsLayer = this.#p.createGraphics(this.#p.windowWidth * this.ratio, this.#p.windowHeight * this.ratio);
+    this.#labelsLayer = this.#p.createGraphics(
+      this.#p.windowWidth * this.ratio,
+      this.#p.windowHeight * this.ratio,
+    );
 
     this.#gridLayer = this.#p.createGraphics(
       this.#labelsLayer.width * this.ratio,
       this.#labelsLayer.height * this.ratio,
     );
 
-    this.#spectrumLayer = this.#p.createGraphics(this.#gridLayer.width, this.#gridLayer.height);
+    this.#spectrumLayer = this.#p.createGraphics(
+      this.#gridLayer.width,
+      this.#gridLayer.height,
+    );
 
     this.#labelsSize = [this.#labelsLayer.width, this.#labelsLayer.height];
     this.#labelsPosition = [
@@ -248,7 +255,11 @@ export default class SpectrumAnalyzer {
           this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
 
           const ty = isMajor ? lh - yDistance / 2 : lh;
-          this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` : `${freq}`, x + xDistance, ty);
+          this.#labelsLayer.text(
+            freq >= 1000 ? `${freq / 1000}k` : `${freq}`,
+            x + xDistance,
+            ty,
+          );
         } else {
           this.#gridLayer.stroke(baseColor);
           this.#gridLayer.strokeWeight(0.4);
