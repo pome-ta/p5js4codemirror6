@@ -1,9 +1,9 @@
 import * as Tone from 'tone';
 
 import TapIndicator from 'modules/TapIndicator.js';
-//import SpectrumAnalyzer from 'modules/SpectrumAnalyzer01.js';
+import SpectrumAnalyzer from 'modules/SpectrumAnalyzer01.js';
 //import SpectrumAnalyzer from 'modules/SpectrumAnalyzer02.js';
-import SpectrumAnalyzer from 'modules/SpectrumAnalyzer03.js';
+//import SpectrumAnalyzer from 'modules/SpectrumAnalyzer03.js';
 //import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
 
 const sketch = (p) => {
@@ -59,7 +59,7 @@ const sketch = (p) => {
     mainOsc.start();
     subOsc.start();
 
-    fft = new p5.FFT(1024);
+    fft = new p5.FFT(16384);
     mainMixer.connect(fft);
     spectrumAnalyzer.setup(fft);
 
