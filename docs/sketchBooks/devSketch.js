@@ -19,6 +19,8 @@ const sketch = (p) => {
   let mainOsc;
   let lfo;
   let subOsc;
+  let panner;
+  let lfo2;
 
   let fft;
   let spectrum;
@@ -48,18 +50,30 @@ const sketch = (p) => {
 
     subOsc = new p5.Oscillator(880, types[0]);
     // subOsc = new Tone.Oscillator(880, types[0]);
-    // subOsc.amp(1);
+    subOsc.amp(1);
     subOsc.disconnect();
+    
+    panner = new p5.Panner();
+    lfo2 = new p5.Oscillator(0.1);
+    lfo2.amp(1);
+    lfo2.disconnect();
+    panner.pan(lfo2);
+    subOsc.connect(panner)
 
     mainMixer = new p5.Gain();
     lfo.node.connect(mainOsc.node.frequency);
-    mainOsc.connect(mainMixer);
-    subOsc.connect(mainMixer);
+    //mainOsc.connect(mainMixer);
+    //subOsc.connect(mainMixer);
+    panner.connect(mainMixer);
     // subOsc.connect(mainMixer.input);
+    
+    
+    
 
     lfo.start();
     mainOsc.start();
     subOsc.start();
+    lfo2.start();
 
     fft = new p5.FFT(1024);
     // subOsc.connect(fft.input);
