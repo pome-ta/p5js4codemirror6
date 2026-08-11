@@ -1,10 +1,10 @@
 import * as Tone from 'tone';
 
 import TapIndicator from 'modules/TapIndicator.js';
-import SpectrumAnalyzer from 'modules/SpectrumAnalyzer01.js';
+//import SpectrumAnalyzer from 'modules/SpectrumAnalyzer01.js';
 //import SpectrumAnalyzer from 'modules/SpectrumAnalyzer02.js';
 //import SpectrumAnalyzer from 'modules/SpectrumAnalyzer03.js';
-//import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
+import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
 
 const sketch = (p) => {
   let tapIndicator;
@@ -46,8 +46,9 @@ const sketch = (p) => {
     lfo.amp(360); // 幅
     lfo.disconnect();
 
-    subOsc = new p5.Oscillator(880, types[2]);
-    subOsc.amp(0.3);
+    //subOsc = new p5.Oscillator(880, types[2]);
+    subOsc = new p5.Oscillator(880, types[0]);
+    subOsc.amp(1);
     subOsc.disconnect();
 
     mainMixer = new p5.Gain();
@@ -59,7 +60,7 @@ const sketch = (p) => {
     mainOsc.start();
     subOsc.start();
 
-    fft = new p5.FFT(16384);
+    fft = new p5.FFT(1024);
     mainMixer.connect(fft);
     spectrumAnalyzer.setup(fft);
 
@@ -71,6 +72,7 @@ const sketch = (p) => {
     // p.background((p.frameCount * 0.5) % v, 1, 0.5);
     p.background(1);
     spectrum = fft.analyze();
+    console.log(spectrum)
     spectrumAnalyzer.drawSpectrum(spectrum);
   };
 
