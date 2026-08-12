@@ -1,48 +1,10 @@
 import * as Tone from 'tone';
 
 import TapIndicator from 'modules/TapIndicator.js';
-//import SpectrumAnalyzer from 'modules/SpectrumAnalyzer01.js';
-//import SpectrumAnalyzer from 'modules/SpectrumAnalyzer02.js';
-//import SpectrumAnalyzer from 'modules/SpectrumAnalyzer03.js';
 import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
 
 
-class FFTT extends p5.p5soundNode {
-    constructor(fftSize = 32) {
-        super();
-        this.fftSize = fftSize;
-        this.analyzer = new Tone.FFT({
-            size: this.fftSize,
-            normalRange: true,
-        });
-        this.samples = new Tone.Waveform();
-        //creates a single gain node to connect to for the analyzer and waveform
-        this.node = new Tone.Gain(1);
-        this.node.connect(this.analyzer);
-        this.node.connect(this.samples);
-        this.input.connect(resolveInput(this.node));
-    }
 
-    /**
-     * Returns the frequency spectrum of the input signal.
-     * @method analyze
-     * @for FFT
-     * @returns {Array} Array of amplitude values from 0 to 1.
-     */
-    analyze() {
-        return this.analyzer.getValue();
-    }
-    
-    /**
-     * Returns an array of sample values from the input audio.
-     * @method waveform
-     * @for FFT
-     * @return {Array} Array of sample values from -1 to -1.
-     */
-    waveform() {
-        return this.samples.getValue();
-    }
-}
 
 
 const sketch = (p) => {
@@ -103,7 +65,7 @@ const sketch = (p) => {
 
     mainMixer = new p5.Gain();
     lfo.node.connect(mainOsc.node.frequency);
-    //mainOsc.connect(mainMixer);
+    mainOsc.connect(mainMixer);
     //subOsc.connect(mainMixer);
     panner.connect(mainMixer);
     // subOsc.connect(mainMixer.input);
@@ -116,12 +78,14 @@ const sketch = (p) => {
     subOsc.start();
     lfo2.start();
 
-    fft = new FFTT(1024);
+    fft = new p5.FFT(1024);
     // subOsc.connect(fft.input);
     // subOsc.connect(fft);
     // mainOsc.connect(fft);
-    mainMixer.connect(fft);
+    //mainMixer.connect(fft);
     spectrumAnalyzer.setup(fft);
+    //console.log(mainMixer);
+    console.log(mainOsc);
 
     //p.noLoop();
   };

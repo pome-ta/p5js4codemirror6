@@ -1,3 +1,5 @@
+
+
 export default class SpectrumAnalyzer {
   #p;
   #audioContext;
@@ -49,10 +51,12 @@ export default class SpectrumAnalyzer {
     this.#setBaseAttributes();
     this.#hookWindowResized();
   }
+  targetNodes(...nodes) {}
 
   drawSpectrum(spectrum) {
     const start = window.performance.now();
     this.#drawBaseGraphics();
+    //console.log(spectrum)
     /*
     if (this.#p.frameCount % 9 !== 0) {
       // 描画悪あがき
