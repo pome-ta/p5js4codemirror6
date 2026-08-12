@@ -6,6 +6,45 @@ import TapIndicator from 'modules/TapIndicator.js';
 //import SpectrumAnalyzer from 'modules/SpectrumAnalyzer03.js';
 import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
 
+
+class FFTT extends p5.p5soundNode {
+    constructor(fftSize = 32) {
+        super();
+        this.fftSize = fftSize;
+        this.analyzer = new Tone.FFT({
+            size: this.fftSize,
+            normalRange: true,
+        });
+        this.samples = new Tone.Waveform();
+        //creates a single gain node to connect to for the analyzer and waveform
+        this.node = new Tone.Gain(1);
+        this.node.connect(this.analyzer);
+        this.node.connect(this.samples);
+        this.input.connect(resolveInput(this.node));
+    }
+
+    /**
+     * Returns the frequency spectrum of the input signal.
+     * @method analyze
+     * @for FFT
+     * @returns {Array} Array of amplitude values from 0 to 1.
+     */
+    analyze() {
+        return this.analyzer.getValue();
+    }
+    
+    /**
+     * Returns an array of sample values from the input audio.
+     * @method waveform
+     * @for FFT
+     * @return {Array} Array of sample values from -1 to -1.
+     */
+    waveform() {
+        return this.samples.getValue();
+    }
+}
+
+
 const sketch = (p) => {
   let tapIndicator;
 
@@ -24,6 +63,8 @@ const sketch = (p) => {
 
   let fft;
   let spectrum;
+  
+
 
   const spectrumAnalyzer = new SpectrumAnalyzer(p);
 
@@ -75,7 +116,7 @@ const sketch = (p) => {
     subOsc.start();
     lfo2.start();
 
-    fft = new p5.FFT(1024);
+    fft = new FFTT(1024);
     // subOsc.connect(fft.input);
     // subOsc.connect(fft);
     // mainOsc.connect(fft);
