@@ -1,11 +1,7 @@
-import * as Tone from 'tone';
+//import * as Tone from 'tone';
 
 import TapIndicator from 'modules/TapIndicator.js';
 import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
-
-
-
-
 
 const sketch = (p) => {
   let tapIndicator;
@@ -25,16 +21,14 @@ const sketch = (p) => {
 
   let fft;
   let spectrum;
-  
 
-
-  const spectrumAnalyzer = new SpectrumAnalyzer(p);
+  const spectrumAnalyzer = new SpectrumAnalyzer(p, 2048);
 
   p.setup = () => {
     // put setup code here
     //tapIndicator = new TapIndicator(p);
     const ctx = p.getAudioContext();
-    Tone.setContext(ctx);
+    //Tone.setContext(ctx);
 
     cnvs = p.createCanvas(w, h);
     cnvs.mouseReleased(p.userStartAudio);
@@ -55,13 +49,13 @@ const sketch = (p) => {
     // subOsc = new Tone.Oscillator(880, types[0]);
     subOsc.amp(1);
     subOsc.disconnect();
-    
+
     panner = new p5.Panner();
     lfo2 = new p5.Oscillator(0.1);
     lfo2.amp(1);
     lfo2.disconnect();
     panner.pan(lfo2);
-    subOsc.connect(panner)
+    subOsc.connect(panner);
 
     mainMixer = new p5.Gain();
     lfo.node.connect(mainOsc.node.frequency);
@@ -69,23 +63,22 @@ const sketch = (p) => {
     //subOsc.connect(mainMixer);
     panner.connect(mainMixer);
     // subOsc.connect(mainMixer.input);
-    
-    
-    
 
     lfo.start();
     mainOsc.start();
     subOsc.start();
     lfo2.start();
 
-    fft = new p5.FFT(1024);
-    // subOsc.connect(fft.input);
-    // subOsc.connect(fft);
-    // mainOsc.connect(fft);
-    //mainMixer.connect(fft);
-    spectrumAnalyzer.setup(fft);
-    //console.log(mainMixer);
-    console.log(mainOsc);
+    spectrumAnalyzer.targetNodes(mainMixer);
+
+    // fft = new p5.FFT(1024);
+    // // subOsc.connect(fft.input);
+    // // subOsc.connect(fft);
+    // // mainOsc.connect(fft);
+    // mainMixer.connect(fft);
+    // spectrumAnalyzer.setup(fft);
+    // //console.log(mainMixer);
+    // console.log(mainOsc);
 
     //p.noLoop();
   };
@@ -93,9 +86,10 @@ const sketch = (p) => {
   p.draw = () => {
     // put drawing code here
     // p.background((p.frameCount * 0.5) % v, 1, 0.5);
-    p.background(1);
-    spectrum = fft.analyze();
-    spectrumAnalyzer.drawSpectrum(spectrum);
+    p.background(0.8);
+    // spectrum = fft.analyze();
+    // spectrumAnalyzer.drawSpectrum(spectrum);
+    spectrumAnalyzer.drawGraph();
   };
 
   p.windowResized = (e) => {

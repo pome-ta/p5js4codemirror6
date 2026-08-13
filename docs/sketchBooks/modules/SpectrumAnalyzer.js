@@ -1,4 +1,4 @@
-import { isAnyAudioNode } from 'https://cdn.jsdelivr.net/npm/standardized-audio-context@25.3.77/+esm';
+import { isAnyAudioNode, isAnyAudioParam } from 'https://cdn.jsdelivr.net/npm/standardized-audio-context@25.3.77/+esm';
 
 // https://github.com/processing/p5.sound.js/blob/c01819d9c5adef3362f819c8f368a27a7a7bfef5/src/core/p5soundNode.js#L29
 /**
@@ -37,7 +37,7 @@ const getChannelCount = (node) => {
 };
 
 /**
- * Tone.js ラッパー / 生の Web Audio API ノードを透過的に接続する
+ * Tone.js / 生 Web Audio API ノードを透過的に接続
  */
 const connectNodes = (fromNode, toNode, outputIndex = 0, inputIndex = 0) => {
   const src = resolveOutput(fromNode);
@@ -78,27 +78,28 @@ export default class SpectrumAnalyzer {
 
   // --- specs
   #sampleRate;
-  #binsSize;
+  #fftSize;
   #minFreq;
   #maxFreq;
   // todo: どこで定義するか要検討
   maxDb = +6;
   minDb = -60;
   dbStep = 6;
-
+  #xyRange;
   #xyListOld;
 
-  // blackmanOverdrive = (1 / 0.42) * (1 / 0.5);
-  // todo: モノの換算で2倍とする?
   blackmanOverdrive = 1 / (0.42 * 0.5);
 
   constructor(mainInstance, fftSize = 1024, isLinear = false) {
     this.#p = mainInstance;
     this.#audioContext = mainInstance.getAudioContext();
-    this.#binsSize = fftSize;
+    this.#fftSize = fftSize;
     this.#analysers = [];
     this.#channelCount = 0;
     this.#fft = null;
+
+    this.#xyRange = [...Array(this.#fftSize)].map((_, idx) => idx);
+    this.#xyListOld = [];
 
     this.#labelsLayer = null;
     this.#gridLayer = null;
@@ -114,33 +115,142 @@ export default class SpectrumAnalyzer {
   }
 
   targetNodes(...nodes) {
-    this.#masterGain = new p5.Gain();
-    [...nodes].map((tNode) => {
-      const sourceCh = getChannelCount(tNode);
-      this.#channelCount = sourceCh > this.#channelCount ? sourceCh : this.#channelCount;
-
-      connectNodes(this.#masterGain, tNode);
+    this.#makeMasterGain(nodes);
+    const splitter = new ChannelSplitterNode(this.#audioContext, {
+      numberOfOutputs: this.#channelCount,
     });
-    this.#masterGain.node.set({ channelCount: this.#channelCount });
-    const splitter = new ChannelSplitterNode(audioCtx, {
-  numberOfOutputs: this.#channelCount
-});
+    connectNodes(this.#masterGain, splitter);
 
-    this.#analysers = [...Array(this.#channelCount)].map((_, i) => {
-      const analyser = new p5.FFT(this.#binsSize);
-      
-      connectNodes(this.#masterGain, analyser));
+    this.#analysers = [...Array(this.#channelCount)].map((_, idx) => {
+      const analyser = new p5.FFT(this.#fftSize);
+      connectNodes(splitter, analyser, idx, 0);
+      return analyser;
     });
+
+    this.#setBaseAttributes();
+    this.#hookWindowResized();
   }
-  
+
   #makeMasterGain(nodes) {
-    [...nodes].
+    this.#channelCount = Math.max(2, ...nodes.map(getChannelCount));
+    
+    console.log(this.#channelCount)
+
+    this.#masterGain = new p5.Gain();
+    this.#masterGain.node.set({
+      channelCount: this.#channelCount,
+    });
+
+    nodes.forEach((tNode) => connectNodes(tNode, this.#masterGain));
+    this.#masterGain.disconnect(); //todo: 不要かな?
+  }
+
+  drawGraph() {
+    const start = window.performance.now();
+    this.#drawBaseGraphics();
+    /*
+    if (this.#p.frameCount % 9 !== 0) {
+      // 描画悪あがき
+      this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
+      return;
+    }
+    */
+    this.#spectrumLayer.clear();
+
+    const [pgw, pgh] = this.#gridSize;
+    const [pgx, pgy] = this.#gridPosition;
+
+    const floatDataArrays = this.#analysers.map((analyzer) => analyzer.analyze());
+
+    const xyList = this.#xyRange.map((index) => {
+      const bin = index * this.#minFreq;
+
+      const x = this.#p.map(
+        Math.log10(bin ? bin : 1e-12),
+        Math.log10(this.#minFreq),
+        Math.log10(this.#maxFreq),
+        0,
+        pgw,
+      );
+
+      let sumOfSquares = 0;
+      for (let ch = 0; ch < this.#channelCount; ch++) {
+        const ampCh = floatDataArrays[ch][index];
+        sumOfSquares += ampCh * ampCh;
+      }
+      const ampTotal = Math.sqrt(sumOfSquares);
+      const amp = ampTotal ? ampTotal * this.blackmanOverdrive : 1e-10;
+      const logDb = 20 * Math.log10(amp);
+      const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
+
+      return [x, y];
+    });
+    // xxx: 今後の場合分け用?
+
+    //this.#spectrumLayer.noFill();
+    this.#spectrumLayer.noStroke();
+    this.#spectrumLayer.fill(0, 255, 255, 64);
+    this.#spectrumLayer.beginShape();
+    this.#spectrumLayer.vertex(0, pgh);
+
+    xyList.forEach((xy) => {
+      this.#spectrumLayer.vertex(...xy);
+    });
+
+    this.#spectrumLayer.vertex(pgw, pgh);
+    this.#spectrumLayer.endShape();
+
+    this.#spectrumLayer.noFill();
+    if (this.#xyListOld?.length) {
+      this.#spectrumLayer.stroke(255, 0, 255, 192);
+      this.#spectrumLayer.beginShape();
+      //this.#spectrumLayer.vertex(0, pgh);
+
+      this.#xyListOld.forEach((xy) => {
+        this.#spectrumLayer.vertex(...xy);
+      });
+
+      //this.#spectrumLayer.vertex(pgw, pgh);
+      this.#spectrumLayer.endShape();
+    }
+
+    this.#spectrumLayer.stroke(0, 255, 255, 192);
+    // this.#spectrumLayer.stroke(0);
+    this.#spectrumLayer.beginShape();
+    //this.#spectrumLayer.vertex(0, pgh);
+
+    xyList.forEach((xy) => {
+      this.#spectrumLayer.vertex(...xy);
+    });
+
+    //this.#spectrumLayer.vertex(pgw, pgh);
+    this.#spectrumLayer.endShape();
+
+    this.#xyListOld = xyList;
+    this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
+
+    if (this.#p.frameCount >= 60 * 2 && this.#p.frameCount < 60 * 6) {
+      const end = window.performance.now();
+      //console.log(end - start);
+      this.timelog[this.cnt] = end - start;
+      this.cnt = this.cnt + 1;
+    } else if (this.cnt === 240) {
+      const average = [...this.timelog].reduce((sum, num) => sum + num, 0) / this.timelog.length;
+      const logmax = Math.max(...this.timelog);
+      const logmin = Math.min(...this.timelog);
+      console.log(`--- end`);
+      console.log(this.timelog);
+      console.log(`ave: ${average}`);
+      console.log(`max: ${logmax}`);
+      console.log(`min: ${logmin}`);
+      this.cnt = this.cnt + 1;
+    }
   }
 
   drawSpectrum(spectrum) {
     const start = window.performance.now();
     this.#drawBaseGraphics();
-    //console.log(spectrum)
+    // console.log(spectrum)
     /*
     if (this.#p.frameCount % 9 !== 0) {
       // 描画悪あがき
@@ -243,13 +353,11 @@ export default class SpectrumAnalyzer {
   #setSpecs() {
     this.#sampleRate = this.#audioContext.sampleRate;
     const nyquist = this.#sampleRate / 2;
-    // this.#binsSize = this.#fft.fftSize;
-    const bandWidth = nyquist / this.#binsSize;
+    const bandWidth = nyquist / this.#fftSize;
 
     this.#minFreq = bandWidth;
     this.#maxFreq = nyquist;
 
-    this.#xyListOld = [];
     this.cnt = 0;
     this.timelog = new Array(240);
   }
