@@ -55,80 +55,71 @@ const connectNodes = (fromNode, toNode, outputIndex = 0, inputIndex = 0) => {
   }
 };
 
-class CanvasPosition {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-  }
-
-  *[Symbol.iterator]() {
-    yield this.x;
-    yield this.y;
-  }
-}
-
-class CanvasSize {
-  constructor(width, height) {
-    this.width = width;
-    this.height = height;
-  }
-
-  *[Symbol.iterator]() {
-    yield this.width;
-    yield this.height;
-  }
-}
-
 export default class SpectrumAnalyzer {
   #p;
   #audioContext;
+  #fft;
   #analysers;
+  #masterGain;
   #channelCount;
 
-  #labels;
-  #grid;
+  #labelsLayer;
+  #gridLayer;
   #spectrumLayer;
 
-  #minFreq;
-  #maxFreq;
-  // todo: どこで定義するか要検討
-  maxDb = +6;
-  minDb = -60;
-  dbStep = 6;
+  #labelsSize;
+  #labelsPosition;
+  #gridSize;
+  #gridPosition;
+
+  isLinear = false;
   // todo: マージン設定方法要検討
   ratio = 0.96;
 
   // --- specs
   #sampleRate;
   #fftSize;
+  #minFreq;
+  #maxFreq;
+  // todo: どこで定義するか要検討
+  maxDb = +6;
+  minDb = -60;
+  dbStep = 6;
   #xyRange;
   #xyListOld;
 
   blackmanOverdrive = 1 / (0.42 * 0.5);
 
-  constructor(mainInstance, fftSize = 1024) {
+  constructor(mainInstance, fftSize = 1024, isLinear = false) {
     this.#p = mainInstance;
     this.#audioContext = mainInstance.getAudioContext();
     this.#fftSize = fftSize;
     this.#analysers = [];
     this.#channelCount = 0;
+    this.#fft = null;
 
-    this.#xyRange = Array.from({ length: this.#fftSize }, (_, idx) => idx);
+    this.#xyRange = [...Array(this.#fftSize)].map((_, idx) => idx);
     this.#xyListOld = [];
 
-    this.#labels = null;
-    this.#grid = null;
+    this.#labelsLayer = null;
+    this.#gridLayer = null;
     this.#spectrumLayer = null;
+
+    this.isLinear = isLinear;
+  }
+
+  setup(fft) {
+    this.#fft = fft;
+    this.#setBaseAttributes();
+    this.#hookWindowResized();
   }
 
   targetNodes(...nodes) {
-    this.#channelCount = Math.max(2, ...nodes.map(getChannelCount));
-
-    const gain = this.#createMergeGain(nodes);
+    this.#makeMasterGain(nodes);
     const splitter = new ChannelSplitterNode(this.#audioContext, {
       numberOfOutputs: this.#channelCount,
     });
-    connectNodes(gain, splitter);
+    connectNodes(this.#masterGain, splitter);
 
     this.#analysers = [...Array(this.#channelCount)].map((_, idx) => {
       const analyser = new p5.FFT(this.#fftSize);
@@ -138,6 +129,18 @@ export default class SpectrumAnalyzer {
 
     this.#setBaseAttributes();
     this.#hookWindowResized();
+  }
+
+  #makeMasterGain(nodes) {
+    this.#channelCount = Math.max(2, ...nodes.map(getChannelCount));
+
+    this.#masterGain = new p5.Gain();
+    this.#masterGain.node.set({
+      channelCount: this.#channelCount,
+    });
+
+    nodes.forEach((tNode) => connectNodes(tNode, this.#masterGain));
+    this.#masterGain.disconnect(); // todo: 音は出さない
   }
 
   drawGraph() {
@@ -152,8 +155,8 @@ export default class SpectrumAnalyzer {
     */
     this.#spectrumLayer.clear();
 
-    // const [pgw, pgh] = this.#grid.size;
-    // const [pgx, pgy] = this.#grid.position;
+    const [pgw, pgh] = this.#gridSize;
+    const [pgx, pgy] = this.#gridPosition;
 
     const floatDataArrays = this.#analysers.map((analyzer) => analyzer.analyze());
 
@@ -165,7 +168,7 @@ export default class SpectrumAnalyzer {
         Math.log10(this.#minFreq),
         Math.log10(this.#maxFreq),
         0,
-        this.#grid.size.width,
+        pgw,
       );
 
       let sumOfSquares = 0;
@@ -176,7 +179,7 @@ export default class SpectrumAnalyzer {
       const ampTotal = Math.sqrt(sumOfSquares);
       const amp = ampTotal ? ampTotal * this.blackmanOverdrive : 1e-10;
       const logDb = 20 * Math.log10(amp);
-      const y = this.#p.map(logDb, this.minDb, this.maxDb, this.#grid.size.height, 0);
+      const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
 
       return [x, y];
     });
@@ -186,43 +189,43 @@ export default class SpectrumAnalyzer {
     this.#spectrumLayer.noStroke();
     this.#spectrumLayer.fill(0, 255, 255, 64);
     this.#spectrumLayer.beginShape();
-    this.#spectrumLayer.vertex(0, this.#grid.size.height);
+    this.#spectrumLayer.vertex(0, pgh);
 
     xyList.forEach((xy) => {
       this.#spectrumLayer.vertex(...xy);
     });
 
-    this.#spectrumLayer.vertex(...this.#grid.size);
+    this.#spectrumLayer.vertex(pgw, pgh);
     this.#spectrumLayer.endShape();
 
     this.#spectrumLayer.noFill();
     if (this.#xyListOld?.length) {
       this.#spectrumLayer.stroke(255, 0, 255, 192);
       this.#spectrumLayer.beginShape();
-      // this.#spectrumLayer.vertex(0, this.#grid.size.height);
+      //this.#spectrumLayer.vertex(0, pgh);
 
       this.#xyListOld.forEach((xy) => {
         this.#spectrumLayer.vertex(...xy);
       });
 
-      // this.#spectrumLayer.vertex(...this.#grid.size);
+      //this.#spectrumLayer.vertex(pgw, pgh);
       this.#spectrumLayer.endShape();
     }
 
     this.#spectrumLayer.stroke(0, 255, 255, 192);
     // this.#spectrumLayer.stroke(0);
     this.#spectrumLayer.beginShape();
-    // this.#spectrumLayer.vertex(0, this.#grid.size.height);
+    //this.#spectrumLayer.vertex(0, pgh);
 
     xyList.forEach((xy) => {
       this.#spectrumLayer.vertex(...xy);
     });
 
-    // this.#spectrumLayer.vertex(...this.#grid.size);
+    //this.#spectrumLayer.vertex(pgw, pgh);
     this.#spectrumLayer.endShape();
 
     this.#xyListOld = xyList;
-    this.#p.image(this.#spectrumLayer, ...this.#grid.position);
+    this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
 
     if (this.#p.frameCount >= 60 * 2 && this.#p.frameCount < 60 * 6) {
       const end = window.performance.now();
@@ -242,15 +245,100 @@ export default class SpectrumAnalyzer {
     }
   }
 
-  #createMergeGain(nodes) {
-    const gain = new p5.Gain();
-    gain.node.set({
-      channelCount: this.#channelCount,
+  drawSpectrum(spectrum) {
+    const start = window.performance.now();
+    this.#drawBaseGraphics();
+    // console.log(spectrum)
+    /*
+    if (this.#p.frameCount % 9 !== 0) {
+      // 描画悪あがき
+      this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
+      return;
+    }
+    */
+
+    this.#spectrumLayer.clear();
+
+    const [pgw, pgh] = this.#gridSize;
+    const [pgx, pgy] = this.#gridPosition;
+
+    const xyList = Array.from(spectrum, (amplitude, index) => {
+      const bin = index * this.#minFreq;
+
+      const x = this.#p.map(
+        Math.log10(bin ? bin : 1e-12),
+        Math.log10(this.#minFreq),
+        Math.log10(this.#maxFreq),
+        0,
+        pgw,
+      );
+
+      const amp = amplitude ? amplitude * this.blackmanOverdrive : 1e-10;
+      const logDb = 20 * Math.log10(amp);
+      const y = this.#p.map(logDb, this.minDb, this.maxDb, pgh, 0);
+      return [x, y];
     });
 
-    nodes.forEach((tNode) => connectNodes(tNode, gain));
-    gain.disconnect(); // todo: 音は出さない
-    return gain;
+    // xxx: 今後の場合分け用?
+
+    //this.#spectrumLayer.noFill();
+    this.#spectrumLayer.noStroke();
+    this.#spectrumLayer.fill(0, 255, 255, 64);
+    this.#spectrumLayer.beginShape();
+    this.#spectrumLayer.vertex(0, pgh);
+
+    xyList.forEach((xy) => {
+      this.#spectrumLayer.vertex(...xy);
+    });
+
+    this.#spectrumLayer.vertex(pgw, pgh);
+    this.#spectrumLayer.endShape();
+
+    this.#spectrumLayer.noFill();
+    if (this.#xyListOld?.length) {
+      this.#spectrumLayer.stroke(255, 0, 255, 192);
+      this.#spectrumLayer.beginShape();
+      //this.#spectrumLayer.vertex(0, pgh);
+
+      this.#xyListOld.forEach((xy) => {
+        this.#spectrumLayer.vertex(...xy);
+      });
+
+      //this.#spectrumLayer.vertex(pgw, pgh);
+      this.#spectrumLayer.endShape();
+    }
+
+    this.#spectrumLayer.stroke(0, 255, 255, 192);
+    // this.#spectrumLayer.stroke(0);
+    this.#spectrumLayer.beginShape();
+    //this.#spectrumLayer.vertex(0, pgh);
+
+    xyList.forEach((xy) => {
+      this.#spectrumLayer.vertex(...xy);
+    });
+
+    //this.#spectrumLayer.vertex(pgw, pgh);
+    this.#spectrumLayer.endShape();
+
+    this.#xyListOld = xyList;
+    this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
+
+    if (this.#p.frameCount >= 60 * 2 && this.#p.frameCount < 60 * 6) {
+      const end = window.performance.now();
+      //console.log(end - start);
+      this.timelog[this.cnt] = end - start;
+      this.cnt = this.cnt + 1;
+    } else if (this.cnt === 240) {
+      const average = [...this.timelog].reduce((sum, num) => sum + num, 0) / this.timelog.length;
+      const logmax = Math.max(...this.timelog);
+      const logmin = Math.min(...this.timelog);
+      console.log(`--- end`);
+      console.log(this.timelog);
+      console.log(`ave: ${average}`);
+      console.log(`max: ${logmax}`);
+      console.log(`min: ${logmin}`);
+      this.cnt = this.cnt + 1;
+    }
   }
 
   #setBaseAttributes() {
@@ -273,53 +361,43 @@ export default class SpectrumAnalyzer {
   }
 
   #setSize() {
-    this.#labels?.layer?.remove();
-    this.#grid?.layer?.remove();
+    this.#labelsLayer?.remove();
+    this.#gridLayer?.remove();
     this.#spectrumLayer?.remove();
 
-    // --- label
-    const labelsLayer = this.#p.createGraphics(this.#p.windowWidth * this.ratio, this.#p.windowHeight * this.ratio);
-    const labelsSize = new CanvasSize(labelsLayer.width, labelsLayer.height);
-    const labelsPosition = new CanvasPosition(
-      (this.#p.windowWidth - labelsSize.width) * 0.5,
-      (this.#p.windowHeight - labelsSize.height) * 0.5,
-    );
-    this.#labels = {
-      layer: labelsLayer,
-      size: labelsSize,
-      position: labelsPosition,
-    };
+    this.#labelsLayer = this.#p.createGraphics(this.#p.windowWidth * this.ratio, this.#p.windowHeight * this.ratio);
 
-    // --- grid
-    const gridLayer = this.#p.createGraphics(labelsSize.width * this.ratio, labelsSize.height * this.ratio);
-    const gridSize = new CanvasSize(gridLayer.width, gridLayer.height);
-    const gridPosition = new CanvasPosition(
-      (this.#p.windowWidth - gridSize.width) * 0.5,
-      (this.#p.windowHeight - gridSize.height) * 0.5,
+    this.#gridLayer = this.#p.createGraphics(
+      this.#labelsLayer.width * this.ratio,
+      this.#labelsLayer.height * this.ratio,
     );
-    this.#grid = {
-      layer: gridLayer,
-      size: gridSize,
-      position: gridPosition,
-    };
 
-    // --- spectrum
-    this.#spectrumLayer = this.#p.createGraphics(gridSize.width, gridSize.height);
+    this.#spectrumLayer = this.#p.createGraphics(this.#gridLayer.width, this.#gridLayer.height);
+
+    this.#labelsSize = [this.#labelsLayer.width, this.#labelsLayer.height];
+    this.#labelsPosition = [
+      (this.#p.windowWidth - this.#labelsLayer.width) / 2,
+      (this.#p.windowHeight - this.#labelsLayer.height) / 2,
+    ];
+
+    this.#gridSize = [this.#gridLayer.width, this.#gridLayer.height];
+    this.#gridPosition = [
+      (this.#p.windowWidth - this.#gridLayer.width) / 2,
+      (this.#p.windowHeight - this.#gridLayer.height) / 2,
+    ];
   }
 
   #createBase() {
-    this.#labels.layer.clear();
-    this.#grid.layer.clear();
+    this.#labelsLayer.clear();
+    this.#gridLayer.clear();
 
-    // const [lw, lh] = this.#labels.size;
-    // const [lx, ly] = this.#labels.position;
-    // const [gw, gh] = this.#grid.size;
-    // const [gx, gy] = this.#grid.position;
+    const [lw, lh] = this.#labelsSize;
+    const [lx, ly] = this.#labelsPosition;
+    const [gw, gh] = this.#gridSize;
+    const [gx, gy] = this.#gridPosition;
 
-    // const xDistance = (lw - gw) / 2;
-    // const yDistance = (lh - gh) / 2;
-    const xDistance = (this.#labels.size.width - this.#grid.size.width) / 2;
-    const yDistance = (this.#labels.size.height - this.#grid.size.height) / 2;
+    const xDistance = (lw - gw) / 2;
+    const yDistance = (lh - gh) / 2;
 
     const minLog = Math.log10(this.#minFreq);
     const maxLog = Math.log10(this.#maxFreq);
@@ -330,7 +408,7 @@ export default class SpectrumAnalyzer {
       (_, d) => d + Math.floor(minLog),
     );
 
-    const ticks = Array.from({ length: 9 }, (_, idx) => idx + 1);
+    const ticks = [...Array(9)].map((_, i) => i + 1);
 
     const digits = Math.floor(Math.log10(this.#minFreq));
     // 最低(20)hz 用
@@ -341,36 +419,35 @@ export default class SpectrumAnalyzer {
     const baseColor = 25;
     const textColor = 25;
 
-    this.#labels.layer.textFont('monospace');
-    this.#labels.layer.textSize(8);
-    this.#labels.layer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
-    this.#labels.layer.fill(textColor);
+    this.#labelsLayer.textFont('monospace');
+    this.#labelsLayer.textSize(8);
+    this.#labelsLayer.textAlign(this.#p.CENTER, this.#p.BOTTOM);
+    this.#labelsLayer.fill(textColor);
 
     // x: hz
-    decades.forEach((decade, idx) => {
-      ticks.forEach((tick) => {
-        const freq = tick * 10 ** decade;
+    decades.forEach((d, idx) => {
+      ticks.forEach((i) => {
+        const freq = i * 10 ** d;
 
         if (freq < minimumFreq || freq >= this.#maxFreq) {
           return;
         }
 
-        const isMajor = tick === 1;
-        const x = this.#p.map(Math.log10(freq), minLog, maxLog, 0, this.#grid.size.width);
+        const x = this.#p.map(Math.log10(freq), minLog, maxLog, 0, gw);
+        const isMajor = i === 1;
 
-        if (tick % 2 === 0 || isMajor) {
-          this.#grid.layer.stroke(isMajor ? majorColor : minorColor);
-          this.#grid.layer.strokeWeight(isMajor ? 1 : 0.8);
+        if (i % 2 === 0 || isMajor) {
+          this.#gridLayer.stroke(isMajor ? majorColor : minorColor);
+          this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
 
-          const ty = isMajor ? this.#labels.size.height - yDistance / 2 : this.#labels.size.height;
-          const textLabel = freq >= 1000 ? `${freq / 1000}k` : `${freq}`;
-          this.#labels.layer.text(textLabel, x + xDistance, ty);
+          const ty = isMajor ? lh - yDistance / 2 : lh;
+          this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` : `${freq}`, x + xDistance, ty);
         } else {
-          this.#grid.layer.stroke(baseColor);
-          this.#grid.layer.strokeWeight(0.4);
+          this.#gridLayer.stroke(baseColor);
+          this.#gridLayer.strokeWeight(0.4);
         }
 
-        this.#grid.layer.line(x, 0, x, this.#grid.size.height);
+        this.#gridLayer.line(x, 0, x, gh);
       });
     });
 
@@ -380,24 +457,24 @@ export default class SpectrumAnalyzer {
       (_, i) => this.minDb + i * this.dbStep,
     );
 
-    this.#labels.layer.textAlign(this.#p.RIGHT, this.#p.BOTTOM);
+    this.#labelsLayer.textAlign(this.#p.RIGHT, this.#p.BOTTOM);
     dbTicks.forEach((db) => {
       if (db <= this.minDb || db >= this.maxDb) {
         return;
       }
-      const y = this.#p.map(db, this.minDb, this.maxDb, this.#grid.size.height, 0);
+      const y = this.#p.map(db, this.minDb, this.maxDb, gh, 0);
       const isMajor = db % 12 === 0;
 
-      this.#grid.layer.stroke(isMajor ? 100 : 50);
-      this.#grid.layer.strokeWeight(db === 0 ? 2 : isMajor ? 1 : 0.8);
-      this.#grid.layer.line(0, y, this.#grid.size.width, y);
-      this.#labels.layer.text(`${db}`, this.#labels.size.width, y + yDistance);
+      this.#gridLayer.stroke(isMajor ? 100 : 50);
+      this.#gridLayer.strokeWeight(db === 0 ? 2 : isMajor ? 1 : 0.8);
+      this.#gridLayer.line(0, y, gw, y);
+      this.#labelsLayer.text(`${db}`, lw, y + yDistance);
     });
   }
 
   #drawBaseGraphics() {
-    this.#p.image(this.#labels.layer, ...this.#labels.position);
-    this.#p.image(this.#grid.layer, ...this.#grid.position);
+    this.#p.image(this.#labelsLayer, ...this.#labelsPosition);
+    this.#p.image(this.#gridLayer, ...this.#gridPosition);
   }
 
   #hookWindowResized() {
