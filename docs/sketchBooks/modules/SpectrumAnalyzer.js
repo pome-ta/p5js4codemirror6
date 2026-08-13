@@ -1,9 +1,67 @@
+import { isAnyAudioNode } from 'https://cdn.jsdelivr.net/npm/standardized-audio-context@25.3.77/+esm';
 
+// https://github.com/processing/p5.sound.js/blob/c01819d9c5adef3362f819c8f368a27a7a7bfef5/src/core/p5soundNode.js#L29
+/**
+ * 接続元の最深部 AudioNode (output) を取得
+ */
+const resolveOutput = (node) => {
+  while (node && !isAnyAudioNode(node) && node.output !== undefined) {
+    node = node.output;
+  }
+  return node;
+};
+/**
+ * 接続先の最深部 AudioNode または AudioParam (input) を取得
+ */
+const resolveInput = (node) => {
+  while (node && !isAnyAudioNode(node) && !isAnyAudioParam(node) && node.input !== undefined) {
+    node = node.input;
+  }
+  return node;
+};
+
+/**
+ * チャンネル数を動的に取得(優先順にフォールバック)
+ */
+const getChannelCount = (node) => {
+  const bare = resolveOutput(node);
+
+  return (
+    node?.buffer?.numberOfChannels ??
+    node?._buffer?.numberOfChannels ??
+    bare?.maxChannelCount ??
+    bare?.channelCount ??
+    node?.numberOfChannels ??
+    2
+  );
+};
+
+/**
+ * Tone.js ラッパー / 生の Web Audio API ノードを透過的に接続する
+ */
+const connectNodes = (fromNode, toNode, outputIndex = 0, inputIndex = 0) => {
+  const src = resolveOutput(fromNode);
+  const dest = resolveInput(toNode);
+
+  if (!src || !dest) {
+    return;
+  }
+
+  // 接続先が AudioParam(例: gain.gain 等)の場合は inputIndex を渡さない
+  if (isAnyAudioParam(dest)) {
+    src.connect(dest, outputIndex);
+  } else if (isAnyAudioNode(dest)) {
+    src.connect(dest, outputIndex, inputIndex);
+  }
+};
 
 export default class SpectrumAnalyzer {
   #p;
   #audioContext;
   #fft;
+  #analysers;
+  #masterGain;
+  #channelCount;
 
   #labelsLayer;
   #gridLayer;
@@ -31,12 +89,15 @@ export default class SpectrumAnalyzer {
   #xyListOld;
 
   // blackmanOverdrive = (1 / 0.42) * (1 / 0.5);
-  // todo: モノの換算で2倍とする？
+  // todo: モノの換算で2倍とする?
   blackmanOverdrive = 1 / (0.42 * 0.5);
 
-  constructor(mainInstance, isLinear = false) {
+  constructor(mainInstance, fftSize = 1024, isLinear = false) {
     this.#p = mainInstance;
     this.#audioContext = mainInstance.getAudioContext();
+    this.#binsSize = fftSize;
+    this.#analysers = [];
+    this.#channelCount = 0;
     this.#fft = null;
 
     this.#labelsLayer = null;
@@ -51,7 +112,30 @@ export default class SpectrumAnalyzer {
     this.#setBaseAttributes();
     this.#hookWindowResized();
   }
-  targetNodes(...nodes) {}
+
+  targetNodes(...nodes) {
+    this.#masterGain = new p5.Gain();
+    [...nodes].map((tNode) => {
+      const sourceCh = getChannelCount(tNode);
+      this.#channelCount = sourceCh > this.#channelCount ? sourceCh : this.#channelCount;
+
+      connectNodes(this.#masterGain, tNode);
+    });
+    this.#masterGain.node.set({ channelCount: this.#channelCount });
+    const splitter = new ChannelSplitterNode(audioCtx, {
+  numberOfOutputs: this.#channelCount
+});
+
+    this.#analysers = [...Array(this.#channelCount)].map((_, i) => {
+      const analyser = new p5.FFT(this.#binsSize);
+      
+      connectNodes(this.#masterGain, analyser));
+    });
+  }
+  
+  #makeMasterGain(nodes) {
+    [...nodes].
+  }
 
   drawSpectrum(spectrum) {
     const start = window.performance.now();
@@ -137,9 +221,7 @@ export default class SpectrumAnalyzer {
       this.timelog[this.cnt] = end - start;
       this.cnt = this.cnt + 1;
     } else if (this.cnt === 240) {
-      const average =
-        [...this.timelog].reduce((sum, num) => sum + num, 0) /
-        this.timelog.length;
+      const average = [...this.timelog].reduce((sum, num) => sum + num, 0) / this.timelog.length;
       const logmax = Math.max(...this.timelog);
       const logmin = Math.min(...this.timelog);
       console.log(`--- end`);
@@ -161,7 +243,7 @@ export default class SpectrumAnalyzer {
   #setSpecs() {
     this.#sampleRate = this.#audioContext.sampleRate;
     const nyquist = this.#sampleRate / 2;
-    this.#binsSize = this.#fft.fftSize;
+    // this.#binsSize = this.#fft.fftSize;
     const bandWidth = nyquist / this.#binsSize;
 
     this.#minFreq = bandWidth;
@@ -177,20 +259,14 @@ export default class SpectrumAnalyzer {
     this.#gridLayer?.remove();
     this.#spectrumLayer?.remove();
 
-    this.#labelsLayer = this.#p.createGraphics(
-      this.#p.windowWidth * this.ratio,
-      this.#p.windowHeight * this.ratio,
-    );
+    this.#labelsLayer = this.#p.createGraphics(this.#p.windowWidth * this.ratio, this.#p.windowHeight * this.ratio);
 
     this.#gridLayer = this.#p.createGraphics(
       this.#labelsLayer.width * this.ratio,
       this.#labelsLayer.height * this.ratio,
     );
 
-    this.#spectrumLayer = this.#p.createGraphics(
-      this.#gridLayer.width,
-      this.#gridLayer.height,
-    );
+    this.#spectrumLayer = this.#p.createGraphics(this.#gridLayer.width, this.#gridLayer.height);
 
     this.#labelsSize = [this.#labelsLayer.width, this.#labelsLayer.height];
     this.#labelsPosition = [
@@ -259,11 +335,7 @@ export default class SpectrumAnalyzer {
           this.#gridLayer.strokeWeight(isMajor ? 1 : 0.8);
 
           const ty = isMajor ? lh - yDistance / 2 : lh;
-          this.#labelsLayer.text(
-            freq >= 1000 ? `${freq / 1000}k` : `${freq}`,
-            x + xDistance,
-            ty,
-          );
+          this.#labelsLayer.text(freq >= 1000 ? `${freq / 1000}k` : `${freq}`, x + xDistance, ty);
         } else {
           this.#gridLayer.stroke(baseColor);
           this.#gridLayer.strokeWeight(0.4);
