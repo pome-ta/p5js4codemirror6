@@ -141,19 +141,16 @@ export default class SpectrumAnalyzer {
   }
 
   drawGraph() {
-    const start = window.performance.now();
+    //const start = window.performance.now();
     this.#drawBaseGraphics();
-    /*
+    
     if (this.#p.frameCount % 9 !== 0) {
       // 描画悪あがき
-      this.#p.image(this.#spectrumLayer, ...this.#gridPosition);
+      this.#p.image(this.#spectrumLayer, ...this.#grid.position);
       return;
     }
-    */
+    
     this.#spectrumLayer.clear();
-
-    // const [pgw, pgh] = this.#grid.size;
-    // const [pgx, pgy] = this.#grid.position;
 
     const floatDataArrays = this.#analysers.map((analyzer) => analyzer.analyze());
 
@@ -223,7 +220,9 @@ export default class SpectrumAnalyzer {
 
     this.#xyListOld = xyList;
     this.#p.image(this.#spectrumLayer, ...this.#grid.position);
-
+    
+    
+    /*
     if (this.#p.frameCount >= 60 * 2 && this.#p.frameCount < 60 * 6) {
       const end = window.performance.now();
       //console.log(end - start);
@@ -240,6 +239,7 @@ export default class SpectrumAnalyzer {
       console.log(`min: ${logmin}`);
       this.cnt = this.cnt + 1;
     }
+    */
   }
 
   #createMergeGain(nodes) {
@@ -267,9 +267,10 @@ export default class SpectrumAnalyzer {
 
     this.#minFreq = bandWidth;
     this.#maxFreq = nyquist;
-
+    /*
     this.cnt = 0;
     this.timelog = new Array(240);
+    */
   }
 
   #setSize() {

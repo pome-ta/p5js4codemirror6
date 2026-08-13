@@ -22,7 +22,7 @@ const sketch = (p) => {
   let fft;
   let spectrum;
 
-  const spectrumAnalyzer = new SpectrumAnalyzer(p, 2048);
+  const spectrumAnalyzer = new SpectrumAnalyzer(p, 1024);
 
   p.setup = () => {
     // put setup code here
