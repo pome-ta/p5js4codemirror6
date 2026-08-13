@@ -142,7 +142,7 @@ export default class SpectrumAnalyzer {
     });
 
     nodes.forEach((tNode) => connectNodes(tNode, this.#masterGain));
-    this.#masterGain.disconnect(); //todo: 不要かな?
+    this.#masterGain.disconnect();  // todo: 音は出さない
   }
 
   drawGraph() {

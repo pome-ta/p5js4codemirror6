@@ -37,13 +37,15 @@ const sketch = (p) => {
 
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
 
-    mainOsc = new p5.Oscillator(880, types[0]);
+    mainOsc = new p5.Oscillator(880, types[2]);
     mainOsc.amp(0.8);
-    mainOsc.disconnect();
+    //mainOsc.disconnect();
 
     lfo = new p5.Oscillator(0.1, 'sine'); // 速さ
     lfo.amp(360); // 幅
     lfo.disconnect();
+    
+    lfo.node.connect(mainOsc.node.frequency);
 
     subOsc = new p5.Oscillator(880, types[0]);
     // subOsc = new Tone.Oscillator(880, types[0]);
@@ -57,19 +59,24 @@ const sketch = (p) => {
     panner.pan(lfo2);
     subOsc.connect(panner);
 
+
+    /*
     mainMixer = new p5.Gain();
-    lfo.node.connect(mainOsc.node.frequency);
+    
     mainOsc.connect(mainMixer);
     //subOsc.connect(mainMixer);
     panner.connect(mainMixer);
     // subOsc.connect(mainMixer.input);
+    */
 
     lfo.start();
     mainOsc.start();
     subOsc.start();
     lfo2.start();
 
-    spectrumAnalyzer.targetNodes(mainMixer);
+    //spectrumAnalyzer.targetNodes(mainMixer);
+    //spectrumAnalyzer.targetNodes(mainOsc, panner);
+    spectrumAnalyzer.targetNodes(mainOsc);
 
     // fft = new p5.FFT(1024);
     // // subOsc.connect(fft.input);
