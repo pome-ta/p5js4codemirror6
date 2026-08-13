@@ -22,7 +22,7 @@ const sketch = (p) => {
   let fft;
   let spectrum;
 
-  const spectrumAnalyzer = new SpectrumAnalyzer(p, 2048);
+  //const spectrumAnalyzer = new SpectrumAnalyzer(p, 2048);
 
   p.setup = () => {
     // put setup code here
@@ -60,14 +60,14 @@ const sketch = (p) => {
     subOsc.connect(panner);
 
 
-    /*
+    
     mainMixer = new p5.Gain();
     
     mainOsc.connect(mainMixer);
     //subOsc.connect(mainMixer);
     panner.connect(mainMixer);
     // subOsc.connect(mainMixer.input);
-    */
+    
 
     lfo.start();
     mainOsc.start();
@@ -76,7 +76,7 @@ const sketch = (p) => {
 
     //spectrumAnalyzer.targetNodes(mainMixer);
     //spectrumAnalyzer.targetNodes(mainOsc, panner);
-    spectrumAnalyzer.targetNodes(mainOsc);
+    //spectrumAnalyzer.targetNodes(mainOsc);
 
     // fft = new p5.FFT(1024);
     // // subOsc.connect(fft.input);
@@ -94,9 +94,9 @@ const sketch = (p) => {
     // put drawing code here
     // p.background((p.frameCount * 0.5) % v, 1, 0.5);
     p.background(0.8);
-    // spectrum = fft.analyze();
-    // spectrumAnalyzer.drawSpectrum(spectrum);
-    spectrumAnalyzer.drawGraph();
+    //spectrum = fft.analyze();
+    //spectrumAnalyzer.drawSpectrum(spectrum);
+    //spectrumAnalyzer.drawGraph();
   };
 
   p.windowResized = (e) => {

@@ -77,12 +77,16 @@ const sandboxHTMLstr = await insertFetchDoc(srcPath).then((loadedSource) => {
 // sandbox 側のAudioContext 解除
 document.addEventListener(touchEnded, () => {
   const auCtx = window.frames[0]?.auCtx;
-  if (!auCtx || auCtx.state !== 'suspended') {
+  if (!auCtx || auCtx.state !== 'suspended' && auCtx.state !== 'interrupted') {
     return;
   }
-  auCtx.resume().then(() => {
-    console.log('🔊: AudioContext is now running');
-  });
+  auCtx.resume()
+    .then(() => {
+      console.log('🔊: AudioContext is now running');
+    })
+    .catch((err) => {
+      console.log(`err: ${err}`);
+    });
 });
 
 function reloadSandbox(targetSandbox) {
