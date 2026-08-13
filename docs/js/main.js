@@ -80,14 +80,11 @@ document.addEventListener(touchEnded, () => {
   if (!auCtx || (auCtx.state !== 'suspended' && auCtx.state !== 'interrupted')) {
     return;
   }
+
   auCtx
     .resume()
-    .then(() => {
-      console.log('🔊: AudioContext is now running');
-    })
-    .catch((err) => {
-      console.log(`err: ${err}`);
-    });
+    .then(() => console.log('🔊: AudioContext is now running'))
+    .catch((err) => console.log(`err: ${err}`));
 });
 
 function reloadSandbox(targetSandbox) {

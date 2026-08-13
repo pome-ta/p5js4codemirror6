@@ -58,12 +58,13 @@ const sketch = (p) => {
     lfo2.disconnect();
     panner.pan(lfo2);
     subOsc.connect(panner);
+    //panner.disconnect();
 
-    mainMixer = new p5.Gain();
+    //mainMixer = new p5.Gain();
 
-    mainOsc.connect(mainMixer);
+    //mainOsc.connect(mainMixer);
     //subOsc.connect(mainMixer);
-    panner.connect(mainMixer);
+    //panner.connect(mainMixer);
     // subOsc.connect(mainMixer.input);
 
     lfo.start();
@@ -72,8 +73,8 @@ const sketch = (p) => {
     lfo2.start();
 
     //spectrumAnalyzer.targetNodes(mainMixer);
-    //spectrumAnalyzer.targetNodes(mainOsc, panner);
-    spectrumAnalyzer.targetNodes(mainOsc);
+    spectrumAnalyzer.targetNodes(mainOsc, panner);
+    //spectrumAnalyzer.targetNodes(mainOsc);
 
     // fft = new p5.FFT(1024);
     // // subOsc.connect(fft.input);
