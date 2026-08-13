@@ -22,7 +22,7 @@ const sketch = (p) => {
   let fft;
   let spectrum;
 
-  //const spectrumAnalyzer = new SpectrumAnalyzer(p, 2048);
+  const spectrumAnalyzer = new SpectrumAnalyzer(p, 2048);
 
   p.setup = () => {
     // put setup code here
@@ -44,7 +44,7 @@ const sketch = (p) => {
     lfo = new p5.Oscillator(0.1, 'sine'); // 速さ
     lfo.amp(360); // 幅
     lfo.disconnect();
-    
+
     lfo.node.connect(mainOsc.node.frequency);
 
     subOsc = new p5.Oscillator(880, types[0]);
@@ -59,15 +59,12 @@ const sketch = (p) => {
     panner.pan(lfo2);
     subOsc.connect(panner);
 
-
-    
     mainMixer = new p5.Gain();
-    
+
     mainOsc.connect(mainMixer);
     //subOsc.connect(mainMixer);
     panner.connect(mainMixer);
     // subOsc.connect(mainMixer.input);
-    
 
     lfo.start();
     mainOsc.start();
@@ -76,7 +73,7 @@ const sketch = (p) => {
 
     //spectrumAnalyzer.targetNodes(mainMixer);
     //spectrumAnalyzer.targetNodes(mainOsc, panner);
-    //spectrumAnalyzer.targetNodes(mainOsc);
+    spectrumAnalyzer.targetNodes(mainOsc);
 
     // fft = new p5.FFT(1024);
     // // subOsc.connect(fft.input);
@@ -96,7 +93,7 @@ const sketch = (p) => {
     p.background(0.8);
     //spectrum = fft.analyze();
     //spectrumAnalyzer.drawSpectrum(spectrum);
-    //spectrumAnalyzer.drawGraph();
+    spectrumAnalyzer.drawGraph();
   };
 
   p.windowResized = (e) => {

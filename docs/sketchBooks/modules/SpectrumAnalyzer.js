@@ -133,8 +133,8 @@ export default class SpectrumAnalyzer {
 
   #makeMasterGain(nodes) {
     this.#channelCount = Math.max(2, ...nodes.map(getChannelCount));
-    
-    console.log(this.#channelCount)
+
+    console.log(this.#channelCount);
 
     this.#masterGain = new p5.Gain();
     this.#masterGain.node.set({
@@ -142,7 +142,7 @@ export default class SpectrumAnalyzer {
     });
 
     nodes.forEach((tNode) => connectNodes(tNode, this.#masterGain));
-    this.#masterGain.disconnect();  // todo: 音は出さない
+    this.#masterGain.disconnect(); // todo: 音は出さない
   }
 
   drawGraph() {

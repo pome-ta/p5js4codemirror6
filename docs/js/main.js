@@ -77,10 +77,11 @@ const sandboxHTMLstr = await insertFetchDoc(srcPath).then((loadedSource) => {
 // sandbox 側のAudioContext 解除
 document.addEventListener(touchEnded, () => {
   const auCtx = window.frames[0]?.auCtx;
-  if (!auCtx || auCtx.state !== 'suspended' && auCtx.state !== 'interrupted') {
+  if (!auCtx || (auCtx.state !== 'suspended' && auCtx.state !== 'interrupted')) {
     return;
   }
-  auCtx.resume()
+  auCtx
+    .resume()
     .then(() => {
       console.log('🔊: AudioContext is now running');
     })
