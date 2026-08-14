@@ -90,6 +90,7 @@ export default class SpectrumAnalyzer {
   #fftSize;
   #xyRange;
   #xyListOld;
+  #xCoordinatesCache;
 
   // todo: db 調整
   //   - 0.42 : ブラックマン窓による減衰
@@ -162,13 +163,7 @@ export default class SpectrumAnalyzer {
     const floatDataArrays = this.#analysers.map((analyzer) => analyzer.analyze());
 
     const xyList = this.#xyRange.map((index) => {
-      const x = this.#p.map(
-        Math.log10(index * this.#minFreq || 1e-12),
-        Math.log10(this.#minFreq),
-        Math.log10(this.#maxFreq),
-        0,
-        this.#grid.size.width,
-      );
+      const x = this.#xCoordinatesCache[index];
 
       let sumOfSquares = 0;
       for (let ch = 0; ch < this.#channelCount; ch++) {
@@ -178,6 +173,7 @@ export default class SpectrumAnalyzer {
       const ampTotal = Math.sqrt(sumOfSquares);
       const amp = ampTotal ? ampTotal * this.blackmanOverdrive : 1e-10;
       const logDb = 20 * Math.log10(amp);
+      
       const y = this.#p.map(logDb, this.minDb, this.maxDb, this.#grid.size.height, 0);
 
       return [x, y];
@@ -230,6 +226,7 @@ export default class SpectrumAnalyzer {
   #setBaseAttributes() {
     this.#setSpecs();
     this.#setSize();
+    this.#calculateXCoordinates();
     this.#createBase();
     this.#drawBaseGraphics();
   }
@@ -276,6 +273,19 @@ export default class SpectrumAnalyzer {
 
     // --- spectrum
     this.#spectrumLayer = this.#p.createGraphics(gridSize.width, gridSize.height);
+  }
+
+  #calculateXCoordinates() {
+    this.#xCoordinatesCache = this.#xyRange.map((index) => {
+      const x = this.#p.map(
+        Math.log10(index * this.#minFreq || 1e-12),
+        Math.log10(this.#minFreq),
+        Math.log10(this.#maxFreq),
+        0,
+        this.#grid.size.width,
+      );
+      return x;
+    });
   }
 
   #createBase() {
@@ -368,10 +378,7 @@ export default class SpectrumAnalyzer {
   #hookWindowResized() {
     const originalWindowResized = this.#p.windowResized;
     this.#p.windowResized = (...args) => {
-      if (typeof originalWindowResized !== 'function') {
-        return;
-      }
-      originalWindowResized.apply(this.#p, args);
+      originalWindowResized?.apply(this.#p, args);
       this.#setBaseAttributes();
     };
   }
