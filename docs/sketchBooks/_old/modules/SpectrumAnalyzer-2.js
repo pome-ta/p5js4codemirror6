@@ -110,11 +110,6 @@ export default class SpectrumAnalyzer {
   // wip: マージン設定方法要検討
   ratio = 0.96;
 
-  nowFill = { fill: [0, 255, 255, 64] };
-  nowStroke = { stroke: [0, 255, 255, 192] };
-  oldStroke = { stroke: [255, 0, 255, 192] };
-  // nowFillStroke = { fill: [255, 255, 0, 32], stroke: [255, 255, 0, 192] };
-
   constructor(mainInstance, fftSize = 1024) {
     this.#p = mainInstance;
     this.#audioContext = mainInstance.getAudioContext();
@@ -185,82 +180,52 @@ export default class SpectrumAnalyzer {
 
       return [x, y];
     });
+    // wip: 今後の場合分け用?
 
-    this.#drawSpectrumMap(xyList, this.nowFill);
-    this.#xyListOld?.length && this.#drawSpectrumMap(this.#xyListOld, this.oldStroke);
-    this.#drawSpectrumMap(xyList, this.nowStroke);
+    // 青塗
+    //this.#spectrumLayer.noFill();
+    this.#spectrumLayer.noStroke();
+    this.#spectrumLayer.fill(0, 255, 255, 64);
+    this.#spectrumLayer.beginShape();
+    this.#spectrumLayer.vertex(0, this.#grid.size.height);
 
-    // // wip: 今後の場合分け用?
+    xyList.forEach((xy) => {
+      this.#spectrumLayer.vertex(...xy);
+    });
 
-    // // 青塗
-    // //this.#spectrumLayer.noFill();
-    // this.#spectrumLayer.noStroke();
-    // this.#spectrumLayer.fill(0, 255, 255, 64);
-    // this.#spectrumLayer.beginShape();
+    this.#spectrumLayer.vertex(...this.#grid.size);
+    this.#spectrumLayer.endShape();
+
+    // 赤線
+    this.#spectrumLayer.noFill();
+    if (this.#xyListOld?.length) {
+      this.#spectrumLayer.stroke(255, 0, 255, 192);
+      this.#spectrumLayer.beginShape();
+      // this.#spectrumLayer.vertex(0, this.#grid.size.height);
+
+      this.#xyListOld.forEach((xy) => {
+        this.#spectrumLayer.vertex(...xy);
+      });
+
+      // this.#spectrumLayer.vertex(...this.#grid.size);
+      this.#spectrumLayer.endShape();
+    }
+
+    // 青線
+    this.#spectrumLayer.stroke(0, 255, 255, 192);
+    // this.#spectrumLayer.stroke(0);
+    this.#spectrumLayer.beginShape();
     // this.#spectrumLayer.vertex(0, this.#grid.size.height);
 
-    // xyList.forEach((xy) => {
-    //   this.#spectrumLayer.vertex(...xy);
-    // });
+    xyList.forEach((xy) => {
+      this.#spectrumLayer.vertex(...xy);
+    });
 
     // this.#spectrumLayer.vertex(...this.#grid.size);
-    // this.#spectrumLayer.endShape();
-
-    // // 赤線
-    // this.#spectrumLayer.noFill();
-    // if (this.#xyListOld?.length) {
-    //   this.#spectrumLayer.stroke(255, 0, 255, 192);
-    //   this.#spectrumLayer.beginShape();
-    //   // this.#spectrumLayer.vertex(0, this.#grid.size.height);
-
-    //   this.#xyListOld.forEach((xy) => {
-    //     this.#spectrumLayer.vertex(...xy);
-    //   });
-
-    //   // this.#spectrumLayer.vertex(...this.#grid.size);
-    //   this.#spectrumLayer.endShape();
-    // }
-
-    // // 青線
-    // this.#spectrumLayer.stroke(0, 255, 255, 192);
-    // // this.#spectrumLayer.stroke(0);
-    // this.#spectrumLayer.beginShape();
-    // // this.#spectrumLayer.vertex(0, this.#grid.size.height);
-
-    // xyList.forEach((xy) => {
-    //   this.#spectrumLayer.vertex(...xy);
-    // });
-
-    // // this.#spectrumLayer.vertex(...this.#grid.size);
-    // this.#spectrumLayer.endShape();
+    this.#spectrumLayer.endShape();
 
     this.#xyListOld = xyList;
     this.#p.image(this.#spectrumLayer, ...this.#grid.position);
-  }
-
-  #drawSpectrumMap(matrixList, { fill, stroke }) {
-    this.#spectrumLayer.push();
-    {
-      // --- init
-      this.#spectrumLayer.noFill();
-      this.#spectrumLayer.noStroke();
-
-      // -- set
-      fill && this.#spectrumLayer.fill(...fill);
-      stroke && this.#spectrumLayer.stroke(...stroke);
-
-      // --- shape
-      this.#spectrumLayer.beginShape();
-      {
-        fill && this.#spectrumLayer.vertex(0, this.#grid.size.height);
-        matrixList.forEach((xy) => {
-          this.#spectrumLayer.vertex(...xy);
-        });
-        fill && this.#spectrumLayer.vertex(...this.#grid.size);
-      }
-      this.#spectrumLayer.endShape();
-    }
-    this.#spectrumLayer.pop();
   }
 
   #createMergeGain(nodes) {
