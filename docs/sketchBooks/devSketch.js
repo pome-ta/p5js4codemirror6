@@ -42,7 +42,7 @@ let mainOsc;
   };
 
   p.draw = () => {
-    p.background(1);
+    p.background(88);
     spectrumAnalyzer.drawGraph();
   };
 
