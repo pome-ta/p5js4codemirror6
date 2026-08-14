@@ -5,19 +5,21 @@ import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
 
 const sketch = (p) => {
   let tapIndicator;
+  const spectrumAnalyzer = new SpectrumAnalyzer(p, 2048);
 
   let cnvs;
   let w = p.windowWidth;
   let h = p.windowHeight;
 
-  const spectrumAnalyzer = new SpectrumAnalyzer(p, 1024);
+  
 
+let mainOsc;
   let sound;
   let amp;
 
   p.setup = async () => {
     // put setup code here
-    sound = await p.loadSound('https://tonejs.github.io/audio/berklee/gong_1.mp3');
+    sound = await p.loadSound('https://tonejs.github.io/audio/loop/kick.mp3');
 
     tapIndicator = new TapIndicator(p);
     //const ctx = p.getAudioContext();
@@ -26,13 +28,17 @@ const sketch = (p) => {
     cnvs = p.createCanvas(w, h);
     cnvs.mouseReleased(p.userStartAudio);
 
-    amp = new p5.Amplitude();
-    sound.connect(amp);
-    
-    const mainMixer = new p5.Gain();
-    amp.connect(mainMixer)
 
-    spectrumAnalyzer.targetNodes(mainMixer);
+    
+    const types = ['sine', 'triangle', 'sawtooth', 'square'];
+    mainOsc = new p5.Oscillator(880, types[2]);
+    
+    //const mainMixer = new p5.Gain();
+    //amp.connect(mainMixer)
+    
+    //mainOsc.start();
+
+    spectrumAnalyzer.targetNodes(sound);
   };
 
   p.draw = () => {
@@ -42,6 +48,7 @@ const sketch = (p) => {
 
   p.mouseReleased = () => {
     sound.play();
+    
   };
 
   p.windowResized = (e) => {
