@@ -228,10 +228,6 @@ export default class SpectrumAnalyzer {
     this.#p.image(this.#spectrumLayer, ...this.#grid.position);
   }
 
-  #drawSpectrumMap(matrixList, { stroke, fill }) {
-    stroke && ();
-  }
-
   #createMergeGain(nodes) {
     const gain = new p5.Gain();
     gain.node.set({
