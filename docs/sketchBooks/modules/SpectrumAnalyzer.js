@@ -113,7 +113,6 @@ export default class SpectrumAnalyzer {
   nowFill = { fill: [0, 255, 255, 64] };
   nowStroke = { stroke: [0, 255, 255, 192] };
   oldStroke = { stroke: [255, 0, 255, 192] };
-  // nowFillStroke = { fill: [255, 255, 0, 32], stroke: [255, 255, 0, 192] };
 
   constructor(mainInstance, fftSize = 1024) {
     this.#p = mainInstance;
@@ -189,50 +188,6 @@ export default class SpectrumAnalyzer {
     this.#drawSpectrumMap(xyList, this.nowFill);
     this.#xyListOld?.length && this.#drawSpectrumMap(this.#xyListOld, this.oldStroke);
     this.#drawSpectrumMap(xyList, this.nowStroke);
-
-    // // wip: 今後の場合分け用?
-
-    // // 青塗
-    // //this.#spectrumLayer.noFill();
-    // this.#spectrumLayer.noStroke();
-    // this.#spectrumLayer.fill(0, 255, 255, 64);
-    // this.#spectrumLayer.beginShape();
-    // this.#spectrumLayer.vertex(0, this.#grid.size.height);
-
-    // xyList.forEach((xy) => {
-    //   this.#spectrumLayer.vertex(...xy);
-    // });
-
-    // this.#spectrumLayer.vertex(...this.#grid.size);
-    // this.#spectrumLayer.endShape();
-
-    // // 赤線
-    // this.#spectrumLayer.noFill();
-    // if (this.#xyListOld?.length) {
-    //   this.#spectrumLayer.stroke(255, 0, 255, 192);
-    //   this.#spectrumLayer.beginShape();
-    //   // this.#spectrumLayer.vertex(0, this.#grid.size.height);
-
-    //   this.#xyListOld.forEach((xy) => {
-    //     this.#spectrumLayer.vertex(...xy);
-    //   });
-
-    //   // this.#spectrumLayer.vertex(...this.#grid.size);
-    //   this.#spectrumLayer.endShape();
-    // }
-
-    // // 青線
-    // this.#spectrumLayer.stroke(0, 255, 255, 192);
-    // // this.#spectrumLayer.stroke(0);
-    // this.#spectrumLayer.beginShape();
-    // // this.#spectrumLayer.vertex(0, this.#grid.size.height);
-
-    // xyList.forEach((xy) => {
-    //   this.#spectrumLayer.vertex(...xy);
-    // });
-
-    // // this.#spectrumLayer.vertex(...this.#grid.size);
-    // this.#spectrumLayer.endShape();
 
     this.#xyListOld = xyList;
     this.#p.image(this.#spectrumLayer, ...this.#grid.position);
@@ -329,13 +284,6 @@ export default class SpectrumAnalyzer {
     this.#labels.layer.clear();
     this.#grid.layer.clear();
 
-    // const [lw, lh] = this.#labels.size;
-    // const [lx, ly] = this.#labels.position;
-    // const [gw, gh] = this.#grid.size;
-    // const [gx, gy] = this.#grid.position;
-
-    // const xDistance = (lw - gw) / 2;
-    // const yDistance = (lh - gh) / 2;
     const xDistance = (this.#labels.size.width - this.#grid.size.width) / 2;
     const yDistance = (this.#labels.size.height - this.#grid.size.height) / 2;
 
@@ -348,6 +296,7 @@ export default class SpectrumAnalyzer {
       (_, d) => d + Math.floor(minLog),
     );
 
+    // 10 で刻む
     const ticks = Array.from({ length: 9 }, (_, idx) => idx + 1);
 
     const digits = Math.floor(Math.log10(this.#minFreq));
@@ -424,9 +373,7 @@ export default class SpectrumAnalyzer {
       if (typeof originalWindowResized !== 'function') {
         return;
       }
-      //console.log('前class');
       originalWindowResized.apply(this.#p, args);
-      //console.log('後class');
       this.#setBaseAttributes();
     };
   }
