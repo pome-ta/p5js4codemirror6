@@ -162,10 +162,8 @@ export default class SpectrumAnalyzer {
     const floatDataArrays = this.#analysers.map((analyzer) => analyzer.analyze());
 
     const xyList = this.#xyRange.map((index) => {
-      const bin = index * this.#minFreq;
-
       const x = this.#p.map(
-        Math.log10(bin ? bin : 1e-12),
+        Math.log10(index * this.#minFreq || 1e-12),
         Math.log10(this.#minFreq),
         Math.log10(this.#maxFreq),
         0,
