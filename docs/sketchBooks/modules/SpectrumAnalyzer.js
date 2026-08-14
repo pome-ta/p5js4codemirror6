@@ -173,7 +173,7 @@ export default class SpectrumAnalyzer {
       const ampTotal = Math.sqrt(sumOfSquares);
       const amp = ampTotal ? ampTotal * this.blackmanOverdrive : 1e-10;
       const logDb = 20 * Math.log10(amp);
-      
+
       const y = this.#p.map(logDb, this.minDb, this.maxDb, this.#grid.size.height, 0);
 
       return [x, y];
