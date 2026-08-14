@@ -85,26 +85,30 @@ export default class SpectrumAnalyzer {
   #analysers;
   #channelCount;
 
-  #labels;
-  #grid;
-  #spectrumLayer;
-
-  #minFreq;
-  #maxFreq;
-  // todo: どこで定義するか要検討
-  maxDb = +6;
-  minDb = -60;
-  dbStep = 6;
-  // todo: マージン設定方法要検討
-  ratio = 0.96;
-
   // --- specs
   #sampleRate;
   #fftSize;
   #xyRange;
   #xyListOld;
 
+  // todo: db 調整
+  //   - 0.42 : ブラックマン窓による減衰
+  //   - 0.5  : 正/負の周波数へのエネルギー分裂
   blackmanOverdrive = 1 / (0.42 * 0.5);
+
+  // --- draw
+  #labels;
+  #grid;
+  #spectrumLayer;
+
+  #minFreq;
+  #maxFreq;
+  // wip: どこで定義するか要検討
+  maxDb = +6;
+  minDb = -60;
+  dbStep = 6;
+  // wip: マージン設定方法要検討
+  ratio = 0.96;
 
   constructor(mainInstance, fftSize = 1024) {
     this.#p = mainInstance;
@@ -130,7 +134,7 @@ export default class SpectrumAnalyzer {
     });
     connectNodes(gain, splitter);
 
-    this.#analysers = [...Array(this.#channelCount)].map((_, idx) => {
+    this.#analysers = Array.from({ length: this.#channelCount }, (_, idx) => {
       const analyser = new p5.FFT(this.#fftSize);
       connectNodes(splitter, analyser, idx, 0);
       return analyser;
@@ -141,15 +145,14 @@ export default class SpectrumAnalyzer {
   }
 
   drawGraph() {
-    //const start = window.performance.now();
     this.#drawBaseGraphics();
-    
+
     if (this.#p.frameCount % 9 !== 0) {
       // 描画悪あがき
       this.#p.image(this.#spectrumLayer, ...this.#grid.position);
       return;
     }
-    
+
     this.#spectrumLayer.clear();
 
     const floatDataArrays = this.#analysers.map((analyzer) => analyzer.analyze());
@@ -177,8 +180,9 @@ export default class SpectrumAnalyzer {
 
       return [x, y];
     });
-    // xxx: 今後の場合分け用?
+    // wip: 今後の場合分け用?
 
+    // 青塗
     //this.#spectrumLayer.noFill();
     this.#spectrumLayer.noStroke();
     this.#spectrumLayer.fill(0, 255, 255, 64);
@@ -192,6 +196,7 @@ export default class SpectrumAnalyzer {
     this.#spectrumLayer.vertex(...this.#grid.size);
     this.#spectrumLayer.endShape();
 
+    // 赤線
     this.#spectrumLayer.noFill();
     if (this.#xyListOld?.length) {
       this.#spectrumLayer.stroke(255, 0, 255, 192);
@@ -206,6 +211,7 @@ export default class SpectrumAnalyzer {
       this.#spectrumLayer.endShape();
     }
 
+    // 青線
     this.#spectrumLayer.stroke(0, 255, 255, 192);
     // this.#spectrumLayer.stroke(0);
     this.#spectrumLayer.beginShape();
@@ -220,26 +226,10 @@ export default class SpectrumAnalyzer {
 
     this.#xyListOld = xyList;
     this.#p.image(this.#spectrumLayer, ...this.#grid.position);
-    
-    
-    /*
-    if (this.#p.frameCount >= 60 * 2 && this.#p.frameCount < 60 * 6) {
-      const end = window.performance.now();
-      //console.log(end - start);
-      this.timelog[this.cnt] = end - start;
-      this.cnt = this.cnt + 1;
-    } else if (this.cnt === 240) {
-      const average = [...this.timelog].reduce((sum, num) => sum + num, 0) / this.timelog.length;
-      const logmax = Math.max(...this.timelog);
-      const logmin = Math.min(...this.timelog);
-      console.log(`--- end`);
-      console.log(this.timelog);
-      console.log(`ave: ${average}`);
-      console.log(`max: ${logmax}`);
-      console.log(`min: ${logmin}`);
-      this.cnt = this.cnt + 1;
-    }
-    */
+  }
+
+  #drawSpectrumMap(matrixList, { stroke, fill }) {
+    stroke && ();
   }
 
   #createMergeGain(nodes) {
@@ -267,10 +257,6 @@ export default class SpectrumAnalyzer {
 
     this.#minFreq = bandWidth;
     this.#maxFreq = nyquist;
-    /*
-    this.cnt = 0;
-    this.timelog = new Array(240);
-    */
   }
 
   #setSize() {

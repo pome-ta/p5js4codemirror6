@@ -5,50 +5,86 @@ import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
 
 const sketch = (p) => {
   let tapIndicator;
-  const spectrumAnalyzer = new SpectrumAnalyzer(p, 2048);
 
   let cnvs;
   let w = p.windowWidth;
   let h = p.windowHeight;
 
-  
+  const v = 360;
 
-let mainOsc;
-  let sound;
-  let amp;
+  let mainMixer;
+  let mainOsc;
+  let lfo;
+  let subOsc;
+  let panner;
+  let lfo2;
 
-  p.setup = async () => {
+  let fft;
+  let spectrum;
+
+  const spectrumAnalyzer = new SpectrumAnalyzer(p, 1024);
+
+  p.setup = () => {
     // put setup code here
-    sound = await p.loadSound('https://tonejs.github.io/audio/loop/kick.mp3');
-
-    tapIndicator = new TapIndicator(p);
-    //const ctx = p.getAudioContext();
+    //tapIndicator = new TapIndicator(p);
+    const ctx = p.getAudioContext();
     //Tone.setContext(ctx);
 
     cnvs = p.createCanvas(w, h);
     cnvs.mouseReleased(p.userStartAudio);
 
+    p.colorMode(p.HSL, v, 1, 1);
 
-    
     const types = ['sine', 'triangle', 'sawtooth', 'square'];
-    mainOsc = new p5.Oscillator(880, types[2]);
-    
-    //const mainMixer = new p5.Gain();
-    //amp.connect(mainMixer)
-    
-    //mainOsc.start();
 
-    spectrumAnalyzer.targetNodes(sound);
+    mainOsc = new p5.Oscillator(880, types[2]);
+    mainOsc.amp(0.8);
+    //mainOsc.disconnect();
+
+    lfo = new p5.Oscillator(0.1, 'sine'); // 速さ
+    lfo.amp(360); // 幅
+    lfo.disconnect();
+
+    lfo.node.connect(mainOsc.node.frequency);
+
+    subOsc = new p5.Oscillator(880, types[0]);
+    // subOsc = new Tone.Oscillator(880, types[0]);
+    subOsc.amp(1);
+    subOsc.disconnect();
+
+    panner = new p5.Panner();
+    lfo2 = new p5.Oscillator(0.1);
+    lfo2.amp(1);
+    lfo2.disconnect();
+    panner.pan(lfo2);
+    subOsc.connect(panner);
+    //panner.disconnect();
+
+    //mainMixer = new p5.Gain();
+
+    //mainOsc.connect(mainMixer);
+    //subOsc.connect(mainMixer);
+    //panner.connect(mainMixer);
+    // subOsc.connect(mainMixer.input);
+
+    lfo.start();
+    mainOsc.start();
+    subOsc.start();
+    lfo2.start();
+
+    //spectrumAnalyzer.targetNodes(mainMixer);
+    spectrumAnalyzer.targetNodes(mainOsc, panner);
+    //spectrumAnalyzer.targetNodes(mainOsc);
+
+
+
+    //p.noLoop();
   };
 
   p.draw = () => {
-    p.background(88);
+    // put drawing code here
+    p.background(0.8);
     spectrumAnalyzer.drawGraph();
-  };
-
-  p.mouseReleased = () => {
-    sound.play();
-    
   };
 
   p.windowResized = (e) => {
