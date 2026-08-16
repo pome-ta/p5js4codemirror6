@@ -9,11 +9,11 @@ const sketch = (p) => {
   // --- Plugins
   const tapIndicator = new TapIndicator(p);
   const spectrumAnalyzer = new SpectrumAnalyzer(p, 1024);
-  
+
   // --- Tone.js
   const ctx = p.getAudioContext();
   Tone.setContext(ctx);
-  
+
   // --- Sketch
   let cnvs;
   let w = p.windowWidth;
@@ -24,8 +24,8 @@ const sketch = (p) => {
     cnvs = p.createCanvas(w, h);
     //cnvs.mouseReleased(p.userStartAudio);
 
-    //spectrumAnalyzer.targetNodes(osc);
     tapIndicator.setup();
+    //spectrumAnalyzer.targetNodes(osc);
 
     //p.noLoop();
   };
