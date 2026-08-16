@@ -12,15 +12,15 @@ const sketch = (p) => {
   const tapIndicator = new TapIndicator(p);
   const spectrumAnalyzer = new SpectrumAnalyzer(p, 1024);
 
+  const ctx = p.getAudioContext();
+  Tone.setContext(ctx);
+
   p.setup = () => {
     // put setup code here
-    const ctx = p.getAudioContext();
-    Tone.setContext(ctx);
-
     cnvs = p.createCanvas(w, h);
-    cnvs.mouseReleased(p.userStartAudio);
+    //cnvs.mouseReleased(p.userStartAudio);
 
-    //spectrumAnalyzer.targetNodes();
+    //spectrumAnalyzer.targetNodes(osc);
     tapIndicator.setup();
 
     //p.noLoop();

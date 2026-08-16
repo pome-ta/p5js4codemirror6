@@ -12,15 +12,19 @@ const sketch = (p) => {
   const tapIndicator = new TapIndicator(p);
   const spectrumAnalyzer = new SpectrumAnalyzer(p, 1024);
 
+  const ctx = p.getAudioContext();
+  Tone.setContext(ctx);
+
   p.setup = () => {
     // put setup code here
-    const ctx = p.getAudioContext();
-    Tone.setContext(ctx);
-
     cnvs = p.createCanvas(w, h);
-    cnvs.mouseReleased(p.userStartAudio);
+    //cnvs.mouseReleased(p.userStartAudio);
 
-    //spectrumAnalyzer.targetNodes();
+    const osc = new Tone.Oscillator().toDestination();
+
+    osc.start();
+
+    spectrumAnalyzer.targetNodes(osc);
     tapIndicator.setup();
 
     //p.noLoop();
@@ -29,7 +33,7 @@ const sketch = (p) => {
   p.draw = () => {
     // put drawing code here
     p.background(80);
-    //spectrumAnalyzer.drawGraph();
+    spectrumAnalyzer.drawGraph();
   };
 
   p.windowResized = (e) => {
