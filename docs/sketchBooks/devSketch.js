@@ -1,19 +1,22 @@
-// --- # example:
+// --- # example: simple tone
 
 import * as Tone from 'tone';
+
 import TapIndicator from 'modules/TapIndicator.js';
 import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
 
 const sketch = (p) => {
-  let cnvs;
-  let w = p.windowWidth;
-  let h = p.windowHeight;
-
+  // --- Plugins
   const tapIndicator = new TapIndicator(p);
   const spectrumAnalyzer = new SpectrumAnalyzer(p, 1024);
 
+  // --- Tone.js
   const ctx = p.getAudioContext();
   Tone.setContext(ctx);
+
+  let cnvs;
+  let w = p.windowWidth;
+  let h = p.windowHeight;
 
   p.setup = () => {
     // put setup code here
@@ -26,6 +29,7 @@ const sketch = (p) => {
 
     spectrumAnalyzer.targetNodes(osc);
     tapIndicator.setup();
+    console.log(p);
 
     //p.noLoop();
   };
