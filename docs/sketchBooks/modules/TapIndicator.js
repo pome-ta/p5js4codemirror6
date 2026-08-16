@@ -12,11 +12,15 @@ export default class TapIndicator {
     this.#initGraphics();
     this.#hookDraw();
   }
+  
+  setup() {
+  }
 
   #hookDraw() {
     const originalDraw = this.#p.draw;
     this.#p.draw = (...args) => {
-      typeof originalDraw === 'function' && originalDraw.apply(this.#p, args);
+      //typeof originalDraw === 'function' && originalDraw.apply(this.#p, args);
+      originalDraw?.apply(this.#p, args);
       this.#render();
     };
   }
