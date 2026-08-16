@@ -13,6 +13,7 @@ const sketch = (p) => {
   // --- Tone.js
   const ctx = p.getAudioContext();
   Tone.setContext(ctx);
+  const BPM = Tone.getTransport().bpm;
 
   // --- Sketch
   let cnvs;
@@ -25,12 +26,12 @@ const sketch = (p) => {
     //cnvs.mouseReleased(p.userStartAudio);
 
     const osc = new Tone.Oscillator().toDestination();
-
     osc.start();
 
     spectrumAnalyzer.targetNodes(osc);
     tapIndicator.setup();
-    console.log(p);
+
+    console.log(BPM.value);
 
     //p.noLoop();
   };
