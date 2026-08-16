@@ -1,4 +1,4 @@
-// --- # example: simple tone
+// --- # example: `Tone.Part` メトロノーム
 
 import * as Tone from 'tone';
 
@@ -8,7 +8,7 @@ import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
 const sketch = (p) => {
   // --- Plugins
   const tapIndicator = new TapIndicator(p);
-  const spectrumAnalyzer = new SpectrumAnalyzer(p, 1024);
+  const spectrumAnalyzer = new SpectrumAnalyzer(p, 2048);
 
   // --- Tone.js
   const ctx = p.getAudioContext();
@@ -20,18 +20,33 @@ const sketch = (p) => {
   let w = p.windowWidth;
   let h = p.windowHeight;
 
+  let bpm = 92;
+
   p.setup = () => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
     //cnvs.mouseReleased(p.userStartAudio);
 
-    const osc = new Tone.Oscillator().toDestination();
-    osc.start();
+    BPM.value = bpm;
 
-    spectrumAnalyzer.targetNodes(osc);
+    const click = new Tone.MembraneSynth().toDestination();
+    const part = new Tone.Part(
+      (time) => {
+        click.triggerAttackRelease('A2', '8n', time);
+      },
+      [
+        ['0:0:0', null],
+        ['0:1:0', null],
+        ['0:2:0', null],
+        ['0:3:0', null],
+      ],
+    ).start(0);
+    part.loop = true;
+    part.loopEnd = '1m';
+    Tone.getTransport().start();
+
     tapIndicator.setup();
-
-    console.log(BPM.value);
+    spectrumAnalyzer.targetNodes(click);
 
     //p.noLoop();
   };
