@@ -14,6 +14,7 @@ const sketch = (p) => {
   const ctx = p.getAudioContext();
   Tone.setContext(ctx);
 
+  // --- Sketch
   let cnvs;
   let w = p.windowWidth;
   let h = p.windowHeight;
