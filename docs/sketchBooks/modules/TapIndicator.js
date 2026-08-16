@@ -8,18 +8,19 @@ export default class TapIndicator {
   constructor(mainInstance, markSize = 48) {
     this.#p = mainInstance;
     this.#markSize = markSize;
+    this.#pg = null;
+  }
 
+  setup(mainInstance = null, markSize = null) {
+    this.#p = mainInstance || this.#p;
+    this.#markSize = markSize || this.#markSize;
     this.#initGraphics();
     this.#hookDraw();
-  }
-  
-  setup() {
   }
 
   #hookDraw() {
     const originalDraw = this.#p.draw;
     this.#p.draw = (...args) => {
-      //typeof originalDraw === 'function' && originalDraw.apply(this.#p, args);
       originalDraw?.apply(this.#p, args);
       this.#render();
     };
