@@ -1,4 +1,4 @@
-// --- # example: `Tone.Sequence` メトロノーム
+// --- # example: `Tone.Part` メトロノーム
 
 import * as Tone from 'tone';
 
@@ -30,14 +30,19 @@ const sketch = (p) => {
     BPM.value = bpm;
 
     const click = new Tone.MembraneSynth().toDestination();
-    const seq = new Tone.Sequence(
+    const part = new Tone.Part(
       (time) => {
-        click.triggerAttackRelease('A1', '8n', time);
+        click.triggerAttackRelease('A2', '8n', time);
       },
-      [0, 0, 0, 0],
-      '4n',
+      [
+        ['0:0:0', null],
+        ['0:1:0', null],
+        ['0:2:0', null],
+        ['0:3:0', null],
+      ],
     ).start(0);
-    Tone.getTransport().start();
+    part.loop = true;
+    part.loopEnd = '1m';
     Tone.getTransport().start();
 
     tapIndicator.setup();
