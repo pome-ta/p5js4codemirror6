@@ -18,9 +18,11 @@ const sketch = (p) => {
   // --- Sketch
   let cnvs;
   let w = p.windowWidth;
-  let h = p.windowHeight / 2;
+  let h = p.windowHeight;
 
   let bpm = 92;
+
+  let slider;
 
   p.setup = () => {
     // put setup code here
@@ -28,9 +30,10 @@ const sketch = (p) => {
     //cnvs.mouseReleased(p.userStartAudio);
 
     BPM.value = bpm;
-    
 
-    const click = new Tone.Synth().toDestination();
+    const click = new Tone.Synth({
+      oscillator: { type: 'sine' },
+    }).toDestination();
     const seq = new Tone.Sequence(
       (time, noteNum) => {
         click.triggerAttackRelease(`A${noteNum}`, '32n', time);
@@ -39,6 +42,10 @@ const sketch = (p) => {
       '4n',
     ).start(0);
     Tone.getTransport().start();
+
+    slider = p.createSlider(0, 255, 100);
+    slider.position(w / 2, h / 2);
+    slider.size(240);
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(click);
