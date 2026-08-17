@@ -1,4 +1,4 @@
-// --- # example: `Tone.Sequence` メトロノーム `Synth` 確認
+// --- # example: `Tone.Sequence` メトロノーム
 
 import * as Tone from 'tone';
 
@@ -28,14 +28,13 @@ const sketch = (p) => {
     //cnvs.mouseReleased(p.userStartAudio);
 
     BPM.value = bpm;
-    
 
-    const click = new Tone.Synth().toDestination();
+    const click = new Tone.MembraneSynth().toDestination();
     const seq = new Tone.Sequence(
-      (time, noteNum) => {
-        click.triggerAttackRelease(`A${noteNum}`, '32n', time);
+      (time) => {
+        click.triggerAttackRelease('A1', '8n', time);
       },
-      [5, 4, 4, 4],
+      [0, 0, 0, 0],
       '4n',
     ).start(0);
     Tone.getTransport().start();
