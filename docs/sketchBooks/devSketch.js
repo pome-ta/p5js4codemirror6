@@ -38,7 +38,6 @@ const sketch = (p) => {
       '4n',
     ).start(0);
     Tone.getTransport().start();
-    Tone.getTransport().start();
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(click);
