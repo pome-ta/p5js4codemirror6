@@ -18,7 +18,7 @@ const sketch = (p) => {
   // --- Sketch
   let cnvs;
   let w = p.windowWidth;
-  let h = p.windowHeight;
+  let h = p.windowHeight / 2;
 
   let bpm = 92;
 

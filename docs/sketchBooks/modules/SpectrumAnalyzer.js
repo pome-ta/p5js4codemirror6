@@ -245,13 +245,13 @@ export default class SpectrumAnalyzer {
     this.#grid?.layer?.remove();
     this.#spectrumLayer?.remove();
 
+    const w = this.#p.width;
+    const h = this.#p.height;
+
     // --- label
-    const labelsLayer = this.#p.createGraphics(this.#p.windowWidth * this.ratio, this.#p.windowHeight * this.ratio);
+    const labelsLayer = this.#p.createGraphics(w * this.ratio, h * this.ratio);
     const labelsSize = new CanvasSize(labelsLayer.width, labelsLayer.height);
-    const labelsPosition = new CanvasPosition(
-      (this.#p.windowWidth - labelsSize.width) * 0.5,
-      (this.#p.windowHeight - labelsSize.height) * 0.5,
-    );
+    const labelsPosition = new CanvasPosition((w - labelsSize.width) * 0.5, (h - labelsSize.height) * 0.5);
     this.#labels = {
       layer: labelsLayer,
       size: labelsSize,
@@ -261,10 +261,7 @@ export default class SpectrumAnalyzer {
     // --- grid
     const gridLayer = this.#p.createGraphics(labelsSize.width * this.ratio, labelsSize.height * this.ratio);
     const gridSize = new CanvasSize(gridLayer.width, gridLayer.height);
-    const gridPosition = new CanvasPosition(
-      (this.#p.windowWidth - gridSize.width) * 0.5,
-      (this.#p.windowHeight - gridSize.height) * 0.5,
-    );
+    const gridPosition = new CanvasPosition((w - gridSize.width) * 0.5, (h - gridSize.height) * 0.5);
     this.#grid = {
       layer: gridLayer,
       size: gridSize,
