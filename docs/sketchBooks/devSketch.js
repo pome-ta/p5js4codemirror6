@@ -22,6 +22,12 @@ const sketch = (p) => {
 
   let bpm = 92;
 
+  let domContainer;
+  let labelBPM;
+  let labelBPM2;
+  let ctrContainer;
+  let plusBtn;
+  let minusBtn;
   let slider;
 
   p.setup = () => {
@@ -43,12 +49,56 @@ const sketch = (p) => {
     ).start(0);
     Tone.getTransport().start();
 
-    slider = p.createSlider(0, 255, 100);
-    slider.position(w / 2, h / 2);
-    slider.size(240);
+    domContainer = p.createDiv();
+    domContainer.style('background-color', 'lightblue');
+    //domContainer.style('display', 'grid');
+    // domContainer.style('grid-template-columns', '1fr 50% 1fr');
+    // domContainer.style('grid-template-rows', '1fr 1fr 1fr');
+
+    // labelBPM = p.createP(`${BPM.value}`);
+    labelBPM = p.createP(`BPM`);
+    // labelBPM = p.createDiv();
+    // labelBPM.html(`${BPM.value}`);
+    labelBPM.parent(domContainer);
+    //labelBPM.style('grid-column', '2 / 3');
+    //labelBPM.style('grid-row', '1');
+
+    labelBPM2 = p.createDiv();
+    labelBPM2.html(`${BPM.value}`);
+    labelBPM2.parent(domContainer);
+    //labelBPM2.style('grid-column', '2 / 3');
+    //labelBPM2.style('grid-row', '2');
+
+    ctrContainer = p.createDiv();
+    ctrContainer.style('background-color', 'magenta');
+    ctrContainer.parent(domContainer);
+    //ctrContainer.style('display', 'grid');
+    ctrContainer.style('grid-template-columns', '1fr 100% 1fr');
+    //ctrContainer.style('grid-template-rows', '1fr 1fr 1fr
+
+    minusBtn = p.createButton('ま', -1);
+    minusBtn.parent(ctrContainer);
+    minusBtn.style('grid-column', '1 / 3');
+    //minusBtn.style('grid-row', '3');
+
+    slider = p.createSlider(60, 300, 120);
+    slider.parent(ctrContainer);
+    slider.style('grid-column', '2 / 3');
+    //slider.style('grid-row', '3');
+
+    plusBtn = p.createButton('ぷ', 1);
+    plusBtn.parent(ctrContainer);
+    plusBtn.style('grid-column', '3 / 3');
+    //plusBtn.style('grid-row', '3');
+
+    // domContainer.child(labelBPM);
+    // domContainer.child(slider);
+    // domContainer.position(100, 200);
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(click);
+
+    domSetLayout();
 
     //p.noLoop();
   };
@@ -64,6 +114,28 @@ const sketch = (p) => {
     w = p.windowWidth;
     h = p.windowHeight;
     cnvs = p.resizeCanvas(w, h);
+    domSetLayout();
+  };
+
+  const domSetLayout = () => {
+    console.log('layout');
+
+    // domContainer.size(w * 0.8, domContainer.size().height);
+    domContainer.size(w * 0.8, '100%');
+
+    const cw = domContainer.size().width;
+    const ch = domContainer.size().height;
+
+    ctrContainer.size(cw, '100%');
+
+    console.log('--- width');
+    console.log(domContainer.width);
+    console.log(domContainer.size().width);
+    console.log('--- height');
+    console.log(domContainer.height);
+    console.log(domContainer.size().height);
+
+    domContainer.position(w / 2 - cw / 2, h / 2 - ch / 2);
   };
 };
 
