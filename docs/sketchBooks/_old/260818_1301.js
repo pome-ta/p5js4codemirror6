@@ -23,8 +23,8 @@ const sketch = (p) => {
   let bpm = 92;
 
   let domContainer;
-  let titleBPM;
-  let valueBPM;
+  let labelBPM;
+  let labelBPM2;
   let ctrContainer;
   let plusBtn;
   let minusBtn;
@@ -55,47 +55,43 @@ const sketch = (p) => {
     // domContainer.style('grid-template-columns', '1fr 50% 1fr');
     // domContainer.style('grid-template-rows', '1fr 1fr 1fr');
 
-    //titleBPM = p.createP(`BPM`);
-    titleBPM = p.createDiv();
-    titleBPM.html(`BPM`);
-    titleBPM.parent(domContainer);
+    // labelBPM = p.createP(`${BPM.value}`);
+    labelBPM = p.createP(`BPM`);
+    // labelBPM = p.createDiv();
+    // labelBPM.html(`${BPM.value}`);
+    labelBPM.parent(domContainer);
     //labelBPM.style('grid-column', '2 / 3');
     //labelBPM.style('grid-row', '1');
 
-    valueBPM = p.createP(`${bpm}`);
-    //valueBPM.html(`${bpm}`);
-    //valueBPM.parent(domContainer);
-    valueBPM.parent(titleBPM);
+    labelBPM2 = p.createDiv();
+    labelBPM2.html(`${bpm}`);
+    labelBPM2.parent(domContainer);
     //labelBPM2.style('grid-column', '2 / 3');
     //labelBPM2.style('grid-row', '2');
 
     ctrContainer = p.createDiv();
     ctrContainer.style('background-color', 'magenta');
     ctrContainer.parent(domContainer);
-    ctrContainer.style('display', 'grid');
-    ctrContainer.style('grid-template-columns', 'auto 1fr auto');
+    //ctrContainer.style('display', 'grid');
+    ctrContainer.style('grid-template-columns', '1fr 100% 1fr');
     //ctrContainer.style('grid-template-rows', '1fr 1fr 1fr
 
     minusBtn = p.createButton('ま', false);
     minusBtn.mouseReleased(handleButtonClick);
     minusBtn.parent(ctrContainer);
-    //minusBtn.style('grid-column', '1 / 3');
+    minusBtn.style('grid-column', '1 / 3');
     //minusBtn.style('grid-row', '3');
 
-    slider = p.createSlider(60, 360, bpm);
+    slider = p.createSlider(60, 300, bpm);
     slider.input(onSliderInput);
     slider.parent(ctrContainer);
-    // ctrContainerに対する操作
-
-    slider.style('width', '100%');
-
-    //slider.style('grid-column', '2 / 3');
+    slider.style('grid-column', '2 / 3');
     //slider.style('grid-row', '3');
 
     plusBtn = p.createButton('ぷ', true);
     plusBtn.mouseReleased(handleButtonClick);
     plusBtn.parent(ctrContainer);
-    //plusBtn.style('grid-column', '3 / 3');
+    plusBtn.style('grid-column', '3 / 3');
     //plusBtn.style('grid-row', '3');
 
     // domContainer.child(labelBPM);
@@ -113,7 +109,6 @@ const sketch = (p) => {
   p.draw = () => {
     // put drawing code here
     p.background(80);
-    p.rect(0, 0, w / 2, h / 2);
     spectrumAnalyzer.drawGraph();
   };
 
@@ -148,13 +143,13 @@ const sketch = (p) => {
 
   function onSliderInput() {
     bpm = this.value();
-    valueBPM.html(`${bpm}`);
+    labelBPM2.html(`${bpm}`);
     BPM.value = bpm;
   }
 
   function handleButtonClick() {
     bpm += this.value() ? 1 : -1;
-    valueBPM.html(`${bpm}`);
+    labelBPM2.html(`${bpm}`);
     BPM.value = bpm;
   }
 };
