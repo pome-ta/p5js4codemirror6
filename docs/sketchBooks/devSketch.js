@@ -1,10 +1,15 @@
 // --- # example: DOM 要素
 
 import * as Tone from 'tone';
+import 'https://cdn.jsdelivr.net/npm/ios-vibrator-pro-max@3.0.3/+esm';
+//import { enableBackgroundPopup } from 'https://cdn.jsdelivr.net/npm/ios-vibrator-pro-max@3.0.3/+esm';
+
 
 import TapIndicator from 'modules/TapIndicator.js';
 import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
 
+
+//enableBackgroundPopup(true);
 const sketch = (p) => {
   // --- Plugins
   const tapIndicator = new TapIndicator(p);
@@ -149,15 +154,16 @@ const sketch = (p) => {
     domContainer.size(w * 0.8, '100%');
     const cw = domContainer.size().width;
     const ch = domContainer.size().height;
-    const width = w / 2 - cw / 2;
-    const height = h / 2 - ch / 2;
-    domContainer.position(width, height);
+    const x = w / 2 - cw / 2;
+    const y = h / 2 - ch / 2;
+    domContainer.position(x, y);
   };
 
   function onSliderInput() {
     bpm = Math.min(Math.max(this.value()), maxTempo);
     valueBPM.html(zeroPadValue(bpm));
     BPM.value = bpm;
+    navigator.vibrate(50);
   }
 
   function handleButtonClick() {
@@ -165,6 +171,7 @@ const sketch = (p) => {
     bpm = Math.min(Math.max(bpm + delta, minTempo), maxTempo);
     valueBPM.html(zeroPadValue(bpm));
     BPM.value = bpm;
+    navigator.vibrate(200);
   }
 
   const zeroPadValue = (value) => `${String(value).padStart(3, '0')}`;
