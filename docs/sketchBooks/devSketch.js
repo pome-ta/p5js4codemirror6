@@ -21,23 +21,17 @@ const sketch = (p) => {
   let h = p.windowHeight;
 
   let bpm = 92;
-  const minTempo = 60;
-  const maxTempo = 360;
+  const minTempo = 30;
+  const maxTempo = 300;
 
   let domContainer;
-  let titleBPM;
   let valueBPM;
-  let ctrContainer;
-  let plusBtn;
-  let minusBtn;
-  let slider;
 
   p.setup = () => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
 
     BPM.value = bpm;
-
     const click = new Tone.Synth({
       oscillator: { type: 'sine' },
     }).toDestination();
@@ -50,68 +44,87 @@ const sketch = (p) => {
     ).start(0);
     Tone.getTransport().start();
 
-    domContainer = p.createDiv();
+    domContainer = p.createDiv(`BPM`);
     domContainer
-      //.style('background-color', 'lightblue')
+      //   .style('background-color', 'lightblue')
+      .style('background', 'rgba(255, 255, 255, 0.12)')
+      //   .style('backdrop-filter', 'blur(20px) saturate(180%)')
+      //   .style('backdrop-filter', 'blur(2px) saturate(180%)')
+      .style('backdrop-filter', 'blur(0.5rem) saturate(120%)')
+      .style('border', '1px solid rgba(255, 255, 255, 0.3)')
+      .style('border-radius', '0.8rem')
       .style('font-family', 'monospace')
-      .style('text-align', 'center');
-    //   .style('margin', '2rem');
-    //   .style('align-items', 'center');
-
-    titleBPM = p.createDiv();
-    titleBPM.parent(domContainer);
-    titleBPM.html(`BPM`);
+      .style('text-align', 'center')
+      .style('box-sizing', 'border-box')
+      .style('padding', '2rem');
 
     valueBPM = p.createP(zeroPadValue(bpm));
-    valueBPM.style('font-size', '1.25rem');
-    valueBPM.parent(titleBPM);
+    valueBPM.style('font-size', '1.5rem');
+    valueBPM.style('font-weight', '700');
+    valueBPM.parent(domContainer);
 
-    minusBtn = p.createButton('-', '-1');
-    //minusBtn.style('width', '100%').style('height', '100%');
-    minusBtn.style('font-size', '4rem');
-    plusBtn = p.createButton('+', '1');
-    minusBtn.mouseReleased(handleButtonClick);
-    plusBtn.mouseReleased(handleButtonClick);
+    const minusBtn = p.createButton('-', '-1');
+    const plusBtn = p.createButton('+', '1');
 
-    slider = p.createSlider(minTempo, maxTempo, bpm);
-    slider.style('width', '100%');
+    [minusBtn, plusBtn].reduce((maxSize, rBtnObj, idx, array) => {
+      rBtnObj.style('font-size', '1.25rem').style('border-radius', '50%');
+      rBtnObj.mouseReleased(handleButtonClick);
+
+      const currentMaxSize = Math.max(maxSize, rBtnObj.size?.().width ?? 0, rBtnObj.size?.().height ?? 0);
+
+      idx === array.length - 1 &&
+        array.forEach((fBtnObj) => {
+          fBtnObj.size(currentMaxSize * 1.25, currentMaxSize * 1.25);
+        });
+
+      return currentMaxSize;
+    }, -Infinity);
+
+    // const btns = [minusBtn, plusBtn];
+    // const btnMaxSize = [...btns]
+    //   .flatMap((btn) => {
+    //     btn.style('font-size', '1.25rem');
+    //     btn.style('border-radius', '50%');
+    //     btn.mouseReleased(handleButtonClick);
+    //     return [btn.size?.().width ?? 0, btn.size?.().height ?? 0];
+    //   })
+    //   .reduce((max, val) => Math.max(max, val), -Infinity);
+    // btns.forEach((btn) => btn.size(btnMaxSize * 1.25, btnMaxSize * 1.25));
+
+    const slider = p.createSlider(minTempo, maxTempo, bpm);
+    // slider.style('width', '100%');
     slider.input(onSliderInput);
 
-    ctrContainer = p.createDiv();
-    ctrContainer.parent(domContainer);
-    ctrContainer
-      //.style('background-color', 'magenta')
-      .style('display', 'grid')
-      .style('grid-template-columns', 'auto 1fr auto')
-      .style('gap', '1rem')
-      .style('align-items', 'center')
-      .style('margin', '1rem 0');
+    // const createContainerDiv = (parent, ...children) => {
+    //   const _container = p.createDiv();
+    //   _container.parent(parent);
+    //   _container
+    //     .style('background-color', 'magenta')
+    //     .style('display', 'grid')
+    //     .style('grid-template-columns', 'auto 1fr auto')
+    //     .style('gap', '1rem')
+    //     .style('align-items', 'center');
+    //   children.forEach((child) => _container.child(child));
+    // };
+    // createContainerDiv(domContainer, minusBtn, slider, plusBtn);
 
-    minusBtn.parent(ctrContainer);
-    slider.parent(ctrContainer);
-    plusBtn.parent(ctrContainer);
+    ((parent, ...children) => {
+      const _container = p.createDiv();
+      _container.parent(parent);
+      _container
+        // .style('background-color', 'magenta')
+        .style('display', 'grid')
+        .style('grid-template-columns', 'auto 1fr auto')
+        .style('gap', '1rem')
+        .style('align-items', 'center');
+      children.forEach((child) => _container.child(child));
+    })(domContainer, minusBtn, slider, plusBtn);
+    // createContainerDiv(domContainer, minusBtn, slider, plusBtn);
 
-    const btns = [minusBtn, plusBtn];
-
-    const btnMaxSize = [...btns]
-      //   .flatMap((btn) => [btn.size?.().width ?? 0, btn.size?.().height ?? 0])
-      .flatMap((btn) => {
-        //btn.style('width', '100%').style('height', '100%');
-        //btn.style('font-size', '4rem');
-        return [btn.width ?? 0, btn.height ?? 0];
-      })
-      .reduce((max, val) => Math.max(max, val), -Infinity);
-
-    btns.forEach((btn) => {
-      //btn.size(btnMaxSize, btnMaxSize);
-      btn.style('border-radius', '50%')
-      
-    });
+    domSetLayout();
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(click);
-
-    domSetLayout();
 
     //p.noLoop();
   };
@@ -119,7 +132,7 @@ const sketch = (p) => {
   p.draw = () => {
     // put drawing code here
     p.background(80);
-    p.rect(0, 0, w / 2, h / 2);
+    // p.rect(0, 0, w / 2, h / 2);
     spectrumAnalyzer.drawGraph();
   };
 
@@ -132,49 +145,13 @@ const sketch = (p) => {
   };
 
   const domSetLayout = () => {
-    console.log('layout');
-    console.log(minusBtn);
-    console.log('--- minusBtn');
-    console.log(minusBtn.width);
-    console.log(minusBtn.size().width);
-    console.log(minusBtn.height);
-    console.log(minusBtn.size().height);
-    console.log('--- plusBtn');
-    console.log(plusBtn.width);
-    console.log(plusBtn.size().width);
-    console.log(plusBtn.height);
-    console.log(plusBtn.size().height);
-    console.log(plusBtn.size());
-
-    // const btnMaxSize = [minusBtn, plusBtn]
-    //   .flatMap(Object.values)
-    //   .reduce((max, val) => Math.max(max, val), -Infinity);
-    // console.log(btnMaxSize);
-
-    // const btns = [minusBtn, plusBtn];
-
-    // const btnMaxSize = [...btns]
-    //   //   .flatMap((btn) => [btn.size?.().width ?? 0, btn.size?.().height ?? 0])
-    //   .flatMap((btn) => [btn.width ?? 0, btn.height ?? 0])
-    //   .reduce((max, val) => Math.max(max, val), -Infinity);
-
-    // btns.forEach((btn) => btn.size(btnMaxSize, btnMaxSize));
-    // console.log(btnMaxSize);
+    // console.log('layout');
     domContainer.size(w * 0.8, '100%');
-
     const cw = domContainer.size().width;
     const ch = domContainer.size().height;
-
-    console.log('--- width');
-    console.log(domContainer.width);
-    console.log(domContainer.size().width);
-    console.log('--- height');
-    console.log(domContainer.height);
-    console.log(domContainer.size().height);
-
-    domContainer.position(w / 2 - cw / 2, h / 2 - ch / 2);
-
-    // btns.forEach((btn) => btn.size(btnMaxSize *2, btnMaxSize*2));
+    const width = w / 2 - cw / 2;
+    const height = h / 2 - ch / 2;
+    domContainer.position(width, height);
   };
 
   function onSliderInput() {
