@@ -21,6 +21,8 @@ const sketch = (p) => {
   let h = p.windowHeight;
 
   let bpm = 92;
+  const minTempo = 60;
+  const maxTempo = 360;
 
   let domContainer;
   let titleBPM;
@@ -33,7 +35,6 @@ const sketch = (p) => {
   p.setup = () => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
-    //cnvs.mouseReleased(p.userStartAudio);
 
     BPM.value = bpm;
 
@@ -50,57 +51,62 @@ const sketch = (p) => {
     Tone.getTransport().start();
 
     domContainer = p.createDiv();
-    domContainer.style('background-color', 'lightblue');
-    //domContainer.style('display', 'grid');
-    // domContainer.style('grid-template-columns', '1fr 50% 1fr');
-    // domContainer.style('grid-template-rows', '1fr 1fr 1fr');
+    domContainer
+      //.style('background-color', 'lightblue')
+      .style('font-family', 'monospace')
+      .style('text-align', 'center');
+    //   .style('margin', '2rem');
+    //   .style('align-items', 'center');
 
-    //titleBPM = p.createP(`BPM`);
     titleBPM = p.createDiv();
-    titleBPM.html(`BPM`);
     titleBPM.parent(domContainer);
-    //labelBPM.style('grid-column', '2 / 3');
-    //labelBPM.style('grid-row', '1');
+    titleBPM.html(`BPM`);
 
-    valueBPM = p.createP(`${bpm}`);
-    //valueBPM.html(`${bpm}`);
-    //valueBPM.parent(domContainer);
+    valueBPM = p.createP(zeroPadValue(bpm));
+    valueBPM.style('font-size', '1.25rem');
     valueBPM.parent(titleBPM);
-    //labelBPM2.style('grid-column', '2 / 3');
-    //labelBPM2.style('grid-row', '2');
+
+    minusBtn = p.createButton('-', '-1');
+    //minusBtn.style('width', '100%').style('height', '100%');
+    minusBtn.style('font-size', '4rem');
+    plusBtn = p.createButton('+', '1');
+    minusBtn.mouseReleased(handleButtonClick);
+    plusBtn.mouseReleased(handleButtonClick);
+
+    slider = p.createSlider(minTempo, maxTempo, bpm);
+    slider.style('width', '100%');
+    slider.input(onSliderInput);
 
     ctrContainer = p.createDiv();
-    ctrContainer.style('background-color', 'magenta');
     ctrContainer.parent(domContainer);
-    ctrContainer.style('display', 'grid');
-    ctrContainer.style('grid-template-columns', 'auto 1fr auto');
-    //ctrContainer.style('grid-template-rows', '1fr 1fr 1fr
+    ctrContainer
+      //.style('background-color', 'magenta')
+      .style('display', 'grid')
+      .style('grid-template-columns', 'auto 1fr auto')
+      .style('gap', '1rem')
+      .style('align-items', 'center')
+      .style('margin', '1rem 0');
 
-    minusBtn = p.createButton('ま', false);
-    minusBtn.mouseReleased(handleButtonClick);
     minusBtn.parent(ctrContainer);
-    //minusBtn.style('grid-column', '1 / 3');
-    //minusBtn.style('grid-row', '3');
-
-    slider = p.createSlider(60, 360, bpm);
-    slider.input(onSliderInput);
     slider.parent(ctrContainer);
-    // ctrContainerに対する操作
-
-    slider.style('width', '100%');
-
-    //slider.style('grid-column', '2 / 3');
-    //slider.style('grid-row', '3');
-
-    plusBtn = p.createButton('ぷ', true);
-    plusBtn.mouseReleased(handleButtonClick);
     plusBtn.parent(ctrContainer);
-    //plusBtn.style('grid-column', '3 / 3');
-    //plusBtn.style('grid-row', '3');
 
-    // domContainer.child(labelBPM);
-    // domContainer.child(slider);
-    // domContainer.position(100, 200);
+    const btns = [minusBtn, plusBtn];
+
+    const btnMaxSize = [...btns]
+      //   .flatMap((btn) => [btn.size?.().width ?? 0, btn.size?.().height ?? 0])
+      .flatMap((btn) => {
+        //btn.style('width', '100%').style('height', '100%');
+        //btn.style('font-size', '4rem');
+        return [btn.width ?? 0, btn.height ?? 0];
+      })
+      .reduce((max, val) => Math.max(max, val), -Infinity);
+
+    btns.forEach((btn) => {
+      //btn.size(btnMaxSize, btnMaxSize);
+      btn.style('border-radius', '50%')
+      
+    });
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(click);
@@ -127,14 +133,37 @@ const sketch = (p) => {
 
   const domSetLayout = () => {
     console.log('layout');
+    console.log(minusBtn);
+    console.log('--- minusBtn');
+    console.log(minusBtn.width);
+    console.log(minusBtn.size().width);
+    console.log(minusBtn.height);
+    console.log(minusBtn.size().height);
+    console.log('--- plusBtn');
+    console.log(plusBtn.width);
+    console.log(plusBtn.size().width);
+    console.log(plusBtn.height);
+    console.log(plusBtn.size().height);
+    console.log(plusBtn.size());
 
-    // domContainer.size(w * 0.8, domContainer.size().height);
+    // const btnMaxSize = [minusBtn, plusBtn]
+    //   .flatMap(Object.values)
+    //   .reduce((max, val) => Math.max(max, val), -Infinity);
+    // console.log(btnMaxSize);
+
+    // const btns = [minusBtn, plusBtn];
+
+    // const btnMaxSize = [...btns]
+    //   //   .flatMap((btn) => [btn.size?.().width ?? 0, btn.size?.().height ?? 0])
+    //   .flatMap((btn) => [btn.width ?? 0, btn.height ?? 0])
+    //   .reduce((max, val) => Math.max(max, val), -Infinity);
+
+    // btns.forEach((btn) => btn.size(btnMaxSize, btnMaxSize));
+    // console.log(btnMaxSize);
     domContainer.size(w * 0.8, '100%');
 
     const cw = domContainer.size().width;
     const ch = domContainer.size().height;
-
-    //ctrContainer.size(cw, '100%');
 
     console.log('--- width');
     console.log(domContainer.width);
@@ -144,19 +173,24 @@ const sketch = (p) => {
     console.log(domContainer.size().height);
 
     domContainer.position(w / 2 - cw / 2, h / 2 - ch / 2);
+
+    // btns.forEach((btn) => btn.size(btnMaxSize *2, btnMaxSize*2));
   };
 
   function onSliderInput() {
-    bpm = this.value();
-    valueBPM.html(`${bpm}`);
+    bpm = Math.min(Math.max(this.value()), maxTempo);
+    valueBPM.html(zeroPadValue(bpm));
     BPM.value = bpm;
   }
 
   function handleButtonClick() {
-    bpm += this.value() ? 1 : -1;
-    valueBPM.html(`${bpm}`);
+    const delta = Math.trunc(Number(this.value())) ?? 0;
+    bpm = Math.min(Math.max(bpm + delta, minTempo), maxTempo);
+    valueBPM.html(zeroPadValue(bpm));
     BPM.value = bpm;
   }
+
+  const zeroPadValue = (value) => `${String(value).padStart(3, '0')}`;
 };
 
 new p5(sketch);
