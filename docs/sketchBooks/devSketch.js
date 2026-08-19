@@ -35,6 +35,11 @@ const sketch = (p) => {
   let divSignals;
   let labelBPM;
 
+  const containerColors = [
+    ['background', 'rgba(0, 0, 0, 0.08)'],
+    ['background', 'rgba(255, 255, 255, 0.08)'],
+  ];
+
   const signalColors = [
     ['background', 'rgba(128, 128, 128, 0.12)'],
     ['background', 'rgba(255, 0, 255, 0.12)'],
@@ -87,7 +92,7 @@ const sketch = (p) => {
   const uiSetup = () => {
     domContainer = p.createDiv();
     domContainer
-      .style('background', 'rgba(255, 255, 255, 0.08)')
+      //.style('background', 'rgba(255, 255, 255, 0.08)')
       .style('backdrop-filter', 'blur(0.1rem) saturate(120%)')
       .style('border', '1px solid rgba(255, 255, 255, 0.3)')
       .style('border-radius', '0.8rem')
@@ -96,6 +101,7 @@ const sketch = (p) => {
       .style('box-sizing', 'border-box')
       .style('padding', '1rem');
 
+    updateContainer();
     {
       const signalContainer = p.createDiv();
       signalContainer
@@ -161,11 +167,7 @@ const sketch = (p) => {
         rBtnObj.style('font-size', '1.25rem').style('border-radius', '50%');
         rBtnObj.mouseReleased(handleButtonClick);
 
-        const currentMaxSize = Math.max(
-          maxSize,
-          rBtnObj.size?.().width ?? 0,
-          rBtnObj.size?.().height ?? 0,
-        );
+        const currentMaxSize = Math.max(maxSize, rBtnObj.size?.().width ?? 0, rBtnObj.size?.().height ?? 0);
 
         idx === array.length - 1 &&
           array.forEach((fBtnObj) => {
@@ -232,6 +234,7 @@ const sketch = (p) => {
     isStarted = !isStarted;
     isStarted ? Tone.getTransport().start() : Tone.getTransport().stop();
     isStarted || updateSignals();
+    updateContainer();
     this.html(`${isStarted ? pauseStr : playStr}`);
   }
 
@@ -240,7 +243,9 @@ const sketch = (p) => {
       div.style(...signalColors[sIdx === idx ? 1 : 0]);
     });
   }
-
+  function updateContainer() {
+    domContainer.style(...containerColors[isStarted ? 1 : 0]);
+  }
   const zeroPadValue = (value) => `${String(value).padStart(3, '0')}`;
 };
 
