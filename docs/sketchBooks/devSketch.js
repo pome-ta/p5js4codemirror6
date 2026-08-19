@@ -34,19 +34,10 @@ const sketch = (p) => {
   let domContainer;
   let divSignals;
   let labelBPM;
-  // let playBtn;
 
   const signalColors = [
-    [
-      ['background', 'rgba(255, 0, 255, 0.12)'],
-      //['backdrop-filter', 'blur(0.1rem) saturate(120%)'],
-      //['border', '1px solid rgba(255, 255, 255, 0.3)'],
-    ],
-    [
-      ['background', 'rgba(128, 128, 128, 0.12)'],
-      //['backdrop-filter', 'blur(0.1rem) saturate(120%)'],
-      //['border', '1px solid rgba(255, 255, 255, 0.3)'],
-    ],
+    ['background', 'rgba(128, 128, 128, 0.12)'],
+    ['background', 'rgba(255, 0, 255, 0.12)'],
   ];
 
   const toneSetup = () => {
@@ -81,7 +72,7 @@ const sketch = (p) => {
   p.draw = () => {
     // put drawing code here
     p.background(80);
-    p.rect(0, 0, w / 2, h / 2);
+    //p.rect(0, 0, w / 2, h / 2);
     spectrumAnalyzer.drawGraph();
   };
 
@@ -114,7 +105,6 @@ const sketch = (p) => {
         .style('padding', '1rem')
         .style('background', 'rgba(0, 0, 0, 0.12)')
         .style('backdrop-filter', 'blur(0.1rem) saturate(120%)')
-        // .style('border', '1px solid rgba(255, 255, 255, 0.3)')
         .style('display', 'flex')
         .style('justify-content', 'space-between');
       signalContainer.parent(domContainer);
@@ -123,21 +113,23 @@ const sketch = (p) => {
       // xxx: 決め打ち
       divSignals = Array.from({ length: 4 }, (_, idx) => {
         const div = p.createDiv();
-        div.style('width', _divSize).style('height', _divSize).style('border-radius', '50%');
-        signalColors[1].forEach((style) => div.style(...style));
+        div
+          .style('width', _divSize)
+          .style('height', _divSize)
+          .style('border-radius', '50%')
+          .style('backdrop-filter', 'blur(0.1rem) saturate(120%)')
+          .style('borderr', '1px solid rgba(255, 255, 255, 0.3)');
+
         div.parent(signalContainer);
 
         return div;
       });
+      updateSignals();
     }
 
     {
       const labelContainer = p.createDiv();
-      // labelContainer
-      //   .style('display', 'grid')
-      //   .style('grid-template-columns', '1fr 1fr')
-      //   .style('gap', '1rem')
-      //   .style('align-items', 'center');
+
       labelContainer
         .style('display', 'flex')
         .style('justify-content', 'center')
@@ -169,7 +161,11 @@ const sketch = (p) => {
         rBtnObj.style('font-size', '1.25rem').style('border-radius', '50%');
         rBtnObj.mouseReleased(handleButtonClick);
 
-        const currentMaxSize = Math.max(maxSize, rBtnObj.size?.().width ?? 0, rBtnObj.size?.().height ?? 0);
+        const currentMaxSize = Math.max(
+          maxSize,
+          rBtnObj.size?.().width ?? 0,
+          rBtnObj.size?.().height ?? 0,
+        );
 
         idx === array.length - 1 &&
           array.forEach((fBtnObj) => {
@@ -180,7 +176,6 @@ const sketch = (p) => {
       }, -Infinity);
     }
     const slider = p.createSlider(minTempo, maxTempo, bpm);
-
     slider.input(onSliderInput);
 
     ((parent, ...children) => {
@@ -233,18 +228,17 @@ const sketch = (p) => {
   }
 
   function handleButtonPlay() {
+    // updateSignals();
     isStarted = !isStarted;
-    isStarted || updateSignals();
     isStarted ? Tone.getTransport().start() : Tone.getTransport().stop();
+    isStarted || updateSignals();
     this.html(`${isStarted ? pauseStr : playStr}`);
   }
 
   function updateSignals(sIdx = null) {
     divSignals.forEach((div, idx) => {
-      signalColors[1].forEach((_style) => div.style(..._style));
+      div.style(...signalColors[sIdx === idx ? 1 : 0]);
     });
-
-    sIdx !== null && signalColors[0].forEach((_style) => divSignals[sIdx].style(..._style));
   }
 
   const zeroPadValue = (value) => `${String(value).padStart(3, '0')}`;
