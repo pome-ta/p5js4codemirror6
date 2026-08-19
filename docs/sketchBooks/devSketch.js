@@ -1,13 +1,10 @@
 // --- # example: メトロノーム & DOM 要素
 
 import * as Tone from 'tone';
-//import 'https://cdn.jsdelivr.net/npm/ios-vibrator-pro-max@3.0.3/+esm';
-//import { enableBackgroundPopup } from 'https://cdn.jsdelivr.net/npm/ios-vibrator-pro-max@3.0.3/+esm';
 
 import TapIndicator from 'modules/TapIndicator.js';
 import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
 
-//enableBackgroundPopup(true);
 const sketch = (p) => {
   // --- Plugins
   const tapIndicator = new TapIndicator(p);
@@ -27,31 +24,80 @@ const sketch = (p) => {
   const minTempo = 30;
   const maxTempo = 300;
 
+  let isStarted = false;
+  const playStr = '▷';
+  const pauseStr = '■';
+
+  let click;
+  let seq;
+
   let domContainer;
-  let valueBPM;
+  let divSignals;
+  let labelBPM;
+  // let playBtn;
+
+  const signalColors = [
+    [
+      ['background', 'rgba(255, 0, 255, 0.12)'],
+      //['backdrop-filter', 'blur(0.1rem) saturate(120%)'],
+      //['border', '1px solid rgba(255, 255, 255, 0.3)'],
+    ],
+    [
+      ['background', 'rgba(128, 128, 128, 0.12)'],
+      //['backdrop-filter', 'blur(0.1rem) saturate(120%)'],
+      //['border', '1px solid rgba(255, 255, 255, 0.3)'],
+    ],
+  ];
+
+  const toneSetup = () => {
+    BPM.value = bpm;
+    click = new Tone.Synth({
+      oscillator: { type: 'sine' },
+    }).toDestination();
+    seq = new Tone.Sequence(
+      (time, idx) => {
+        updateSignals(idx);
+        //console.log(idx);
+        click.triggerAttackRelease(`A${idx ? 4 : 5}`, '32n', time);
+      },
+      [0, 1, 2, 3],
+      '4n',
+    ).start(0);
+    isStarted && Tone.getTransport().start();
+  };
 
   p.setup = () => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
 
-    BPM.value = bpm;
-    const click = new Tone.Synth({
-      oscillator: { type: 'sine' },
-    }).toDestination();
-    const seq = new Tone.Sequence(
-      (time, noteNum) => {
-        console.log(`${noteNum}`);
-        click.triggerAttackRelease(`A${noteNum}`, '32n', time);
-      },
-      [5, 4, 4, 4],
-      '4n',
-    ).start(0);
-    Tone.getTransport().start();
+    toneSetup();
+    uiSetup();
+    tapIndicator.setup();
+    spectrumAnalyzer.targetNodes(click);
 
-    domContainer = p.createDiv(`BPM`);
+    //p.noLoop();
+  };
+
+  p.draw = () => {
+    // put drawing code here
+    p.background(80);
+    p.rect(0, 0, w / 2, h / 2);
+    spectrumAnalyzer.drawGraph();
+  };
+
+  p.windowResized = (e) => {
+    console.log('windowResized');
+    w = p.windowWidth;
+    h = p.windowHeight;
+    cnvs = p.resizeCanvas(w, h);
+    domSetLayout();
+  };
+
+  const uiSetup = () => {
+    domContainer = p.createDiv();
     domContainer
-      .style('background', 'rgba(255, 255, 255, 0.12)')
-      .style('backdrop-filter', 'blur(0.2rem) saturate(120%)')
+      .style('background', 'rgba(255, 255, 255, 0.08)')
+      .style('backdrop-filter', 'blur(0.1rem) saturate(120%)')
       .style('border', '1px solid rgba(255, 255, 255, 0.3)')
       .style('border-radius', '0.8rem')
       .style('font-family', 'monospace')
@@ -59,30 +105,82 @@ const sketch = (p) => {
       .style('box-sizing', 'border-box')
       .style('padding', '1rem');
 
-    valueBPM = p.createP(zeroPadValue(bpm));
-    valueBPM.style('font-size', '1.5rem');
-    valueBPM.style('font-weight', '700');
-    valueBPM.parent(domContainer);
+    {
+      const signalContainer = p.createDiv();
+      signalContainer
+        .style('width', '80%')
+        .style('margin', 'auto')
+        .style('border-radius', '0.8rem')
+        .style('padding', '1rem')
+        .style('background', 'rgba(0, 0, 0, 0.12)')
+        .style('backdrop-filter', 'blur(0.1rem) saturate(120%)')
+        // .style('border', '1px solid rgba(255, 255, 255, 0.3)')
+        .style('display', 'flex')
+        .style('justify-content', 'space-between');
+      signalContainer.parent(domContainer);
+
+      const _divSize = '2rem';
+      // xxx: 決め打ち
+      divSignals = Array.from({ length: 4 }, (_, idx) => {
+        const div = p.createDiv();
+        div.style('width', _divSize).style('height', _divSize).style('border-radius', '50%');
+        signalColors[1].forEach((style) => div.style(...style));
+        div.parent(signalContainer);
+
+        return div;
+      });
+    }
+
+    {
+      const labelContainer = p.createDiv();
+      // labelContainer
+      //   .style('display', 'grid')
+      //   .style('grid-template-columns', '1fr 1fr')
+      //   .style('gap', '1rem')
+      //   .style('align-items', 'center');
+      labelContainer
+        .style('display', 'flex')
+        .style('justify-content', 'center')
+        .style('gap', '0.5rem')
+        .style('align-items', 'baseline');
+      labelContainer.parent(domContainer);
+
+      labelBPM = p.createP(zeroPadValue(bpm));
+      const titleBPM = p.createP(`BPM`);
+
+      const _styles = [
+        ['font-size', '2rem'],
+        ['font-weight', '900'],
+      ];
+
+      [labelBPM, titleBPM].forEach((tag, idx) => {
+        idx ||
+          _styles.forEach((_style) => {
+            tag.style(..._style);
+          });
+        tag.parent(labelContainer);
+      });
+    }
 
     const minusBtn = p.createButton('-', '-1');
     const plusBtn = p.createButton('+', '1');
+    {
+      [minusBtn, plusBtn].reduce((maxSize, rBtnObj, idx, array) => {
+        rBtnObj.style('font-size', '1.25rem').style('border-radius', '50%');
+        rBtnObj.mouseReleased(handleButtonClick);
 
-    [minusBtn, plusBtn].reduce((maxSize, rBtnObj, idx, array) => {
-      rBtnObj.style('font-size', '1.25rem').style('border-radius', '50%');
-      rBtnObj.mouseReleased(handleButtonClick);
+        const currentMaxSize = Math.max(maxSize, rBtnObj.size?.().width ?? 0, rBtnObj.size?.().height ?? 0);
 
-      const currentMaxSize = Math.max(maxSize, rBtnObj.size?.().width ?? 0, rBtnObj.size?.().height ?? 0);
+        idx === array.length - 1 &&
+          array.forEach((fBtnObj) => {
+            fBtnObj.size(currentMaxSize * 1.25, currentMaxSize * 1.25);
+          });
 
-      idx === array.length - 1 &&
-        array.forEach((fBtnObj) => {
-          fBtnObj.size(currentMaxSize * 1.25, currentMaxSize * 1.25);
-        });
-
-      return currentMaxSize;
-    }, -Infinity);
-
-
+        return currentMaxSize;
+      }, -Infinity);
+    }
     const slider = p.createSlider(minTempo, maxTempo, bpm);
+
     slider.input(onSliderInput);
 
     ((parent, ...children) => {
@@ -96,26 +194,18 @@ const sketch = (p) => {
       children.forEach((child) => _container.child(child));
     })(domContainer, minusBtn, slider, plusBtn);
 
-    domSetLayout();
+    {
+      const plyBtn = p.createButton(`${isStarted ? pauseStr : playStr}`);
+      plyBtn
+        .style('font-size', '1.25rem')
+        .style('width', '25%')
+        .style('height', '4rem')
+        .style('border-radius', '0.8rem')
+        .style('margin-top', '2rem');
 
-    tapIndicator.setup();
-    spectrumAnalyzer.targetNodes(click);
-
-    //p.noLoop();
-  };
-
-  p.draw = () => {
-    // put drawing code here
-    p.background(80);
-    // p.rect(0, 0, w / 2, h / 2);
-    spectrumAnalyzer.drawGraph();
-  };
-
-  p.windowResized = (e) => {
-    console.log('windowResized');
-    w = p.windowWidth;
-    h = p.windowHeight;
-    cnvs = p.resizeCanvas(w, h);
+      plyBtn.mouseReleased(handleButtonPlay);
+      plyBtn.parent(domContainer);
+    }
     domSetLayout();
   };
 
@@ -131,22 +221,33 @@ const sketch = (p) => {
 
   function onSliderInput() {
     bpm = Math.min(Math.max(this.value()), maxTempo);
-    valueBPM.html(zeroPadValue(bpm));
+    labelBPM.html(zeroPadValue(bpm));
     BPM.value = bpm;
-    //navigator.vibrate(50);
   }
 
   function handleButtonClick() {
     const delta = Math.trunc(Number(this.value())) ?? 0;
     bpm = Math.min(Math.max(bpm + delta, minTempo), maxTempo);
-    valueBPM.html(zeroPadValue(bpm));
+    labelBPM.html(zeroPadValue(bpm));
     BPM.value = bpm;
-    //navigator.vibrate(200);
-    console.log(this.html)
+  }
+
+  function handleButtonPlay() {
+    isStarted = !isStarted;
+    isStarted || updateSignals();
+    isStarted ? Tone.getTransport().start() : Tone.getTransport().stop();
+    this.html(`${isStarted ? pauseStr : playStr}`);
+  }
+
+  function updateSignals(sIdx = null) {
+    divSignals.forEach((div, idx) => {
+      signalColors[1].forEach((_style) => div.style(..._style));
+    });
+
+    sIdx !== null && signalColors[0].forEach((_style) => divSignals[sIdx].style(..._style));
   }
 
   const zeroPadValue = (value) => `${String(value).padStart(3, '0')}`;
 };
 
 new p5(sketch);
-
