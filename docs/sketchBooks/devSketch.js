@@ -1,7 +1,7 @@
 // --- # example: メトロノーム & DOM 要素
 
 import * as Tone from 'tone';
-import 'https://cdn.jsdelivr.net/npm/ios-vibrator-pro-max@3.0.3/+esm';
+//import 'https://cdn.jsdelivr.net/npm/ios-vibrator-pro-max@3.0.3/+esm';
 //import { enableBackgroundPopup } from 'https://cdn.jsdelivr.net/npm/ios-vibrator-pro-max@3.0.3/+esm';
 
 import TapIndicator from 'modules/TapIndicator.js';
@@ -40,6 +40,7 @@ const sketch = (p) => {
     }).toDestination();
     const seq = new Tone.Sequence(
       (time, noteNum) => {
+        console.log(`${noteNum}`);
         click.triggerAttackRelease(`A${noteNum}`, '32n', time);
       },
       [5, 4, 4, 4],
@@ -49,10 +50,7 @@ const sketch = (p) => {
 
     domContainer = p.createDiv(`BPM`);
     domContainer
-      //   .style('background-color', 'lightblue')
       .style('background', 'rgba(255, 255, 255, 0.12)')
-      //   .style('backdrop-filter', 'blur(20px) saturate(180%)')
-      //   .style('backdrop-filter', 'blur(2px) saturate(180%)')
       .style('backdrop-filter', 'blur(0.2rem) saturate(120%)')
       .style('border', '1px solid rgba(255, 255, 255, 0.3)')
       .style('border-radius', '0.8rem')
@@ -83,46 +81,20 @@ const sketch = (p) => {
       return currentMaxSize;
     }, -Infinity);
 
-    // const btns = [minusBtn, plusBtn];
-    // const btnMaxSize = [...btns]
-    //   .flatMap((btn) => {
-    //     btn.style('font-size', '1.25rem');
-    //     btn.style('border-radius', '50%');
-    //     btn.mouseReleased(handleButtonClick);
-    //     return [btn.size?.().width ?? 0, btn.size?.().height ?? 0];
-    //   })
-    //   .reduce((max, val) => Math.max(max, val), -Infinity);
-    // btns.forEach((btn) => btn.size(btnMaxSize * 1.25, btnMaxSize * 1.25));
 
     const slider = p.createSlider(minTempo, maxTempo, bpm);
-    // slider.style('width', '100%');
     slider.input(onSliderInput);
-
-    // const createContainerDiv = (parent, ...children) => {
-    //   const _container = p.createDiv();
-    //   _container.parent(parent);
-    //   _container
-    //     .style('background-color', 'magenta')
-    //     .style('display', 'grid')
-    //     .style('grid-template-columns', 'auto 1fr auto')
-    //     .style('gap', '1rem')
-    //     .style('align-items', 'center');
-    //   children.forEach((child) => _container.child(child));
-    // };
-    // createContainerDiv(domContainer, minusBtn, slider, plusBtn);
 
     ((parent, ...children) => {
       const _container = p.createDiv();
       _container.parent(parent);
       _container
-        // .style('background-color', 'magenta')
         .style('display', 'grid')
         .style('grid-template-columns', 'auto 1fr auto')
         .style('gap', '1rem')
         .style('align-items', 'center');
       children.forEach((child) => _container.child(child));
     })(domContainer, minusBtn, slider, plusBtn);
-    // createContainerDiv(domContainer, minusBtn, slider, plusBtn);
 
     domSetLayout();
 
@@ -161,7 +133,7 @@ const sketch = (p) => {
     bpm = Math.min(Math.max(this.value()), maxTempo);
     valueBPM.html(zeroPadValue(bpm));
     BPM.value = bpm;
-    navigator.vibrate(50);
+    //navigator.vibrate(50);
   }
 
   function handleButtonClick() {
@@ -169,10 +141,12 @@ const sketch = (p) => {
     bpm = Math.min(Math.max(bpm + delta, minTempo), maxTempo);
     valueBPM.html(zeroPadValue(bpm));
     BPM.value = bpm;
-    navigator.vibrate(200);
+    //navigator.vibrate(200);
+    console.log(this.html)
   }
 
   const zeroPadValue = (value) => `${String(value).padStart(3, '0')}`;
 };
 
 new p5(sketch);
+
