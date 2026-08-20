@@ -19,7 +19,11 @@ const sketch = (p) => {
   let w = p.windowWidth;
   let h = p.windowHeight;
 
-  const signalStr = ['◎', '◉'];
+  const signalStr = {
+    idle: '◎',
+    hold: '◉',
+  };
+
   let signalBtn;
 
   p.setup = () => {
@@ -49,7 +53,7 @@ const sketch = (p) => {
   };
 
   const domSetup = () => {
-    signalBtn = p.createButton(signalStr[0]);
+    signalBtn = p.createButton(signalStr.idle);
     signalBtn
       //.style('font-family', 'monospace')
       .style('font-size', '3rem')
@@ -60,6 +64,11 @@ const sketch = (p) => {
       .style('-webkit-user-select', 'none')
       .style('user-select', 'none')
       .style('touch-action', 'none');
+
+    const signalHandler = {
+      pointerdown: () => {},
+      pointerup: () => {},
+    };
 
     signalBtn.mousePressed(btnPressed);
     signalBtn.mouseReleased(btnReleased);
