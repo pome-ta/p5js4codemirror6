@@ -20,8 +20,8 @@ const sketch = (p) => {
   let h = p.windowHeight;
 
   const signalStr = {
-    idle: '◎',
     hold: '◉',
+    idle: '◎',
   };
 
   let signalBtn;
@@ -65,9 +65,15 @@ const sketch = (p) => {
       .style('user-select', 'none')
       .style('touch-action', 'none');
 
-    const signalHandler = {
-      pointerdown: () => {},
-      pointerup: () => {},
+    const signalLiteral = {
+      pointerdown: (event) => {},
+      pointerup: (event) => {},
+    };
+
+    //signalHandler
+
+    const signalEvent = (e) => {
+      signalLiteral[e.type](e);
     };
 
     signalBtn.mousePressed(btnPressed);
@@ -76,11 +82,11 @@ const sketch = (p) => {
   };
 
   function btnPressed() {
-    this.html(signalStr[1]);
+    this.html(signalStr.hold);
   }
 
   function btnReleased() {
-    this.html(signalStr[0]);
+    this.html(signalStr.idle);
   }
 
   const domLayout = () => {
