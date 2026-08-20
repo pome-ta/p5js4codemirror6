@@ -25,8 +25,7 @@ const sketch = (p) => {
   p.setup = () => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
-    domSetup()
-
+    domSetup();
 
     tapIndicator.setup();
     //spectrumAnalyzer.targetNodes(click);
@@ -46,34 +45,43 @@ const sketch = (p) => {
     w = p.windowWidth;
     h = p.windowHeight;
     cnvs = p.resizeCanvas(w, h);
-    domSetup()
+    domSetup();
   };
 
-
-const domSetup = () => {
-
+  const domSetup = () => {
     signalBtn = p.createButton(signalStr[0]);
     signalBtn
-      .style('font-family', 'monospace')
-       .style('font-size', '3rem')
-//.style('display', 'inline-flex')
-        //.style('justify-content', 'center')
-        .style('line-height', '1')
+      //.style('font-family', 'monospace')
+      .style('font-size', '3rem')
       .style('width', '4rem')
       .style('height', '4rem')
-      .style('border-radius', '50%');
-      domLayout()
+      .style('border-radius', '50%')
+      .style('-webkit-touch-callout', 'none')
+      .style('-webkit-user-select', 'none')
+      .style('user-select', 'none')
+      .style('touch-action', 'none');
+
+    signalBtn.mousePressed(btnPressed);
+    signalBtn.mouseReleased(btnReleased);
+    domLayout();
   };
 
-const domLayout = () => {
+  function btnPressed() {
+    this.html(signalStr[1]);
+  }
+
+  function btnReleased() {
+    this.html(signalStr[0]);
+  }
+
+  const domLayout = () => {
     // console.log('layout');
     const cw = signalBtn.size().width;
     const ch = signalBtn.size().height;
     const x = w / 2 - cw / 2;
     const y = h / 2 - ch / 2;
-    signalBtn.position(x, y);
+    signalBtn.position(x, y / 2 + y);
   };
-
 };
 
 new p5(sketch);
