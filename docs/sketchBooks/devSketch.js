@@ -19,20 +19,25 @@ const sketch = (p) => {
   let w = p.windowWidth;
   let h = p.windowHeight;
 
+  let synth;
+
+  let signalBtn;
   const signalStr = {
     hold: '◉',
     idle: '◎',
   };
-
-  let signalBtn;
 
   p.setup = () => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
     domSetup();
 
+    synth = new Tone.Synth({
+      oscillator: { type: 'sine' },
+    }).toDestination();
+
     tapIndicator.setup();
-    //spectrumAnalyzer.targetNodes(click);
+    spectrumAnalyzer.targetNodes(synth);
 
     //p.noLoop();
   };
@@ -41,7 +46,7 @@ const sketch = (p) => {
     // put drawing code here
     p.background(80);
     //p.rect(0, 0, w / 2, h / 2);
-    //spectrumAnalyzer.drawGraph();
+    spectrumAnalyzer.drawGraph();
   };
 
   p.windowResized = (e) => {
@@ -49,7 +54,7 @@ const sketch = (p) => {
     w = p.windowWidth;
     h = p.windowHeight;
     cnvs = p.resizeCanvas(w, h);
-    domSetup();
+    domLayout();
   };
 
   const domSetup = () => {
@@ -66,28 +71,27 @@ const sketch = (p) => {
       .style('touch-action', 'none');
 
     const signalLiteral = {
-      pointerdown: (event) => {},
-      pointerup: (event) => {},
+      pointerdown: (btn) => {
+        btn.html(signalStr.hold);
+        synth.triggerAttack('A4');
+      },
+      pointerup: (btn) => {
+        btn.html(signalStr.idle);
+        synth.triggerRelease();
+      },
     };
-
-    //signalHandler
 
     const signalEvent = (e) => {
-      signalLiteral[e.type](e);
+      signalLiteral[e.type](signalBtn);
     };
 
-    signalBtn.mousePressed(btnPressed);
-    signalBtn.mouseReleased(btnReleased);
+    //signalBtn.mousePressed(btnPressed);
+    //signalBtn.mouseReleased(btnReleased);
+    signalBtn.mousePressed(signalEvent);
+    signalBtn.mouseReleased(signalEvent);
+
     domLayout();
   };
-
-  function btnPressed() {
-    this.html(signalStr.hold);
-  }
-
-  function btnReleased() {
-    this.html(signalStr.idle);
-  }
 
   const domLayout = () => {
     // console.log('layout');
