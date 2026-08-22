@@ -14,12 +14,13 @@ const sketch = (p) => {
   const ctx = p.getAudioContext();
   Tone.setContext(ctx);
 
+  let master;
+  let synth;
+
   // --- Sketch
   let cnvs;
   let w = p.windowWidth;
   let h = p.windowHeight;
-
-  let synth;
 
   let signalBtn;
   const signalStr = {
@@ -32,12 +33,20 @@ const sketch = (p) => {
     cnvs = p.createCanvas(w, h);
     domSetup();
 
-    synth = new Tone.Synth({
-      oscillator: { type: 'sine' },
-    }).toDestination();
+    synth = new Tone.Synth({ oscillator: { type: 'sine' } });
+    //synth = new Tone.Synth();
+    console.log(synth);
+
+    master = new Tone.Channel().toDestination();
+    //master.volume.rampTo(10, 0);
+    synth.connect(master);
+
+    const osc = new Tone.Oscillator().toDestination();
+    osc.frequency.value = 'C4';
+    osc.start();
 
     tapIndicator.setup();
-    spectrumAnalyzer.targetNodes(synth);
+    spectrumAnalyzer.targetNodes(osc, master);
 
     //p.noLoop();
   };
@@ -84,9 +93,6 @@ const sketch = (p) => {
     const signalEvent = (e) => {
       signalLiteral[e.type](signalBtn);
     };
-
-    //signalBtn.mousePressed(btnPressed);
-    //signalBtn.mouseReleased(btnReleased);
     signalBtn.mousePressed(signalEvent);
     signalBtn.mouseReleased(signalEvent);
 
