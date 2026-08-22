@@ -36,26 +36,38 @@ const sketch = (p) => {
 
     synth = new Tone.Synth({ oscillator: { type: 'sine' } });
     //synth = new Tone.Synth();
-    const channelA = new Tone.Channel();
+    const channelA = new Tone.Channel({ channelCount: 1 });
     synth.connect(channelA);
 
     const osc = new Tone.Oscillator();
     osc.frequency.value = 'B4';
     osc.start();
 
-    const channelB = new Tone.Channel();
+    const channelB = new Tone.Channel({ channelCount: 1 });
     osc.connect(channelB);
-    //channelB.toDestination()
-    const channelC = new Tone.Channel();
-    channelB.connect(channelC);
 
-    master = new Tone.Channel()//.toDestination();
+    // const channelC = new Tone.Channel({ channelCount: 1 });
+    // channelB.connect(channelC);
+
+    const osc2 = new Tone.Oscillator();
+    osc2.frequency.value = 'D2';
+    osc2.start();
+
+    const channelD = new Tone.Channel({ channelCount: 1 });
+    osc2.connect(channelD);
+
+    const channelE = new Tone.Channel({ channelCount: 1 });
+    channelD.connect(channelE);
+
+    master = new Tone.Channel({ channelCount: 2 }).toDestination();
     //master.volume.rampTo(10, 0);
-    //channelA.connect(master);
+    channelA.connect(master);
     channelB.connect(master);
-    //channelC.connect(master);
-    
-    master.toDestination()
+    // channelC.connect(master);
+    // channelD.connect(master);
+    channelE.connect(master);
+
+    // master.toDestination();
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(master);
@@ -81,8 +93,8 @@ const sketch = (p) => {
   const domSetup = () => {
     signalBtn = p.createButton(signalStr.idle);
     signalBtn
-      //.style('font-family', 'monospace')
-      .style('font-size', '3rem')
+      // .style('font-family', 'monospace')
+      .style('font-size', '2rem')
       .style('width', '4rem')
       .style('height', '4rem')
       .style('border-radius', '50%')
