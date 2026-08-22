@@ -57,6 +57,7 @@ const sketch = (p) => {
     osc2.connect(channelD);
 
     const channelE = new Tone.Channel({ channelCount: 1 });
+    console.log(channelE);
     channelD.connect(channelE);
 
     master = new Tone.Channel({ channelCount: 2 }).toDestination();
@@ -66,6 +67,7 @@ const sketch = (p) => {
     // channelC.connect(master);
     // channelD.connect(master);
     channelE.connect(master);
+
 
     // master.toDestination();
 
