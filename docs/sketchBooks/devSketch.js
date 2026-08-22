@@ -15,6 +15,7 @@ const sketch = (p) => {
   Tone.setContext(ctx);
 
   let master;
+  let tracks = [];
   let synth;
 
   // --- Sketch
@@ -35,18 +36,29 @@ const sketch = (p) => {
 
     synth = new Tone.Synth({ oscillator: { type: 'sine' } });
     //synth = new Tone.Synth();
-    console.log(synth);
+    const channelA = new Tone.Channel();
+    synth.connect(channelA);
 
-    master = new Tone.Channel().toDestination();
-    //master.volume.rampTo(10, 0);
-    synth.connect(master);
-
-    const osc = new Tone.Oscillator().toDestination();
-    osc.frequency.value = 'C4';
+    const osc = new Tone.Oscillator();
+    osc.frequency.value = 'B4';
     osc.start();
 
+    const channelB = new Tone.Channel();
+    osc.connect(channelB);
+    //channelB.toDestination()
+    const channelC = new Tone.Channel();
+    channelB.connect(channelC);
+
+    master = new Tone.Channel()//.toDestination();
+    //master.volume.rampTo(10, 0);
+    //channelA.connect(master);
+    channelB.connect(master);
+    //channelC.connect(master);
+    
+    master.toDestination()
+
     tapIndicator.setup();
-    spectrumAnalyzer.targetNodes(osc, master);
+    spectrumAnalyzer.targetNodes(master);
 
     //p.noLoop();
   };
