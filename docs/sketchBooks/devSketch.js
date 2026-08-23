@@ -36,14 +36,16 @@ const sketch = (p) => {
 
     synth = new Tone.Synth({ oscillator: { type: 'sine' } });
     //synth = new Tone.Synth();
-    const channelA = new Tone.Channel({ channelCount: 1 });
+    //const channelA = new Tone.Channel({ channelCount: 1 });
+    const channelA = new Tone.Channel();
     synth.connect(channelA);
 
     const osc = new Tone.Oscillator();
     osc.frequency.value = 'B4';
     osc.start();
 
-    const channelB = new Tone.Channel({ channelCount: 1 });
+    //const channelB = new Tone.Channel({ channelCount: 1 });
+    const channelB = new Tone.Channel();
     osc.connect(channelB);
 
     // const channelC = new Tone.Channel({ channelCount: 1 });
@@ -53,22 +55,20 @@ const sketch = (p) => {
     osc2.frequency.value = 'D3';
     osc2.start();
 
-    const channelD = new Tone.Channel({ channelCount: 1 });
+    const channelD = new Tone.Channel();
     osc2.connect(channelD);
 
-    const channelE = new Tone.Channel({ channelCount: 1 });
-    channelD.connect(channelE);
-    console.log(channelE);
+    const channelE = new Tone.Channel();
+    //channelD.connect(channelE);
+    console.log(osc2);
 
-
-    master = new Tone.Channel({ channelCount: 2 }).toDestination();
+    master = new Tone.Channel(); //.toDestination();
     //master.volume.rampTo(10, 0);
     channelA.connect(master);
     channelB.connect(master);
     // channelC.connect(master);
     // channelD.connect(master);
-    channelE.connect(master);
-
+    //channelE.connect(master);
 
     // master.toDestination();
 

@@ -1,7 +1,4 @@
-import {
-  isAnyAudioNode,
-  isAnyAudioParam,
-} from 'https://cdn.jsdelivr.net/npm/standardized-audio-context@25.3.72/+esm';
+import { isAnyAudioNode, isAnyAudioParam } from 'https://cdn.jsdelivr.net/npm/standardized-audio-context@25.3.72/+esm';
 
 // https://github.com/processing/p5.sound.js/blob/c01819d9c5adef3362f819c8f368a27a7a7bfef5/src/core/p5soundNode.js#L29
 /**
@@ -17,12 +14,7 @@ const resolveOutput = (node) => {
  * 接続先の最深部 AudioNode または AudioParam (input) を取得
  */
 const resolveInput = (node) => {
-  while (
-    node &&
-    !isAnyAudioNode(node) &&
-    !isAnyAudioParam(node) &&
-    node.input !== undefined
-  ) {
+  while (node && !isAnyAudioNode(node) && !isAnyAudioParam(node) && node.input !== undefined) {
     node = node.input;
   }
   return node;
@@ -168,9 +160,7 @@ export default class SpectrumAnalyzer {
 
     this.#spectrumLayer.clear();
 
-    const floatDataArrays = this.#analysers.map((analyzer) =>
-      analyzer.analyze(),
-    );
+    const floatDataArrays = this.#analysers.map((analyzer) => analyzer.analyze());
 
     const xyList = this.#xyRange.map((index) => {
       const x = this.#xCoordinatesCache[index];
@@ -184,20 +174,13 @@ export default class SpectrumAnalyzer {
       const amp = ampTotal ? ampTotal * this.blackmanOverdrive : 1e-10;
       const logDb = 20 * Math.log10(amp);
 
-      const y = this.#p.map(
-        logDb,
-        this.minDb,
-        this.maxDb,
-        this.#grid.size.height,
-        0,
-      );
+      const y = this.#p.map(logDb, this.minDb, this.maxDb, this.#grid.size.height, 0);
 
       return [x, y];
     });
 
     this.#drawSpectrumMap(xyList, this.nowFill);
-    this.#xyListOld?.length &&
-      this.#drawSpectrumMap(this.#xyListOld, this.oldStroke);
+    this.#xyListOld?.length && this.#drawSpectrumMap(this.#xyListOld, this.oldStroke);
     this.#drawSpectrumMap(xyList, this.nowStroke);
 
     this.#xyListOld = xyList;
@@ -268,10 +251,7 @@ export default class SpectrumAnalyzer {
     // --- label
     const labelsLayer = this.#p.createGraphics(w * this.ratio, h * this.ratio);
     const labelsSize = new CanvasSize(labelsLayer.width, labelsLayer.height);
-    const labelsPosition = new CanvasPosition(
-      (w - labelsSize.width) * 0.5,
-      (h - labelsSize.height) * 0.5,
-    );
+    const labelsPosition = new CanvasPosition((w - labelsSize.width) * 0.5, (h - labelsSize.height) * 0.5);
     this.#labels = {
       layer: labelsLayer,
       size: labelsSize,
@@ -279,15 +259,9 @@ export default class SpectrumAnalyzer {
     };
 
     // --- grid
-    const gridLayer = this.#p.createGraphics(
-      labelsSize.width * this.ratio,
-      labelsSize.height * this.ratio,
-    );
+    const gridLayer = this.#p.createGraphics(labelsSize.width * this.ratio, labelsSize.height * this.ratio);
     const gridSize = new CanvasSize(gridLayer.width, gridLayer.height);
-    const gridPosition = new CanvasPosition(
-      (w - gridSize.width) * 0.5,
-      (h - gridSize.height) * 0.5,
-    );
+    const gridPosition = new CanvasPosition((w - gridSize.width) * 0.5, (h - gridSize.height) * 0.5);
     this.#grid = {
       layer: gridLayer,
       size: gridSize,
@@ -295,10 +269,7 @@ export default class SpectrumAnalyzer {
     };
 
     // --- spectrum
-    this.#spectrumLayer = this.#p.createGraphics(
-      gridSize.width,
-      gridSize.height,
-    );
+    this.#spectrumLayer = this.#p.createGraphics(gridSize.width, gridSize.height);
   }
 
   #calculateXCoordinates() {
@@ -357,21 +328,13 @@ export default class SpectrumAnalyzer {
         }
 
         const isMajor = tick === 1;
-        const x = this.#p.map(
-          Math.log10(freq),
-          minLog,
-          maxLog,
-          0,
-          this.#grid.size.width,
-        );
+        const x = this.#p.map(Math.log10(freq), minLog, maxLog, 0, this.#grid.size.width);
 
         if (tick % 2 === 0 || isMajor) {
           this.#grid.layer.stroke(isMajor ? majorColor : minorColor);
           this.#grid.layer.strokeWeight(isMajor ? 1 : 0.8);
 
-          const ty = isMajor
-            ? this.#labels.size.height - yDistance / 2
-            : this.#labels.size.height;
+          const ty = isMajor ? this.#labels.size.height - yDistance / 2 : this.#labels.size.height;
           const textLabel = freq >= 1000 ? `${freq / 1000}k` : `${freq}`;
           this.#labels.layer.text(textLabel, x + xDistance, ty);
         } else {
@@ -394,13 +357,7 @@ export default class SpectrumAnalyzer {
       if (db <= this.minDb || db >= this.maxDb) {
         return;
       }
-      const y = this.#p.map(
-        db,
-        this.minDb,
-        this.maxDb,
-        this.#grid.size.height,
-        0,
-      );
+      const y = this.#p.map(db, this.minDb, this.maxDb, this.#grid.size.height, 0);
       const isMajor = db % 12 === 0;
 
       this.#grid.layer.stroke(isMajor ? 100 : 50);
