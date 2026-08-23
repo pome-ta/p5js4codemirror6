@@ -37,8 +37,8 @@ const getChannelCount = (node) => {
   return (
     node?.buffer?.numberOfChannels ??
     node?._buffer?.numberOfChannels ??
-    bare?.maxChannelCount ??
     bare?.channelCount ??
+    bare?.maxChannelCount ??
     node?.numberOfChannels ??
     2
   );
@@ -139,7 +139,7 @@ export default class SpectrumAnalyzer {
   }
 
   targetNodes(...nodes) {
-    this.#channelCount = Math.max(2, ...nodes.map(getChannelCount));
+    this.#channelCount = Math.max(1, ...nodes.map(getChannelCount));
 
     const gain = this.#createMergeGain(nodes);
     const splitter = new ChannelSplitterNode(this.#audioContext, {

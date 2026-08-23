@@ -50,15 +50,16 @@ const sketch = (p) => {
     // channelB.connect(channelC);
 
     const osc2 = new Tone.Oscillator();
-    osc2.frequency.value = 'D2';
+    osc2.frequency.value = 'D3';
     osc2.start();
 
     const channelD = new Tone.Channel({ channelCount: 1 });
     osc2.connect(channelD);
 
     const channelE = new Tone.Channel({ channelCount: 1 });
-    console.log(channelE);
     channelD.connect(channelE);
+    console.log(channelE);
+
 
     master = new Tone.Channel({ channelCount: 2 }).toDestination();
     //master.volume.rampTo(10, 0);
@@ -72,7 +73,7 @@ const sketch = (p) => {
     // master.toDestination();
 
     tapIndicator.setup();
-    spectrumAnalyzer.targetNodes(master);
+    spectrumAnalyzer.targetNodes(channelD);
 
     //p.noLoop();
   };
