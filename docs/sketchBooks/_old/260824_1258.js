@@ -14,7 +14,6 @@ const sketch = (p) => {
   const ctx = p.getAudioContext();
   Tone.setContext(ctx);
   const BPM = Tone.getTransport().bpm;
-  
 
   let master;
   let synth;
@@ -34,7 +33,7 @@ const sketch = (p) => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
     domSetup();
-    
+
     BPM.value = 180;
 
     synth = new Tone.MembraneSynth();
@@ -113,3 +112,4 @@ const sketch = (p) => {
 };
 
 new p5(sketch);
+
