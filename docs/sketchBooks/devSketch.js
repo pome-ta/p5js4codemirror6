@@ -1,4 +1,4 @@
-// --- # example: channel
+// --- # example:
 
 import * as Tone from 'tone';
 
@@ -8,14 +8,13 @@ import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
 const sketch = (p) => {
   // --- Plugins
   const tapIndicator = new TapIndicator(p);
-  const spectrumAnalyzer = new SpectrumAnalyzer(p, 2048);
+  const spectrumAnalyzer = new SpectrumAnalyzer(p, 1024);
 
   // --- Tone.js
   const ctx = p.getAudioContext();
   Tone.setContext(ctx);
 
   let master;
-  let tracks = [];
   let synth;
 
   // --- Sketch
@@ -34,46 +33,18 @@ const sketch = (p) => {
     cnvs = p.createCanvas(w, h);
     domSetup();
 
-    synth = new Tone.Synth({ oscillator: { type: 'sine' } });
-    //synth = new Tone.Synth();
-    //const channelA = new Tone.Channel({ channelCount: 1 });
-    const channelA = new Tone.Channel();
+    synth = new Tone.MembraneSynth();
+
+    const channelA = new Tone.Channel({ channelCount: 1 });
+
     synth.connect(channelA);
 
-    const osc = new Tone.Oscillator();
-    osc.frequency.value = 'B4';
-    osc.start();
-
-    //const channelB = new Tone.Channel({ channelCount: 1 });
-    const channelB = new Tone.Channel();
-    osc.connect(channelB);
-
-    // const channelC = new Tone.Channel({ channelCount: 1 });
-    // channelB.connect(channelC);
-
-    const osc2 = new Tone.Oscillator();
-    osc2.frequency.value = 'D3';
-    osc2.start();
-
-    const channelD = new Tone.Channel();
-    osc2.connect(channelD);
-
-    const channelE = new Tone.Channel();
-    //channelD.connect(channelE);
-    console.log(osc2);
-
-    master = new Tone.Channel(); //.toDestination();
+    master = new Tone.Channel({ channelCount: 2 }).toDestination();
     //master.volume.rampTo(10, 0);
     channelA.connect(master);
-    channelB.connect(master);
-    // channelC.connect(master);
-    // channelD.connect(master);
-    //channelE.connect(master);
-
-    // master.toDestination();
 
     tapIndicator.setup();
-    spectrumAnalyzer.targetNodes(channelD);
+    spectrumAnalyzer.targetNodes(master);
 
     //p.noLoop();
   };
