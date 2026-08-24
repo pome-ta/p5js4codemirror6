@@ -8,7 +8,7 @@ import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
 const sketch = (p) => {
   // --- Plugins
   const tapIndicator = new TapIndicator(p);
-  const spectrumAnalyzer = new SpectrumAnalyzer(p, 1024);
+  const spectrumAnalyzer = new SpectrumAnalyzer(p, 2048);
 
   // --- Tone.js
   const ctx = p.getAudioContext();
@@ -36,7 +36,18 @@ const sketch = (p) => {
 
     BPM.value = 180;
 
-    synth = new Tone.MembraneSynth();
+    synth = new Tone.MembraneSynth({
+      pitchDecay: 0.5,
+      octaves: 0.5,
+      oscillator: { type: 'sine' },
+      envelope: {
+        attack: 0.001,
+        decay: 0.4,
+        sustain: 0.05,
+        release: 0.04,
+        attackCurve: 'exponential',
+      },
+    });
 
     const channelA = new Tone.Channel({ channelCount: 1 });
 
@@ -83,8 +94,7 @@ const sketch = (p) => {
     const signalLiteral = {
       pointerdown: (btn) => {
         btn.html(signalStr.hold);
-        synth.triggerAttack('C2');
-        synth.setNote('F#3', '+16n');
+        synth.triggerAttack('A4');
       },
       pointerup: (btn) => {
         btn.html(signalStr.idle);
