@@ -1,4 +1,4 @@
-// --- # example: kick `Tone.MembraneSynth`
+// --- # example: kick seq
 
 import * as Tone from 'tone';
 
@@ -15,50 +15,94 @@ const sketch = (p) => {
   Tone.setContext(ctx);
   const BPM = Tone.getTransport().bpm;
 
-  let master;
-  let synth;
+  let bpm = 100;
+
+  let masterCh;
+  let drumsCh = [];
+  let kick;
+  let snare;
+  let hihat;
 
   // --- Sketch
   let cnvs;
   let w = p.windowWidth;
   let h = p.windowHeight;
 
-  let signalBtn;
-  const signalStr = {
-    hold: '◉',
-    idle: '◎',
-  };
-
   p.setup = () => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
-    domSetup();
 
-    BPM.value = 180;
+    BPM.value = bpm;
 
-    synth = new Tone.MembraneSynth({
-      pitchDecay: 0.5,
-      octaves: 0.5,
+    kick = new Tone.MembraneSynth({
+      pitchDecay: 0.02,
+      octaves: 5,
       oscillator: { type: 'sine' },
       envelope: {
         attack: 0.001,
-        decay: 0.4,
-        sustain: 0.05,
-        release: 0.04,
+        decay: 0.8,
+        sustain: 0.1,
+        release: 1.4,
         attackCurve: 'exponential',
       },
     });
 
-    const channelA = new Tone.Channel({ channelCount: 1 });
+    snare = new Tone.NoiseSynth({
+      noise: { type: 'white' },
+      envelope: {
+        attack: 0.05, // ここを少し持たせるとアタック感が出る
+        decay: 0.15,
+        sustain: 0,
+        release: 0.05,
+      },
+    });
 
-    synth.connect(channelA);
+    class DrumTrigger {
+      #paramList;
+      constructor(node, { note = null, duration } = {}) {
+        this.node = node;
+        this.note = note;
+        this.duration = duration;
 
-    master = new Tone.Channel({ channelCount: 2 }).toDestination();
+        this.#paramList = [this.note, this.duration].filter((p) => p);
+      }
+
+      run() {
+        this.node.triggerAttackRelease(...this.#paramList);
+      }
+    }
+
+    const kickTrigger = new DrumTrigger(kick, { note: 'C2', duration: '4n' });
+    const snareTrigger = new DrumTrigger(snare, { duration: '16n' });
+
+    const seq = new Tone.Sequence(
+      (time, triggerObject) => {
+        Object.values(triggerObject).forEach((trigger) => {
+          trigger.run();
+        });
+      },
+      [
+        { kickTrigger },
+        { kickTrigger, snareTrigger },
+        { kickTrigger },
+        [{ kickTrigger, snareTrigger }, { snareTrigger }, null, { kickTrigger }],
+      ],
+      '4n',
+    ).start(0);
+    Tone.getTransport().start();
+
+    masterCh = new Tone.Channel().toDestination();
     //master.volume.rampTo(10, 0);
-    channelA.connect(master);
+
+    drumsCh = [kick, snare].map((node, idx) => {
+      const channel = new Tone.Channel();
+      node.connect(channel);
+      channel.connect(masterCh);
+      return channel;
+    });
 
     tapIndicator.setup();
-    spectrumAnalyzer.targetNodes(master);
+    spectrumAnalyzer.targetNodes(masterCh);
 
     //p.noLoop();
   };
@@ -75,49 +119,6 @@ const sketch = (p) => {
     w = p.windowWidth;
     h = p.windowHeight;
     cnvs = p.resizeCanvas(w, h);
-    domLayout();
-  };
-
-  const domSetup = () => {
-    signalBtn = p.createButton(signalStr.idle);
-    signalBtn
-      // .style('font-family', 'monospace')
-      .style('font-size', '2rem')
-      .style('width', '4rem')
-      .style('height', '4rem')
-      .style('border-radius', '50%')
-      .style('-webkit-touch-callout', 'none')
-      .style('-webkit-user-select', 'none')
-      .style('user-select', 'none')
-      .style('touch-action', 'none');
-
-    const signalLiteral = {
-      pointerdown: (btn) => {
-        btn.html(signalStr.hold);
-        synth.triggerAttack('A4');
-      },
-      pointerup: (btn) => {
-        btn.html(signalStr.idle);
-        synth.triggerRelease();
-      },
-    };
-
-    const signalEvent = (e) => {
-      signalLiteral[e.type](signalBtn);
-    };
-    signalBtn.mousePressed(signalEvent);
-    signalBtn.mouseReleased(signalEvent);
-
-    domLayout();
-  };
-
-  const domLayout = () => {
-    // console.log('layout');
-    const cw = signalBtn.size().width;
-    const ch = signalBtn.size().height;
-    const x = w / 2 - cw / 2;
-    const y = h / 2 - ch / 2;
-    signalBtn.position(x, y / 2 + y);
   };
 };
 
