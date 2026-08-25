@@ -1,4 +1,4 @@
-// --- # example: kick snare seq
+// --- # example:
 
 import * as Tone from 'tone';
 
@@ -18,10 +18,7 @@ const sketch = (p) => {
   let bpm = 100;
 
   let masterCh;
-  let drumsCh = [];
-  let kick;
-  let snare;
-  let hihat;
+  let bass;
 
   // --- Sketch
   let cnvs;
@@ -34,72 +31,38 @@ const sketch = (p) => {
 
     BPM.value = bpm;
 
-    kick = new Tone.MembraneSynth({
-      pitchDecay: 0.02,
-      octaves: 5,
+    const click = new Tone.Synth({
       oscillator: { type: 'sine' },
-      envelope: {
-        attack: 0.001,
-        decay: 0.8,
-        sustain: 0.1,
-        release: 1.4,
-        attackCurve: 'exponential',
+    }).toDestination();
+    const metroSeq = new Tone.Sequence(
+      (time, noteNum) => {
+        click.triggerAttackRelease(`A${noteNum}`, '32n', time);
       },
-    });
-
-    snare = new Tone.NoiseSynth({
-      noise: { type: 'white' },
-      envelope: {
-        attack: 0.05, // ここを少し持たせるとアタック感が出る
-        decay: 0.15,
-        sustain: 0,
-        release: 0.05,
-      },
-    });
-
-    class DrumTrigger {
-      #paramList;
-      constructor(node, { note = null, duration } = {}) {
-        this.node = node;
-        this.note = note;
-        this.duration = duration;
-
-        this.#paramList = [this.note, this.duration].filter((p) => p);
-      }
-
-      run() {
-        this.node.triggerAttackRelease(...this.#paramList);
-      }
-    }
-
-    const kickTrigger = new DrumTrigger(kick, { note: 'C2', duration: '4n' });
-    const snareTrigger = new DrumTrigger(snare, { duration: '16n' });
-
-    const seq = new Tone.Sequence(
-      (time, triggerObject) => {
-        Object.values(triggerObject).forEach((trigger) => {
-          trigger.run();
-        });
-      },
-      [
-        { kickTrigger },
-        { kickTrigger, snareTrigger },
-        { kickTrigger },
-        [{ kickTrigger, snareTrigger }, { snareTrigger }, null, { kickTrigger }],
-      ],
+      [5, 4, 4, 4],
+      //[null],
       '4n',
     ).start(0);
+
+    bass = new Tone.Synth({
+      oscillator: { type: 'sawtooth' },
+    });
+
+    const bassSeq = new Tone.Sequence(
+      (time, note) => {
+        bass.triggerAttack(note, time);
+      },
+      ['a2', 'a2', 'g2', 'd3'],
+      '2n',
+    ).start(0);
+
     Tone.getTransport().start();
 
-    masterCh = new Tone.Channel().toDestination();
-    //master.volume.rampTo(10, 0);
+    const bassCh = new Tone.Channel();
+    bass.connect(bassCh);
 
-    drumsCh = [kick, snare].map((node, idx) => {
-      const channel = new Tone.Channel();
-      node.connect(channel);
-      channel.connect(masterCh);
-      return channel;
-    });
+    masterCh = new Tone.Channel().toDestination();
+    //click.connect(masterCh);
+    bassCh.connect(masterCh);
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
