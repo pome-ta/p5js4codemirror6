@@ -1,4 +1,4 @@
-// --- # example: bass ?
+// --- # example:
 
 import * as Tone from 'tone';
 
@@ -13,12 +13,18 @@ const sketch = (p) => {
   // --- Tone.js
   const ctx = p.getAudioContext();
   Tone.setContext(ctx);
-  const BPM = Tone.getTransport().bpm;
+
+  const transport = Tone.getTransport();
+  //const BPM = Tone.getTransport().bpm;
+  const BPM = transport.bpm;
 
   let bpm = 100;
 
   let masterCh;
-  let bass;
+  let drumsCh = [];
+  let kick;
+  let snare;
+  let hihat;
 
   // --- Sketch
   let cnvs;
@@ -31,45 +37,60 @@ const sketch = (p) => {
 
     BPM.value = bpm;
 
-    const click = new Tone.Synth({
+    // --- drums
+    // --- kick
+    kick = new Tone.MembraneSynth({
+      pitchDecay: '32n',
+      octaves: 12,
       oscillator: { type: 'sine' },
-    }); //.toDestination();
-    const metroSeq = new Tone.Sequence(
-      (time, noteNum) => {
-        click.triggerAttackRelease(`A${noteNum}`, '32n', time);
+      envelope: {
+        attack: 0.001,
+        decay: 0.4,
+        sustain: 0.01,
+        release: 1.4,
+        attackCurve: 'exponential',
       },
-      [5, 4, 4, 4],
-      //[null],
-      '4n',
-    ).start(0);
-
-    bass = new Tone.Synth({
-      //portamento: '32n',
-      oscillator: { type: 'sawtooth' },
     });
+    // --- snare
+    snare = new Tone.NoiseSynth({
+      noise: { type: 'white' },
+      envelope: { decay: 0.1, sustain: 0 },
+    });
+    // --- hihat
 
-    const bassSeq = new Tone.Sequence(
+    // ---sequence
+    new Tone.Sequence(
       (time, note) => {
-        bass.triggerAttack(note, time);
+        note.triggerAttackRelease('C1', '8n', time);
       },
       // prettier-ignore
       [
-        'a2', 'a2', 'a2', 'a2',
-        'a2', 'a3', 'a2', 'a3',
-        'g2', 'g3', 'g2', 'g3',
-        'd2', 'd3', 'd2', 'd3',
+        kick, kick, kick, kick,
+        kick, kick, kick, [kick, kick],
+      ],
+      '4n',
+    ).start(0);
+    new Tone.Sequence(
+      (time, note) => {
+        note.triggerAttackRelease('8n', time);
+      },
+      // prettier-ignore
+      [
+        null, snare, null, snare,
       ],
       '4n',
     ).start(0);
 
-    Tone.getTransport().start();
+    transport.start();
 
-    const bassCh = new Tone.Channel();
-    bass.connect(bassCh);
-
+    // --- mixer
     masterCh = new Tone.Channel().toDestination();
-    //click.connect(masterCh);
-    bassCh.connect(masterCh);
+    drumsCh = [kick, snare].map((node, idx) => {
+      const channel = new Tone.Channel();
+      node.connect(channel);
+      channel.connect(masterCh);
+      return channel;
+    });
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);

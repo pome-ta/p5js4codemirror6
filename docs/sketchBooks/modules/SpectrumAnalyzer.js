@@ -152,7 +152,7 @@ export default class SpectrumAnalyzer {
   drawGraph() {
     this.#drawBaseGraphics();
 
-    if (this.#p.frameCount % 9 !== 0) {
+    if (this.#p.frameCount % 3 !== 0) {
       // 描画悪あがき
       this.#p.image(this.#spectrumLayer, ...this.#grid.position);
       return;
