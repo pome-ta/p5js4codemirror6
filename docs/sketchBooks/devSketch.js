@@ -1,4 +1,4 @@
-// --- # example:
+// --- # example: drum kit
 
 import * as Tone from 'tone';
 
@@ -40,28 +40,35 @@ const sketch = (p) => {
     // --- drums
     // --- kick
     kick = new Tone.MembraneSynth({
-      pitchDecay: '32n',
-      octaves: 12,
+      pitchDecay: '16t',
+      octaves: 8,
       oscillator: { type: 'sine' },
       envelope: {
         attack: 0.001,
-        decay: 0.4,
+        decay: 0.8,
         sustain: 0.01,
-        release: 1.4,
+        release: '16n',
         attackCurve: 'exponential',
       },
     });
     // --- snare
     snare = new Tone.NoiseSynth({
       noise: { type: 'white' },
-      envelope: { decay: 0.1, sustain: 0 },
+      envelope: { attack: 0.02, decay: 0.1, sustain: 0 },
     });
     // --- hihat
+    hihat = new Tone.MetalSynth({
+      envelope: { attack: 0.001, decay: 0.9, release: 0.1 },
+      harmonicity: 5.1,
+      modulationIndex: 32,
+      octaves: 1.5,
+      resonance: 4000,
+    });
 
     // ---sequence
     new Tone.Sequence(
       (time, note) => {
-        note.triggerAttackRelease('C1', '8n', time);
+        note.triggerAttackRelease('C2', '8n', time);
       },
       // prettier-ignore
       [
@@ -70,6 +77,7 @@ const sketch = (p) => {
       ],
       '4n',
     ).start(0);
+
     new Tone.Sequence(
       (time, note) => {
         note.triggerAttackRelease('8n', time);
@@ -81,11 +89,27 @@ const sketch = (p) => {
       '4n',
     ).start(0);
 
+    new Tone.Sequence(
+      (time, note) => {
+        note.triggerAttackRelease(800, '64t', time);
+      },
+      // prettier-ignore
+      [
+        null, hihat,
+      ],
+      '8n',
+    ).start(0);
+
     transport.start();
 
     // --- mixer
     masterCh = new Tone.Channel().toDestination();
-    drumsCh = [kick, snare].map((node, idx) => {
+    // prettier-ignore
+    drumsCh = [
+      kick,
+      snare,
+      hihat,
+    ].map((node, idx) => {
       const channel = new Tone.Channel();
       node.connect(channel);
       channel.connect(masterCh);
