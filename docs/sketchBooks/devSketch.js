@@ -107,19 +107,19 @@ const sketch = (p) => {
       .style('touch-action', 'none');
 
     const signalLiteral = {
-      pointerdown: (btn) => {
-        btn.html(signalStr.hold);
+      pointerdown: (event) => {
+        signalBtn.html(signalStr.hold);
         synth.triggerAttack(notes[callCounter % notes.length]);
         callCounter++;
       },
-      pointerup: (btn) => {
-        btn.html(signalStr.idle);
+      pointerup: (event) => {
+        signalBtn.html(signalStr.idle);
         synth.triggerRelease();
       },
     };
 
-    const signalEvent = (e) => {
-      signalLiteral[e.type](signalBtn);
+    const signalEvent = (event) => {
+      signalLiteral[event.type](event);
     };
     signalBtn.mousePressed(signalEvent);
     signalBtn.mouseReleased(signalEvent);
