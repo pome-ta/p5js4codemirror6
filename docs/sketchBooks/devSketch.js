@@ -27,6 +27,11 @@ const sketch = (p) => {
   let h = p.windowHeight;
 
   let signalBtn;
+  let xyPad;
+  let xyPadWrap;
+  const holdBg = ['background', 'rgba(225, 0, 0, 0.88)'];
+  const idleBg = ['background', 'rgba(225, 0, 0, 0.12)'];
+  
   const signalStr = {
     hold: '◉',
     idle: '◎',
@@ -76,6 +81,17 @@ const sketch = (p) => {
   };
 
   const domSetup = () => {
+    xyPad = p.createDiv();
+    xyPad
+      .style('width', '8rem')
+      .style('height', '8rem')
+      .style(...idleBg)
+      .style('-webkit-touch-callout', 'none')
+      .style('-webkit-user-select', 'none')
+      .style('user-select', 'none')
+      .style('touch-action', 'none');
+      
+    /*
     signalBtn = p.createButton(signalStr.idle);
     signalBtn
       // .style('font-family', 'monospace')
@@ -105,17 +121,20 @@ const sketch = (p) => {
     };
     signalBtn.mousePressed(signalEvent);
     signalBtn.mouseReleased(signalEvent);
+    */
 
     domLayout();
   };
 
   const domLayout = () => {
     // console.log('layout');
-    const cw = signalBtn.size().width;
-    const ch = signalBtn.size().height;
+    const cw = xyPad.size().width;
+    const ch = xyPad.size().height;
     const x = w / 2 - cw / 2;
     const y = h / 2 - ch / 2;
-    signalBtn.position(x, y / 2 + y);
+    //signalBtn.position(x, y / 2 + y);
+    //xyPad.position(x, y / 2 + y);
+    xyPad.position(x, y);
   };
 };
 

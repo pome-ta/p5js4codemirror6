@@ -2,10 +2,11 @@ export default class TapIndicator {
   #p;
   #pg;
   #markSize;
+  #markSizeRatio = [1, 0.64, 0.64, 0.48];
 
   baseColorHSB = [0.3, 0.1, 0.9];
 
-  constructor(mainInstance, markSize = 48) {
+  constructor(mainInstance, markSize = 64) {
     this.#p = mainInstance;
     this.#markSize = markSize;
     this.#pg = null;
@@ -42,6 +43,12 @@ export default class TapIndicator {
     this.#pg.ellipseMode(this.#pg.CENTER);
   }
 
+  #drawCircle(x, y) {
+    this.#markSizeRatio.forEach((ratio) => {
+      this.#pg.circle(x, y, this.#markSize * ratio);
+    });
+  }
+
   #render() {
     if (!this.#pg) {
       return;
@@ -58,7 +65,8 @@ export default class TapIndicator {
     if (Array.isArray(this.#p.touches) && this.#p.touches.length > 0) {
       for (const touch of this.#p.touches) {
         if (this.#isInsideCanvas(touch.x, touch.y)) {
-          this.#pg.circle(touch.x, touch.y, this.#markSize);
+          //this.#pg.circle(touch.x, touch.y, this.#markSize);
+          this.#drawCircle(touch.x, touch.y);
           hasInput = true;
         }
       }
@@ -66,7 +74,8 @@ export default class TapIndicator {
     // PC等のマウス入力チェック (タッチがない場合)
     else if (this.#p.mouseIsPressed) {
       if (this.#isInsideCanvas(this.#p.mouseX, this.#p.mouseY)) {
-        this.#pg.circle(this.#p.mouseX, this.#p.mouseY, this.#markSize);
+        //this.#pg.circle(this.#p.mouseX, this.#p.mouseY, this.#markSize);
+        this.#drawCircle(touch.x, touch.y);
         hasInput = true;
       }
     }
