@@ -38,13 +38,17 @@ const sketch = (p) => {
 
     BPM.value = bpm;
 
+    const lowpass = new Tone.AutoFilter().start();
     synth = new Tone.Synth({
       oscillator: { type: "pulse", width: 0 },
-      envelope: { attack: 0.005, decay: 0.1, release: 1, sustain: 0.3 },
-    });
+      envelope: { attack: 0.005, decay: 0.1, sustain: 0.3,release: 1,  },
+    }).connect(lowpass);
     
     const lfo = new Tone.LFO(0.5, -0.8, 0.8).start(); 
-    lfo.connect(synth.oscillator.width);
+    //lfo.connect(synth.oscillator.width);
+    
+    
+    
 
     // --- mixer
     masterCh = new Tone.Channel().toDestination();
