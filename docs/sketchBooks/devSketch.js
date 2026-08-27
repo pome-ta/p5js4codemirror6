@@ -1,4 +1,4 @@
-// --- # example: drum kit
+// --- # example:
 
 import * as Tone from 'tone';
 
@@ -13,23 +13,24 @@ const sketch = (p) => {
   // --- Tone.js
   const ctx = p.getAudioContext();
   Tone.setContext(ctx);
-
   const transport = Tone.getTransport();
-  //const BPM = Tone.getTransport().bpm;
   const BPM = transport.bpm;
 
   let bpm = 100;
 
   let masterCh;
-  let drumsCh = [];
-  let kick;
-  let snare;
-  let hihat;
+  let synth;
 
   // --- Sketch
   let cnvs;
   let w = p.windowWidth;
   let h = p.windowHeight;
+
+  let signalBtn;
+  const signalStr = {
+    hold: '◉',
+    idle: '◎',
+  };
 
   p.setup = () => {
     // put setup code here
@@ -37,90 +38,21 @@ const sketch = (p) => {
 
     BPM.value = bpm;
 
-    // --- drums
-    // --- kick
-    kick = new Tone.MembraneSynth({
-      pitchDecay: '16t',
-      octaves: 8,
-      oscillator: { type: 'sine' },
-      envelope: {
-        attack: 0.001,
-        decay: 0.8,
-        sustain: 0.01,
-        release: '16n',
-        attackCurve: 'exponential',
-      },
+    synth = new Tone.Synth({
+      oscillator: { type: "pulse", width: 0 },
+      envelope: { attack: 0.005, decay: 0.1, release: 1, sustain: 0.3 },
     });
-    // --- snare
-    snare = new Tone.NoiseSynth({
-      noise: { type: 'white' },
-      envelope: { attack: 0.02, decay: 0.1, sustain: 0 },
-    });
-    // --- hihat
-    hihat = new Tone.MetalSynth({
-      envelope: { attack: 0.001, decay: 0.9, release: 0.1 },
-      harmonicity: 5.1,
-      modulationIndex: 32,
-      octaves: 1.5,
-      resonance: 4000,
-    });
-
-    // ---sequence
-    new Tone.Sequence(
-      (time, note) => {
-        note.triggerAttackRelease('C2', '8n', time);
-      },
-      // prettier-ignore
-      [
-        kick, kick, kick, kick,
-        kick, kick, kick, [kick, kick],
-      ],
-      '4n',
-    ).start(0);
-
-    new Tone.Sequence(
-      (time, note) => {
-        note.triggerAttackRelease('8n', time);
-      },
-      // prettier-ignore
-      [
-        null, snare, null, snare,
-      ],
-      '4n',
-    ).start(0);
-
-    new Tone.Sequence(
-      (time, note) => {
-        note.triggerAttackRelease(800, '64t', time);
-      },
-      // prettier-ignore
-      [
-        null, hihat, null, hihat,
-        null, hihat, null, hihat,
-        null, hihat, null, hihat,
-        null, hihat, null, [hihat, hihat],
-      ],
-      '8n',
-    ).start(0);
-
-    transport.start();
+    
+    const lfo = new Tone.LFO(0.5, -0.8, 0.8).start(); 
+    lfo.connect(synth.oscillator.width);
 
     // --- mixer
     masterCh = new Tone.Channel().toDestination();
-    // prettier-ignore
-    drumsCh = [
-      kick,
-      snare,
-      hihat,
-    ].map((node, idx) => {
-      const channel = new Tone.Channel();
-      node.connect(channel);
-      channel.connect(masterCh);
-      return channel;
-    });
+    synth.connect(masterCh);
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
+    domSetup();
 
     //p.noLoop();
   };
@@ -137,6 +69,49 @@ const sketch = (p) => {
     w = p.windowWidth;
     h = p.windowHeight;
     cnvs = p.resizeCanvas(w, h);
+    domLayout();
+  };
+
+  const domSetup = () => {
+    signalBtn = p.createButton(signalStr.idle);
+    signalBtn
+      // .style('font-family', 'monospace')
+      .style('font-size', '2rem')
+      .style('width', '4rem')
+      .style('height', '4rem')
+      .style('border-radius', '50%')
+      .style('-webkit-touch-callout', 'none')
+      .style('-webkit-user-select', 'none')
+      .style('user-select', 'none')
+      .style('touch-action', 'none');
+
+    const signalLiteral = {
+      pointerdown: (btn) => {
+        btn.html(signalStr.hold);
+        synth.triggerAttack('A3');
+      },
+      pointerup: (btn) => {
+        btn.html(signalStr.idle);
+        synth.triggerRelease();
+      },
+    };
+
+    const signalEvent = (e) => {
+      signalLiteral[e.type](signalBtn);
+    };
+    signalBtn.mousePressed(signalEvent);
+    signalBtn.mouseReleased(signalEvent);
+
+    domLayout();
+  };
+
+  const domLayout = () => {
+    // console.log('layout');
+    const cw = signalBtn.size().width;
+    const ch = signalBtn.size().height;
+    const x = w / 2 - cw / 2;
+    const y = h / 2 - ch / 2;
+    signalBtn.position(x, y / 2 + y);
   };
 };
 
