@@ -38,7 +38,7 @@ const sketch = (p) => {
   };
 
   let callCounter = 0;
-  const notes = ['A3', 'F3', 'D3', 'A4'];
+  const notes = ['D2', 'F2', 'A2', 'A3', 'D3', 'F2', 'A2'];
 
   p.setup = () => {
     // put setup code here
@@ -51,7 +51,7 @@ const sketch = (p) => {
       envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 },
     });
 
-    const lfo = new Tone.LFO(0.5, -0.8, 0.8).start();
+    const lfo = new Tone.LFO('1n', -0.8, 0.8).start();
     lfo.connect(synth.oscillator.width);
 
     // --- mixer
@@ -81,6 +81,7 @@ const sketch = (p) => {
   };
 
   const domSetup = () => {
+    /*
     xyPad = p.createDiv();
     xyPad
       .style('width', '8rem')
@@ -91,7 +92,8 @@ const sketch = (p) => {
       .style('user-select', 'none')
       .style('touch-action', 'none');
       
-    /*
+    */
+    
     signalBtn = p.createButton(signalStr.idle);
     signalBtn
       // .style('font-family', 'monospace')
@@ -107,7 +109,7 @@ const sketch = (p) => {
     const signalLiteral = {
       pointerdown: (btn) => {
         btn.html(signalStr.hold);
-        synth.triggerAttack(notes[callCounter % 4]);
+        synth.triggerAttack(notes[callCounter % notes.length]);
         callCounter++;
       },
       pointerup: (btn) => {
@@ -121,20 +123,22 @@ const sketch = (p) => {
     };
     signalBtn.mousePressed(signalEvent);
     signalBtn.mouseReleased(signalEvent);
-    */
+    
 
     domLayout();
   };
 
   const domLayout = () => {
     // console.log('layout');
-    const cw = xyPad.size().width;
-    const ch = xyPad.size().height;
+    const cw = signalBtn.size().width;
+    const ch = signalBtn.size().height;
+    //const cw = xyPad.size().width;
+    //const ch = xyPad.size().height;
     const x = w / 2 - cw / 2;
     const y = h / 2 - ch / 2;
-    //signalBtn.position(x, y / 2 + y);
+    signalBtn.position(x, y / 2 + y);
     //xyPad.position(x, y / 2 + y);
-    xyPad.position(x, y);
+    //xyPad.position(x, y);
   };
 };
 

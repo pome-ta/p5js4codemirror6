@@ -75,7 +75,7 @@ export default class TapIndicator {
     else if (this.#p.mouseIsPressed) {
       if (this.#isInsideCanvas(this.#p.mouseX, this.#p.mouseY)) {
         //this.#pg.circle(this.#p.mouseX, this.#p.mouseY, this.#markSize);
-        this.#drawCircle(touch.x, touch.y);
+        this.#drawCircle(this.#p.mouseX, this.#p.mouseY);
         hasInput = true;
       }
     }
