@@ -81,6 +81,11 @@ const sketch = (p) => {
     domLayout();
   };
 
+  const moveWidth = (v) => {
+    const valueWidth = p.map(v, 0, 1, -0.8, 0.8);
+    synth.oscillator.width.value = valueWidth;
+  };
+
   const xyPadClientFrame = (event) => {
     const {
       left: rectLeft,
@@ -162,6 +167,8 @@ const sketch = (p) => {
         xyPad
           .style('transform', `perspective(16rem) ${styleTransformPerspective(event)}`)
           .style('background', `${styleRadialGradient(event)}`);
+        const { ratioPointer: rp } = xyPadClientFrame(event);
+        moveWidth(rp.y);
       },
 
       pointerup: (event) => {
