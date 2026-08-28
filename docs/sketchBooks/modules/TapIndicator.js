@@ -30,6 +30,7 @@ export default class TapIndicator {
   #initGraphics() {
     this.#pg && this.#pg.remove();
     this.#pg = this.#p.createGraphics(this.#p.width, this.#p.height);
+    this.#pg.elt.id = `${this.constructor.name}Graphics`;
 
     if (this.#p.canvas) {
       this.#p.canvas.style.touchAction = 'none';

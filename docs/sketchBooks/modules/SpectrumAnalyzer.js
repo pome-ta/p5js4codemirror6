@@ -250,6 +250,7 @@ export default class SpectrumAnalyzer {
 
     // --- label
     const labelsLayer = this.#p.createGraphics(w * this.ratio, h * this.ratio);
+    labelsLayer.elt.id = `${this.constructor.name}LabelGraphics`;
     const labelsSize = new CanvasSize(labelsLayer.width, labelsLayer.height);
     const labelsPosition = new CanvasPosition((w - labelsSize.width) * 0.5, (h - labelsSize.height) * 0.5);
     this.#labels = {
@@ -260,6 +261,8 @@ export default class SpectrumAnalyzer {
 
     // --- grid
     const gridLayer = this.#p.createGraphics(labelsSize.width * this.ratio, labelsSize.height * this.ratio);
+    gridLayer.elt.id = `${this.constructor.name}GridGraphics`;
+
     const gridSize = new CanvasSize(gridLayer.width, gridLayer.height);
     const gridPosition = new CanvasPosition((w - gridSize.width) * 0.5, (h - gridSize.height) * 0.5);
     this.#grid = {
@@ -270,6 +273,7 @@ export default class SpectrumAnalyzer {
 
     // --- spectrum
     this.#spectrumLayer = this.#p.createGraphics(gridSize.width, gridSize.height);
+    this.#spectrumLayer.elt.id = `${this.constructor.name}SpectrumGraphics`;
   }
 
   #calculateXCoordinates() {
@@ -301,7 +305,7 @@ export default class SpectrumAnalyzer {
       (_, d) => d + Math.floor(minLog),
     );
 
-    // 10 で刻む
+    // 10 で刻む
     const ticks = Array.from({ length: 9 }, (_, idx) => idx + 1);
 
     const digits = Math.floor(Math.log10(this.#minFreq));
