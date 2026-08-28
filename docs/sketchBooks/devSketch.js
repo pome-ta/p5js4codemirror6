@@ -80,6 +80,20 @@ const sketch = (p) => {
     domLayout();
   };
 
+  const getPointerRatio = (event) => {
+    const {
+      left: rectLeft,
+      top: rectTop,
+      width: rectWidth,
+      height: rectHeight,
+    } = event.currentTarget.getBoundingClientRect();
+
+    return {
+      x: p.map(event.clientX - rectLeft, 0, rectWidth, 0.0, 1.0, true),
+      y: p.map(event.clientY - rectTop, 0, rectHeight, 0.0, 1.0, true),
+    };
+  };
+
   const domSetup = () => {
     xyPad = p.createDiv();
     xyPad
