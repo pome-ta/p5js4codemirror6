@@ -86,6 +86,13 @@ const sketch = (p) => {
     synth.oscillator.width.value = valueWidth;
   };
 
+  const toneOperation = {
+    pointerdown: () => {},
+    pointermove: () => {},
+    pointerup: () => {},
+    pointercancel: () => {},
+  };
+
   const xyPadClientFrame = (event) => {
     const {
       left: rectLeft,
@@ -124,20 +131,18 @@ const sketch = (p) => {
       .style('user-select', 'none')
       .style('touch-action', 'none');
 
-    const styleTransformPerspective = (event) => {
-      const { ratioPointer: rp } = xyPadClientFrame(event);
-
-      const xMap = p.map(rp.y, 0, 1, -7.5, 7.5, true);
-      const yMap = p.map(rp.x, 0, 1, 7.5, -7.5, true);
+    const styleTransformPerspective = (ratioPointer) => {
+      const xMap = p.map(ratioPointer.y, 0, 1, -7.5, 7.5, true);
+      const yMap = p.map(ratioPointer.x, 0, 1, 7.5, -7.5, true);
 
       return `rotateY(${yMap}deg) rotateX(${xMap}deg)`;
     };
 
-    const styleRadialGradient = (event) => {
-      const { absPointer: ap } = xyPadClientFrame(event);
-      return `radial-gradient(circle at ${ap.x}px ${ap.y}px in hsl longer hue, ${holdColor} 8%, ${idleBg(
-        holdAlpha,
-      )}  1%)`;
+    const styleRadialGradient = (absPointer) => {
+      //const { absPointer: ap } = xyPadClientFrame(event);
+      const stylePos = `circle at ${absPointer.x}px ${absPointer.y}px `;
+      const selectColors = `${holdColor} 8%, ${idleBg(holdAlpha)}  1%`;
+      return `radial-gradient(${stylePos} in hsl longer hue, ${selectColors})`;
     };
 
     const idleSignal = (event) => {
@@ -147,14 +152,32 @@ const sketch = (p) => {
       pointerId = null;
     };
 
-    const signalLiteral = {
+    const xyPadAction = (ratioPointer, absPointer) => {
+      xyPad
+        .style('transform', `perspective(16rem) ${styleTransformPerspective(ratioPointer)}`)
+        .style('background', `${styleRadialGradient(absPointer)}`);
+    };
+
+    const domOperation = {
+      pointerdown: (ratioPointer, absPointer) => {
+        xyPadAction(ratioPointer, absPointer);
+      },
+      pointermove: (ratioPointer, absPointer) => {
+        xyPadAction(ratioPointer, absPointer);
+      },
+      pointerup: () => {},
+      pointercancel: () => {},
+    };
+
+    //const signalLiteral = {
+    const eventlLiteral = {
       pointerdown: (event) => {
         xyPad.elt.setPointerCapture(event.pointerId);
         pointerId = event.pointerId;
+        const { ratioPointer: rp, absPointer: ap } = xyPadClientFrame(event);
 
-        xyPad
-          .style('transform', `perspective(16rem) ${styleTransformPerspective(event)}`)
-          .style('background', `${styleRadialGradient(event)}`);
+        domOperation.pointerdown(rp, ap);
+        //toneOperation.pointerdown(rp);
 
         synth.triggerAttack(notes[callCounter++ % notes.length]);
       },
@@ -164,11 +187,9 @@ const sketch = (p) => {
           pointerId = null;
           return;
         }
-        xyPad
-          .style('transform', `perspective(16rem) ${styleTransformPerspective(event)}`)
-          .style('background', `${styleRadialGradient(event)}`);
-        const { ratioPointer: rp } = xyPadClientFrame(event);
-        moveWidth(rp.y);
+        const { ratioPointer: rp, absPointer: ap } = xyPadClientFrame(event);
+
+        domOperation.pointermove(rp, ap);
       },
 
       pointerup: (event) => {
@@ -184,19 +205,17 @@ const sketch = (p) => {
     //pointercancel
 
     const signalEvent = (event) => {
-      signalLiteral[event.type](event);
+      eventlLiteral[event.type](event);
     };
     xyPad.mousePressed(signalEvent);
     xyPad.mouseMoved(signalEvent);
     xyPad.mouseReleased(signalEvent);
-    //xyPad.elt.addEventListener('pointermove', (e) => signalEvent(e));
 
     domLayout();
   };
 
   const domLayout = () => {
     // console.log('layout');
-
     const cw = xyPad.size().width;
     const ch = xyPad.size().height;
     const x = w / 2 - cw / 2;
