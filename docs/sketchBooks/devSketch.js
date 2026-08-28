@@ -28,8 +28,11 @@ const sketch = (p) => {
 
   let xyPad;
 
-  const holdBg = ['background', 'rgba(128, 0, 0, 0.64)'];
-  const idleBg = ['background', 'rgba(128, 0, 0, 0.12)'];
+  const holdColor = 'rgba(128, 0, 0, 0.64)';
+  const holdAlpha = 0.4;
+  const idleAlpha = 0.12;
+  const idleBg = (a) => `rgba(0, 0, 128, ${a})`;
+
   const notes = ['D2', 'F2', 'A2', 'A3', 'D3', 'F2', 'A2'];
   let callCounter = 0;
 
@@ -82,26 +85,75 @@ const sketch = (p) => {
     xyPad
       .style('width', '16rem')
       .style('height', '16rem')
-      .style(...idleBg)
+      .style('background', idleBg(idleAlpha))
       .style('-webkit-touch-callout', 'none')
       .style('-webkit-user-select', 'none')
       .style('user-select', 'none')
       .style('touch-action', 'none');
 
-    const signalCancel = (event) => {
-      xyPad.style(...idleBg);
+    const xyPadClientFrame = (event) => {
+      const {
+        left: rectLeft,
+        top: rectTop,
+        width: rectWidth,
+        height: rectHeight,
+      } = event.currentTarget.getBoundingClientRect();
+
+      return {
+        pointer: { x: event.clientX - rectLeft, y: event.clientY - rectTop },
+        size: { width: rectWidth, height: rectHeight },
+        position: { x: rectLeft, y: rectTop },
+        client: { x: event.clientX, y: event.clientY },
+      };
+    };
+
+    const styleTransformPerspective = (event) => {
+      const { pointer: tp, size: rectSize } = xyPadClientFrame(event);
+
+      const xMap = p.map(tp.y, 0, rectSize.height, -7.5, 7.5, true);
+      const yMap = p.map(tp.x, 0, rectSize.width, 7.5, -7.5, true);
+
+      return `rotateY(${yMap}deg) rotateX(${xMap}deg)`;
+    };
+
+    const styleRadialGradient = (event) => {
+      const { pointer: tp, size: rectSize } = xyPadClientFrame(event);
+      const x = p.map(tp.x, 0, rectSize.width, 0, rectSize.width, true);
+      const y = p.map(tp.y, 0, rectSize.height, 0, rectSize.height, true);
+
+      return `radial-gradient(circle at ${x}px ${y}px in hsl longer hue, ${holdColor} 8%, ${idleBg(holdAlpha)}  1%)`;
+    };
+
+    const idleSignal = (event) => {
+      xyPad.elt.releasePointerCapture(event.pointerId);
+      xyPad.style('background', idleBg(idleAlpha));
       synth.triggerRelease();
     };
+
     const signalLiteral = {
       pointerdown: (event) => {
-        xyPad.style(...holdBg);
+        xyPad.elt.setPointerCapture(event.pointerId);
+
+        xyPad
+          .style('transform', `perspective(16rem) ${styleTransformPerspective(event)}`)
+          .style('background', `${styleRadialGradient(event)}`);
+
         synth.triggerAttack(notes[callCounter++ % notes.length]);
       },
       pointermove: (event) => {
-        console.log('pointermove');
+        if (event.buttons === 0) {
+          return;
+        }
+        xyPad
+          .style('transform', `perspective(16rem) ${styleTransformPerspective(event)}`)
+          .style('background', `${styleRadialGradient(event)}`);
       },
       pointerup: (event) => {
-        signalCancel(event);
+        idleSignal(event);
+      },
+      pointercancel: (event) => {
+        console.log('pointercancel');
+        idleSignal(event);
       },
     };
 
