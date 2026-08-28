@@ -26,6 +26,7 @@ const sketch = (p) => {
   let w = p.windowWidth;
   let h = p.windowHeight;
 
+  let pointerId = null;
   let xyPad;
 
   const holdColor = 'rgba(128, 0, 0, 0.64)';
@@ -80,7 +81,7 @@ const sketch = (p) => {
     domLayout();
   };
 
-  const getPointerRatio = (event) => {
+  const xyPadClientFrame = (event) => {
     const {
       left: rectLeft,
       top: rectTop,
@@ -88,9 +89,22 @@ const sketch = (p) => {
       height: rectHeight,
     } = event.currentTarget.getBoundingClientRect();
 
+    // xxx: 外の要素まで拾わなくていいと思うのだけど・・・
+    const absPointer = {
+      x: p.map(event.clientX - rectLeft, 0, rectWidth, 0, rectWidth, true),
+      y: p.map(event.clientY - rectTop, 0, rectHeight, 0, rectHeight, true),
+    };
+    const ratioPointer = {
+      x: p.map(absPointer.x, 0, rectWidth, 0.0, 1.0, true),
+      y: p.map(absPointer.y, 0, rectHeight, 0.0, 1.0, true),
+    };
+
     return {
-      x: p.map(event.clientX - rectLeft, 0, rectWidth, 0.0, 1.0, true),
-      y: p.map(event.clientY - rectTop, 0, rectHeight, 0.0, 1.0, true),
+      absPointer,
+      ratioPointer,
+      size: { width: rectWidth, height: rectHeight },
+      position: { x: rectLeft, y: rectTop },
+      client: { x: event.clientX, y: event.clientY },
     };
   };
 
@@ -105,48 +119,33 @@ const sketch = (p) => {
       .style('user-select', 'none')
       .style('touch-action', 'none');
 
-    const xyPadClientFrame = (event) => {
-      const {
-        left: rectLeft,
-        top: rectTop,
-        width: rectWidth,
-        height: rectHeight,
-      } = event.currentTarget.getBoundingClientRect();
-
-      return {
-        pointer: { x: event.clientX - rectLeft, y: event.clientY - rectTop },
-        size: { width: rectWidth, height: rectHeight },
-        position: { x: rectLeft, y: rectTop },
-        client: { x: event.clientX, y: event.clientY },
-      };
-    };
-
     const styleTransformPerspective = (event) => {
-      const { pointer: tp, size: rectSize } = xyPadClientFrame(event);
+      const { ratioPointer: rp } = xyPadClientFrame(event);
 
-      const xMap = p.map(tp.y, 0, rectSize.height, -7.5, 7.5, true);
-      const yMap = p.map(tp.x, 0, rectSize.width, 7.5, -7.5, true);
+      const xMap = p.map(rp.y, 0, 1, -7.5, 7.5, true);
+      const yMap = p.map(rp.x, 0, 1, 7.5, -7.5, true);
 
       return `rotateY(${yMap}deg) rotateX(${xMap}deg)`;
     };
 
     const styleRadialGradient = (event) => {
-      const { pointer: tp, size: rectSize } = xyPadClientFrame(event);
-      const x = p.map(tp.x, 0, rectSize.width, 0, rectSize.width, true);
-      const y = p.map(tp.y, 0, rectSize.height, 0, rectSize.height, true);
-
-      return `radial-gradient(circle at ${x}px ${y}px in hsl longer hue, ${holdColor} 8%, ${idleBg(holdAlpha)}  1%)`;
+      const { absPointer: ap } = xyPadClientFrame(event);
+      return `radial-gradient(circle at ${ap.x}px ${ap.y}px in hsl longer hue, ${holdColor} 8%, ${idleBg(
+        holdAlpha,
+      )}  1%)`;
     };
 
     const idleSignal = (event) => {
       xyPad.elt.releasePointerCapture(event.pointerId);
       xyPad.style('background', idleBg(idleAlpha));
       synth.triggerRelease();
+      pointerId = null;
     };
 
     const signalLiteral = {
       pointerdown: (event) => {
         xyPad.elt.setPointerCapture(event.pointerId);
+        pointerId = event.pointerId;
 
         xyPad
           .style('transform', `perspective(16rem) ${styleTransformPerspective(event)}`)
@@ -154,17 +153,21 @@ const sketch = (p) => {
 
         synth.triggerAttack(notes[callCounter++ % notes.length]);
       },
+
       pointermove: (event) => {
-        if (event.buttons === 0) {
+        if (event.buttons === 0 || event.pointerId !== pointerId) {
+          pointerId = null;
           return;
         }
         xyPad
           .style('transform', `perspective(16rem) ${styleTransformPerspective(event)}`)
           .style('background', `${styleRadialGradient(event)}`);
       },
+
       pointerup: (event) => {
         idleSignal(event);
       },
+
       pointercancel: (event) => {
         console.log('pointercancel');
         idleSignal(event);
