@@ -26,19 +26,12 @@ const sketch = (p) => {
   let w = p.windowWidth;
   let h = p.windowHeight;
 
-  let signalBtn;
   let xyPad;
-  let xyPadWrap;
-  const holdBg = ['background', 'rgba(225, 0, 0, 0.88)'];
-  const idleBg = ['background', 'rgba(225, 0, 0, 0.12)'];
-  
-  const signalStr = {
-    hold: '◉',
-    idle: '◎',
-  };
 
-  let callCounter = 0;
+  const holdBg = ['background', 'rgba(128, 0, 0, 0.64)'];
+  const idleBg = ['background', 'rgba(128, 0, 0, 0.12)'];
   const notes = ['D2', 'F2', 'A2', 'A3', 'D3', 'F2', 'A2'];
+  let callCounter = 0;
 
   p.setup = () => {
     // put setup code here
@@ -46,13 +39,17 @@ const sketch = (p) => {
 
     BPM.value = bpm;
 
+    /*
     synth = new Tone.MonoSynth({
       oscillator: { type: 'pulse', width: 0 },
       envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 },
     });
+    */
+
+    synth = new Tone.Synth({ oscillator: { type: 'pulse', width: 0 } });
 
     const lfo = new Tone.LFO('1n', -0.8, 0.8).start();
-    lfo.connect(synth.oscillator.width);
+    //lfo.connect(synth.oscillator.width);
 
     // --- mixer
     masterCh = new Tone.Channel().toDestination();
@@ -81,64 +78,55 @@ const sketch = (p) => {
   };
 
   const domSetup = () => {
-    /*
     xyPad = p.createDiv();
     xyPad
-      .style('width', '8rem')
-      .style('height', '8rem')
+      .style('width', '16rem')
+      .style('height', '16rem')
       .style(...idleBg)
       .style('-webkit-touch-callout', 'none')
       .style('-webkit-user-select', 'none')
       .style('user-select', 'none')
       .style('touch-action', 'none');
-      
-    */
-    
-    signalBtn = p.createButton(signalStr.idle);
-    signalBtn
-      // .style('font-family', 'monospace')
-      .style('font-size', '2rem')
-      .style('width', '4rem')
-      .style('height', '4rem')
-      .style('border-radius', '50%')
-      .style('-webkit-touch-callout', 'none')
-      .style('-webkit-user-select', 'none')
-      .style('user-select', 'none')
-      .style('touch-action', 'none');
 
+    const signalCancel = (event) => {
+      xyPad.style(...idleBg);
+      synth.triggerRelease();
+    };
     const signalLiteral = {
       pointerdown: (event) => {
-        signalBtn.html(signalStr.hold);
-        synth.triggerAttack(notes[callCounter % notes.length]);
-        callCounter++;
+        xyPad.style(...holdBg);
+        synth.triggerAttack(notes[callCounter++ % notes.length]);
+      },
+      pointermove: (event) => {
+        console.log('pointermove');
       },
       pointerup: (event) => {
-        signalBtn.html(signalStr.idle);
-        synth.triggerRelease();
+        signalCancel(event);
       },
     };
+
+    //pointercancel
 
     const signalEvent = (event) => {
       signalLiteral[event.type](event);
     };
-    signalBtn.mousePressed(signalEvent);
-    signalBtn.mouseReleased(signalEvent);
-    
+    xyPad.mousePressed(signalEvent);
+    xyPad.mouseMoved(signalEvent);
+    xyPad.mouseReleased(signalEvent);
+    //xyPad.elt.addEventListener('pointermove', (e) => signalEvent(e));
 
     domLayout();
   };
 
   const domLayout = () => {
     // console.log('layout');
-    const cw = signalBtn.size().width;
-    const ch = signalBtn.size().height;
-    //const cw = xyPad.size().width;
-    //const ch = xyPad.size().height;
+
+    const cw = xyPad.size().width;
+    const ch = xyPad.size().height;
     const x = w / 2 - cw / 2;
     const y = h / 2 - ch / 2;
-    signalBtn.position(x, y / 2 + y);
-    //xyPad.position(x, y / 2 + y);
-    //xyPad.position(x, y);
+
+    xyPad.position(x, y / 2);
   };
 };
 
