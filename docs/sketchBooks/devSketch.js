@@ -43,14 +43,14 @@ const sketch = (p) => {
 
     BPM.value = bpm;
 
-    /*
+    
     synth = new Tone.MonoSynth({
       oscillator: { type: 'pulse', width: 0 },
-      envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 },
+      envelope: { attack: 0.005, decay: 0.9, sustain: 0.8, release: 1 },
     });
-    */
+    
 
-    synth = new Tone.Synth({ oscillator: { type: 'pulse', width: 0 } });
+    //synth = new Tone.Synth({ oscillator: { type: 'pulse', width: 0 } });
 
     const lfo = new Tone.LFO('1n', -0.8, 0.8).start();
     //lfo.connect(synth.oscillator.width);
