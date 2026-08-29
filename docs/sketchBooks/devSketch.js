@@ -66,6 +66,28 @@ const sketch = (p) => {
     //p.noLoop();
   };
 
+  /* tone 操作 */
+  const moveWidth = (v) => {
+    const valueWidth = p.map(v, 0, 1, -0.95, 0.95);
+    synth.oscillator.width.value = valueWidth;
+  };
+
+  const toneOperation = {
+    pointerdown: (ratioPointer) => {
+      synth.triggerAttack(notes[callCounter++ % notes.length]);
+      moveWidth(ratioPointer.y);
+    },
+    pointermove: (ratioPointer) => {
+      moveWidth(ratioPointer.y);
+    },
+    pointerup: () => {
+      synth.triggerRelease();
+    },
+    pointercancel: () => {
+      synth?.triggerRelease();
+    },
+  };
+
   p.draw = () => {
     // put drawing code here
     p.background(80);
@@ -79,18 +101,6 @@ const sketch = (p) => {
     h = p.windowHeight;
     cnvs = p.resizeCanvas(w, h);
     domLayout();
-  };
-
-  const moveWidth = (v) => {
-    const valueWidth = p.map(v, 0, 1, -0.8, 0.8);
-    synth.oscillator.width.value = valueWidth;
-  };
-
-  const toneOperation = {
-    pointerdown: () => {},
-    pointermove: () => {},
-    pointerup: () => {},
-    pointercancel: () => {},
   };
 
   const xyPadClientFrame = (event) => {
@@ -121,6 +131,7 @@ const sketch = (p) => {
   };
 
   const domSetup = () => {
+    /* dom (xyPad) 定義 */
     xyPad = p.createDiv();
     xyPad
       .style('width', '16rem')
@@ -131,6 +142,7 @@ const sketch = (p) => {
       .style('user-select', 'none')
       .style('touch-action', 'none');
 
+    /* xyPad Action */
     const styleTransformPerspective = (ratioPointer) => {
       const xMap = p.map(ratioPointer.y, 0, 1, -7.5, 7.5, true);
       const yMap = p.map(ratioPointer.x, 0, 1, 7.5, -7.5, true);
@@ -139,47 +151,32 @@ const sketch = (p) => {
     };
 
     const styleRadialGradient = (absPointer) => {
-      //const { absPointer: ap } = xyPadClientFrame(event);
       const stylePos = `circle at ${absPointer.x}px ${absPointer.y}px `;
       const selectColors = `${holdColor} 8%, ${idleBg(holdAlpha)}  1%`;
+
       return `radial-gradient(${stylePos} in hsl longer hue, ${selectColors})`;
+    };
+
+    const xyPadAction = (ratioPointer, absPointer) => {
+      xyPad.style('transform', `perspective(16rem) ${styleTransformPerspective(ratioPointer)}`);
+      xyPad.style('background', `${styleRadialGradient(absPointer)}`);
     };
 
     const idleSignal = (event) => {
       xyPad.elt.releasePointerCapture(event.pointerId);
       xyPad.style('background', idleBg(idleAlpha));
-      synth.triggerRelease();
       pointerId = null;
     };
 
-    const xyPadAction = (ratioPointer, absPointer) => {
-      xyPad
-        .style('transform', `perspective(16rem) ${styleTransformPerspective(ratioPointer)}`)
-        .style('background', `${styleRadialGradient(absPointer)}`);
-    };
-
-    const domOperation = {
-      pointerdown: (ratioPointer, absPointer) => {
-        xyPadAction(ratioPointer, absPointer);
-      },
-      pointermove: (ratioPointer, absPointer) => {
-        xyPadAction(ratioPointer, absPointer);
-      },
-      pointerup: () => {},
-      pointercancel: () => {},
-    };
-
-    //const signalLiteral = {
+    /* pointer event 定義 */
     const eventlLiteral = {
       pointerdown: (event) => {
         xyPad.elt.setPointerCapture(event.pointerId);
         pointerId = event.pointerId;
         const { ratioPointer: rp, absPointer: ap } = xyPadClientFrame(event);
 
-        domOperation.pointerdown(rp, ap);
-        //toneOperation.pointerdown(rp);
-
-        synth.triggerAttack(notes[callCounter++ % notes.length]);
+        xyPadAction(rp, ap);
+        toneOperation.pointerdown(rp);
       },
 
       pointermove: (event) => {
@@ -189,20 +186,21 @@ const sketch = (p) => {
         }
         const { ratioPointer: rp, absPointer: ap } = xyPadClientFrame(event);
 
-        domOperation.pointermove(rp, ap);
+        xyPadAction(rp, ap);
+        toneOperation.pointermove(rp);
       },
 
       pointerup: (event) => {
         idleSignal(event);
+        toneOperation.pointerup();
       },
 
       pointercancel: (event) => {
         console.log('pointercancel');
         idleSignal(event);
+        toneOperation.pointercancel();
       },
     };
-
-    //pointercancel
 
     const signalEvent = (event) => {
       eventlLiteral[event.type](event);
