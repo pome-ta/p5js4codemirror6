@@ -20,6 +20,7 @@ const sketch = (p) => {
 
   let masterCh;
   let synth;
+  let filter;
 
   // --- Sketch
   let cnvs;
@@ -43,21 +44,23 @@ const sketch = (p) => {
 
     BPM.value = bpm;
 
-    
+    /*
     synth = new Tone.MonoSynth({
       oscillator: { type: 'pulse', width: 0 },
       envelope: { attack: 0.005, decay: 0.9, sustain: 0.8, release: 1 },
     });
-    
+    */
 
-    //synth = new Tone.Synth({ oscillator: { type: 'pulse', width: 0 } });
+    synth = new Tone.Synth({ oscillator: { type: 'pulse', width: 0 } });
 
     const lfo = new Tone.LFO('1n', -0.8, 0.8).start();
     //lfo.connect(synth.oscillator.width);
 
+    filter = new Tone.Filter(1500, 'lowpass');
+
     // --- mixer
     masterCh = new Tone.Channel().toDestination();
-    synth.connect(masterCh);
+    synth.chain(filter, masterCh);
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
@@ -72,6 +75,11 @@ const sketch = (p) => {
     synth.oscillator.width.value = valueWidth;
   };
 
+  const moveFilter = (v) => {
+    const value = p.map(v, 0, 1, 400, 1500);
+    synth.frequency.value = value;
+  };
+
   const toneOperation = {
     pointerdown: (ratioPointer) => {
       synth.triggerAttack(notes[callCounter++ % notes.length]);
@@ -79,6 +87,7 @@ const sketch = (p) => {
     },
     pointermove: (ratioPointer) => {
       moveWidth(ratioPointer.y);
+      moveFilter(ratioPointer.x);
     },
     pointerup: () => {
       synth.triggerRelease();
