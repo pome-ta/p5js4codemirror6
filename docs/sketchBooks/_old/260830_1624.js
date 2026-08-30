@@ -13,6 +13,8 @@ const sketch = (p) => {
   // --- Tone.js
   const ctx = p.getAudioContext();
   Tone.setContext(ctx);
+  /* Starting Audio */
+  document.addEventListener('pointerup', async () => await Tone.start(), { once: true });
   const transport = Tone.getTransport();
   const BPM = transport.bpm;
 
@@ -119,7 +121,7 @@ const sketch = (p) => {
       height: rectHeight,
     } = event.currentTarget.getBoundingClientRect();
 
-    // xxx: 外の要素まで拾わなくていいと思うのだけど・・・
+    // xxx: 外の要素まで拾わなくていいと思うのだけど・・・
     const absPointer = {
       x: p.map(event.clientX - rectLeft, 0, rectWidth, 0, rectWidth, true),
       y: p.map(event.clientY - rectTop, 0, rectHeight, 0, rectHeight, true),
@@ -166,10 +168,7 @@ const sketch = (p) => {
     };
 
     const xyPadAction = (ratioPointer, absPointer) => {
-      xyPad.style(
-        'transform',
-        `perspective(16rem) ${styleTransformPerspective(ratioPointer)}`,
-      );
+      xyPad.style('transform', `perspective(16rem) ${styleTransformPerspective(ratioPointer)}`);
       xyPad.style('background', `${styleRadialGradient(absPointer)}`);
     };
 

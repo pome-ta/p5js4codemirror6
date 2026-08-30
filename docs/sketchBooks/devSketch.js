@@ -13,6 +13,8 @@ const sketch = (p) => {
   // --- Tone.js
   const ctx = p.getAudioContext();
   Tone.setContext(ctx);
+  /* Starting Audio */
+  document.addEventListener('pointerup', async () => await Tone.start(), { once: true });
   const transport = Tone.getTransport();
   const BPM = transport.bpm;
 
