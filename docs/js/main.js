@@ -23,15 +23,6 @@ const { touchBegan, touchMoved, touchEnded } = {
   touchEnded: typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup',
 };
 
-/* --- load Source */
-// async function insertFetchDoc(filePath) {
-//   const fetchFilePath = async (path) => {
-//     const res = await fetch(path);
-//     return await res.text();
-//   };
-//   return await fetchFilePath(filePath);
-// }
-
 async function insertFetchDoc(filePath) {
   const res = await fetch(filePath);
   return await res.text();
@@ -68,12 +59,6 @@ insertFetchDoc(srcPath).then((loadedSource) => {
   sandboxHTMLstr = loadedSource;
 });
 
-/*
-const sandboxHTMLstr = await insertFetchDoc(srcPath).then((loadedSource) => {
-  return loadedSource;
-});
-*/
-
 // sandbox 側のAudioContext 解除
 document.addEventListener(touchEnded, () => {
   const auCtx = window.frames[0]?.auCtx;
@@ -90,18 +75,7 @@ document.addEventListener(touchEnded, () => {
 function reloadSandbox(targetSandbox) {
   const toStringDoc = editor.viewState.state.doc.toString();
   targetSandbox.src = createIframeURL(toStringDoc);
-  // targetSandbox.srcdoc = createIframeHtml(toStringDoc);
 }
-
-// function postSketch(targetEditor, targetSandbox) {
-//   targetSandbox.contentWindow.postMessage(
-//     {
-//       code: targetEditor.viewState.state.doc.toString(),
-//       isInstanceMode: isInstanceMode,
-//     },
-//     '*',
-//   );
-// }
 
 const originalUrl = new URL('./', window.location.href);
 
@@ -114,13 +88,6 @@ const importMap = {
   },
 };
 const importMapJSON = JSON.stringify(importMap, null, 2);
-
-// function replacePlaceholder(html, tag, marker, content) {
-//   const re = new RegExp(
-//     `(<${tag}\\b[^>]*>[\\s\\S]*?)<!--\\s*@${marker}\\s*-->([\\s\\S]*?<\\/${tag}>)`,
-//   );
-//   return html.replace(re, (_, before, after) => `${before}${content}${after}`);
-// }
 
 function replacePlaceholder(html, tag, attrs, marker, content) {
   const attrsPattern = attrs ? `[^>]*${attrs}[^>]*` : '[^>]*';
@@ -138,12 +105,6 @@ const createIframeHtml = (userCode) => {
 
   const scriptType = isInstanceMode ? 'type="module"' : '';
   const scriptCode = `<script ${scriptType} src="${currentBlobScript}"></script>`;
-  // const scriptCode = `<script ${scriptType}>\n${userCode}\n</script>`;
-  // console.log(sandboxHTMLstr);
-  // sketchHTML = sandboxHTMLstr.replace(
-  //   /(<body\b[^>]*>[\s\S]*?)<!--\s*@sketch-script\s*-->([\s\S]*?<\/body>)/,
-  //   (_, before, after) => `${before}${scriptCode}${after}`,
-  // );
 
   let sketchHTML = sandboxHTMLstr;
   sketchHTML = replacePlaceholder(sketchHTML, 'body', '', 'sketch-script', scriptCode);
@@ -167,15 +128,6 @@ const createIframeURL = (userCode) => {
   return iframeURL;
 };
 
-// const reloadSketchHandleEvent = function (e) {
-//   postSketch(this.targetEditor, e.currentTarget);
-// };
-const reloadSketchHandleEvent = function (e) {
-  const toStringDoc = editor.viewState.state.doc.toString();
-  sandbox.src = createIframeURL(toStringDoc);
-  // sandbox.srcdoc = createIframeHtml(toStringDoc);
-};
-
 const sandbox = DomFactory.create('iframe', {
   setAttrs: {
     id: 'sandbox',
@@ -183,7 +135,6 @@ const sandbox = DomFactory.create('iframe', {
     allow:
       'accelerometer; ambient-light-sensor; autoplay; bluetooth; camera; encrypted-media; geolocation; gyroscope;  hid; microphone; magnetometer; midi; payment; usb; serial; vr; xr-spatial-tracking',
     loading: 'lazy',
-    // src: srcPath,
   },
   setStyles: {
     width: '100%',
@@ -196,25 +147,6 @@ const sandbox = DomFactory.create('iframe', {
     //'background-color': 'lightgray',
     'background-color': 'darkgray',
   },
-  // addEventListeners: [
-  //   {
-  //     type: 'load',
-  //     listener: {
-  //       targetEditor: editor,
-  //       handleEvent: reloadSketchHandleEvent,
-  //     },
-  //   },
-  //   /*
-  //   {
-  //     type: 'visibilitychange',
-  //     listener: {
-  //       handleEvent: function (e) {
-  //         console.log('visibilitychange');
-  //       },
-  //     },
-  //   },
-  //   */
-  // ],
 });
 
 /* --- accessory */
@@ -238,7 +170,9 @@ const callButton = DomFactory.create('button', {
 });
 
 const summaryTextContent = (bool) => `source: ${bool ? 'hide' : 'show'}`;
+// xxx: ?
 const initDetailsOpen = false;
+//const initDetailsOpen = true;
 
 const summary = DomFactory.create('summary', {
   setStyles: {
@@ -278,6 +212,7 @@ const details = DomFactory.create('details', {
         },
       },
     },
+
     {
       type: 'build',
       listener: {
@@ -437,22 +372,6 @@ const header = DomFactory.create('header', {
         handleEvent: headerHandleEvent,
       },
     },
-    /*
-    {
-      target: sandbox,
-      type: 'resize',
-      listener: {
-        handleEvent: headerHandleEvent,
-      },
-    },
-    {
-      target: sandbox,
-      type: 'scroll',
-      listener: {
-        handleEvent: headerHandleEvent,
-      },
-    },
-    */
   ],
   appendChildren: [headerControlWrap],
 });
@@ -735,6 +654,5 @@ document.addEventListener('DOMContentLoaded', () => {
       changes: { from: editor.state?.doc.length, insert: loadedSource },
     });
     sandbox.src = createIframeURL(loadedSource);
-    // sandbox.srcdoc = createIframeHtml(loadedSource);
   });
 });

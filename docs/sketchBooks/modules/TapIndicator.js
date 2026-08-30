@@ -55,10 +55,7 @@ export default class TapIndicator {
       return;
     }
 
-    if (
-      this.#pg.width !== this.#p.width ||
-      this.#pg.height !== this.#p.height
-    ) {
+    if (this.#pg.width !== this.#p.width || this.#pg.height !== this.#p.height) {
       this.#initGraphics();
     }
 
