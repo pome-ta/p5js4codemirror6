@@ -16,6 +16,11 @@ import {
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
+const initDetailsOpen = false;
+//const initDetailsOpen = true;
+
+let isInstanceMode = true;
+
 // MouseEvent TouchEvent wrapper
 const { touchBegan, touchMoved, touchEnded } = {
   touchBegan: typeof document.ontouchstart !== 'undefined' ? 'touchstart' : 'mousedown',
@@ -51,7 +56,7 @@ const editor = createEditorView(editorDiv);
 editorDiv.cmEditorView = editor;
 
 /* --- iframe(Sandbox) */
-let isInstanceMode = true;
+
 const srcPath = './sketchBooks/sketchCanvas.html';
 
 let sandboxHTMLstr;
@@ -170,9 +175,6 @@ const callButton = DomFactory.create('button', {
 });
 
 const summaryTextContent = (bool) => `source: ${bool ? 'hide' : 'show'}`;
-// xxx: ?
-const initDetailsOpen = false;
-//const initDetailsOpen = true;
 
 const summary = DomFactory.create('summary', {
   setStyles: {
@@ -198,7 +200,6 @@ const detailsControl = (isDetailsOpen, summaryElement, divElement) => {
 const details = DomFactory.create('details', {
   setAttrs: {
     id: 'details',
-    open: `${initDetailsOpen}`,
   },
   setStyles: { cursor: 'pointer' },
   addEventListeners: [
@@ -219,7 +220,8 @@ const details = DomFactory.create('details', {
         targetSummary: summary,
         targetDiv: editorDiv,
         handleEvent: function (e) {
-          detailsControl(e.detail.open, this.targetSummary, this.targetDiv);
+          e.detail.open = initDetailsOpen;
+          detailsControl(initDetailsOpen, this.targetSummary, this.targetDiv);
         },
       },
     },
