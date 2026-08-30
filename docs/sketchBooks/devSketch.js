@@ -166,7 +166,10 @@ const sketch = (p) => {
     };
 
     const xyPadAction = (ratioPointer, absPointer) => {
-      xyPad.style('transform', `perspective(16rem) ${styleTransformPerspective(ratioPointer)}`);
+      xyPad.style(
+        'transform',
+        `perspective(16rem) ${styleTransformPerspective(ratioPointer)}`,
+      );
       xyPad.style('background', `${styleRadialGradient(absPointer)}`);
     };
 
