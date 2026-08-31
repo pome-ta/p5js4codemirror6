@@ -1,4 +1,4 @@
-// --- # example: 
+// --- # example:
 
 import * as Tone from 'tone';
 
@@ -18,14 +18,12 @@ const sketch = (p) => {
   const transport = Tone.getTransport();
   const BPM = transport.bpm;
 
-  let bpm = 100;
+  let bpm = 90;
 
   let masterCh;
   let kickTone;
-  let kickDecay = 134.63e-3;
+  let kickDecay = 0;
   let ampEnv;
-  
-
 
   // --- Sketch
   let cnvs;
@@ -40,33 +38,33 @@ const sketch = (p) => {
   const idleAlpha = 0.12;
   const idleBg = (a) => `rgba(0, 0, 128, ${a})`;
 
-
-
   p.setup = () => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
 
     BPM.value = bpm;
-
+    
     kickTone = new Tone.MembraneSynth({
-      pitchDecay: 134.63e-3,
-      octaves: 1.2,
+      pitchDecay: 35e-3,
+      octaves: 7.1,
       oscillator: { type: 'pulse', width: 0 },
       envelope: {
-        attack: 0.1e-4,
-        decay: 80e-3,
-        sustain: 0.00,
-        release: 0.1,
+        attack: 0.0,
+        decay: 246e-3,
+        sustain: 0.0,
+        release: 2.49,
         //attackCurve: 'exponential',
         attackCurve: 'linear',
         
       },
     });
-    
+  
+
     // ---sequence
     new Tone.Sequence(
       (time, note) => {
-        note.triggerAttackRelease('A0', '8n', time);
+        note.triggerAttackRelease('A0', '128n', time);
+        //note.triggerAttack('A0', time);
       },
       // prettier-ignore
       [
@@ -75,7 +73,7 @@ const sketch = (p) => {
       '4n',
     ).start(0);
     transport.start();
-
+    
 
     // --- mixer
     masterCh = new Tone.Channel().toDestination();
@@ -90,15 +88,11 @@ const sketch = (p) => {
 
   /* tone 操作 */
 
-
   const toneOperation = {
     pointerdown: (ratioPointer) => {
       //kickTone.triggerAttack('A0');
-
     },
-    pointermove: (ratioPointer) => {
-
-    },
+    pointermove: (ratioPointer) => {},
     pointerup: () => {
       //kickTone.triggerRelease();
     },
