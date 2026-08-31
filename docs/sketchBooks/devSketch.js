@@ -21,7 +21,8 @@ const sketch = (p) => {
   let bpm = 100;
 
   let masterCh;
-  let synth;
+  let kickTone;
+  let kickDecay = 134.63e-3;
   let ampEnv;
   
 
@@ -47,12 +48,38 @@ const sketch = (p) => {
 
     BPM.value = bpm;
 
-    synth = new Tone.Synth({ oscillator: { type: 'pulse', width: 0 } });
+    kickTone = new Tone.MembraneSynth({
+      pitchDecay: 134.63e-3,
+      octaves: 1.2,
+      oscillator: { type: 'pulse', width: 0 },
+      envelope: {
+        attack: 0.1e-4,
+        decay: 80e-3,
+        sustain: 0.00,
+        release: 0.1,
+        //attackCurve: 'exponential',
+        attackCurve: 'linear',
+        
+      },
+    });
+    
+    // ---sequence
+    new Tone.Sequence(
+      (time, note) => {
+        note.triggerAttackRelease('A0', '8n', time);
+      },
+      // prettier-ignore
+      [
+        kickTone, kickTone, kickTone, kickTone,
+      ],
+      '4n',
+    ).start(0);
+    transport.start();
 
 
     // --- mixer
     masterCh = new Tone.Channel().toDestination();
-    synth.chain(masterCh);
+    kickTone.chain(masterCh);
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
@@ -62,29 +89,21 @@ const sketch = (p) => {
   };
 
   /* tone 操作 */
-  const moveWidth = (v) => {
-    const valueWidth = p.map(v, 0, 1, -0.95, 0.95);
-    synth.oscillator.width.value = valueWidth;
-  };
 
-  const moveFilter = (v) => {
-    const value = p.map(v, 0, 1, 20, 12000);
-    tFilter.frequency.value = value;
-  };
 
   const toneOperation = {
     pointerdown: (ratioPointer) => {
-      synth.triggerAttack('A0');
+      //kickTone.triggerAttack('A0');
 
     },
     pointermove: (ratioPointer) => {
 
     },
     pointerup: () => {
-      synth.triggerRelease();
+      //kickTone.triggerRelease();
     },
     pointercancel: () => {
-      synth?.triggerRelease();
+      //kickTone?.triggerRelease();
     },
   };
 
