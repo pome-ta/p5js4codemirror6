@@ -18,11 +18,11 @@ const sketch = (p) => {
   const transport = Tone.getTransport();
   const BPM = transport.bpm;
 
-  let bpm = 90;
+  let bpm = 130;
 
   let masterCh;
   let kickTone;
-  let kickDecay = 0;
+  let kickFilter;
   let ampEnv;
 
   // --- Sketch
@@ -43,41 +43,54 @@ const sketch = (p) => {
     cnvs = p.createCanvas(w, h);
 
     BPM.value = bpm;
-    
+
     kickTone = new Tone.MembraneSynth({
-      pitchDecay: 35e-3,
-      octaves: 7.1,
+      pitchDecay: 450e-3,
+      octaves: 8,
       oscillator: { type: 'pulse', width: 0 },
       envelope: {
         attack: 0.0,
         decay: 246e-3,
         sustain: 0.0,
         release: 2.49,
-        //attackCurve: 'exponential',
-        attackCurve: 'linear',
-        
+        attackCurve: 'exponential',
+        //attackCurve: 'linear',
       },
     });
-  
+
+    kickFilter = new Tone.Filter(110, 'lowpass');
+
+    const kickFilterEnv = new Tone.FrequencyEnvelope({
+      attack: 0.0,
+      decay: 135e-3,
+      sustain: 0.0,
+      release: 80e-3,
+      baseFrequency: 110, // 下限
+      octaves: 3, // 上限 = baseFrequency * 2^octaves
+    });
+    kickFilterEnv.connect(kickFilter.frequency);
 
     // ---sequence
     new Tone.Sequence(
       (time, note) => {
-        note.triggerAttackRelease('A0', '128n', time);
+        note.triggerAttackRelease('A0', '1i', time);
         //note.triggerAttack('A0', time);
+        kickFilterEnv.triggerAttack(time);
       },
       // prettier-ignore
       [
         kickTone, kickTone, kickTone, kickTone,
+        [kickTone, kickTone], kickTone, [null, kickTone], [null,[null,kickTone],kickTone],
       ],
       '4n',
     ).start(0);
     transport.start();
-    
+
+    console.log(kickTone);
 
     // --- mixer
     masterCh = new Tone.Channel().toDestination();
-    kickTone.chain(masterCh);
+    kickTone.chain(kickFilter, masterCh);
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
@@ -92,7 +105,14 @@ const sketch = (p) => {
     pointerdown: (ratioPointer) => {
       //kickTone.triggerAttack('A0');
     },
-    pointermove: (ratioPointer) => {},
+    pointermove: (ratioPointer) => {
+      const pd = p.map(ratioPointer.x, 0, 1, 5e-3, 600e-3);
+      kickTone.pitchDecay = pd;
+
+      const q = p.map(ratioPointer.x, 0, 1, 0, 10);
+
+      kickFilter.Q.value = q;
+    },
     pointerup: () => {
       //kickTone.triggerRelease();
     },
