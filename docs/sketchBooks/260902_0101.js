@@ -24,8 +24,8 @@ const sketch = (p) => {
 
   let masterCh;
   let kickTone;
-  let kickFrqEnv;
   let kickFilter;
+  let ampEnv;
 
   // --- Sketch
   let cnvs;
@@ -45,32 +45,56 @@ const sketch = (p) => {
     cnvs = p.createCanvas(w, h);
 
     BPM.value = bpm;
-    /*
-    kickTone = new  ({
+
+    kickTone = new Tone.MembraneSynth({
+      pitchDecay: 88e-3,
+      octaves: 5,
       oscillator: { type: 'pulse', width: 0 },
       envelope: {
         attack: 0.0,
+        decay: 246e-3,
+        sustain: 0.0,
+        release: 2.49,
+        // attackCurve: 'exponential',
+        attackCurve: 'linear',
       },
     });
-    */
-    kickTone = new Tone.Synth({ oscillator: { type: 'pulse', width: 0 } });
 
-    kickFrqEnv = new Tone.FrequencyEnvelope({
+    kickFilter = new Tone.Filter(0, 'lowpass');
+    const kickFilterEnv = new Tone.FrequencyEnvelope({
       attack: 0.0,
       decay: 140e-3,
       sustain: 0.0,
       release: 80e-3,
-      baseFrequency: 'A0', // 下限
-      octaves: 1.5, // 上限 = baseFrequency * 2^octaves
-      //attackCurve: 'exponential',
-      decayCurve: 'exponential',
+      baseFrequency: 160, // 下限
+      octaves: 3, // 上限 = baseFrequency * 2^octaves
+      // attackCurve: 'exponential',
+      // decayCurve: 'exponential',
     });
-    //console.log(kickTone)
-    kickFrqEnv.connect(kickTone.oscillator.frequency);
+    kickFilterEnv.connect(kickFilter.frequency);
+
+    // ---sequence
+    new Tone.Sequence(
+      (time, note) => {
+        note.triggerAttackRelease('A0', '1i', time);
+        //note.triggerAttack('A0', time);
+        //kickFilterEnv.triggerAttack(time);
+        kickFilterEnv.triggerAttackRelease('1i', time);
+      },
+      // prettier-ignore
+      [
+        kickTone, kickTone, kickTone, kickTone,kickTone, kickTone, kickTone, [kickTone,kickTone],
+        [null,null, kickTone,null], kickTone, [null, kickTone], [null,[null,kickTone],kickTone],
+      ],
+      '4n',
+    ).start(0);
+    transport.start();
+
+    console.log(kickTone);
 
     // --- mixer
     masterCh = new Tone.Channel().toDestination();
-    kickTone.chain(masterCh);
+    kickTone.chain(kickFilter, masterCh);
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
@@ -83,15 +107,21 @@ const sketch = (p) => {
 
   const toneOperation = {
     pointerdown: (ratioPointer) => {
-      kickTone.triggerAttack();
-      kickFrqEnv.triggerAttack();
+      //kickTone.triggerAttack('A0');
     },
-    pointermove: (ratioPointer) => {},
+    pointermove: (ratioPointer) => {
+      const ed = p.map(ratioPointer.x, 0, 1, 1e-3, 600e-3);
+      kickTone.envelope.decay = ed;
+
+      const q = p.map(ratioPointer.y, 0, 1, 20, 0);
+
+      kickFilter.Q.value = q;
+    },
     pointerup: () => {
-      kickTone.triggerRelease();
+      //kickTone.triggerRelease();
     },
     pointercancel: () => {
-      kickTone?.triggerRelease();
+      //kickTone?.triggerRelease();
     },
   };
 
