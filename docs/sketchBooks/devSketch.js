@@ -45,15 +45,36 @@ const sketch = (p) => {
     cnvs = p.createCanvas(w, h);
 
     BPM.value = bpm;
-    /*
-    kickTone = new  ({
+
+    kickTone = new Tone.MonoSynth({
       oscillator: { type: 'pulse', width: 0 },
       envelope: {
         attack: 0.0,
+        decay: 246e-3,
+        sustain: 0.0,
+        release: 2.49,
+        // attackCurve: 'exponential',
+        attackCurve: 'linear',
+      },
+      filter: {
+        type: 'lowpass',
+        Q: 0,
+        rolloff: -24,
+        frequency: 0, // filterEnvelope の値がそのまま反映されるように
+      },
+      filterEnvelope: {
+        attack: 0.0,
+        decay: 140e-3,
+        sustain: 0.0,
+        release: 80e-3,
+        baseFrequency: 160, // 下限
+        octaves: 3, // 上限 = baseFrequency * 2^octaves
+        // attackCurve: 'exponential',
+        // decayCurve: 'exponential',
       },
     });
-    */
-    kickTone = new Tone.Synth({ oscillator: { type: 'pulse', width: 0 } });
+
+    //kickTone = new Tone.Synth({ oscillator: { type: 'pulse', width: 0 } });
 
     kickFrqEnv = new Tone.FrequencyEnvelope({
       attack: 0.0,
@@ -83,7 +104,7 @@ const sketch = (p) => {
 
   const toneOperation = {
     pointerdown: (ratioPointer) => {
-      kickTone.triggerAttack();
+      kickTone.triggerAttack('A0');
       kickFrqEnv.triggerAttack();
     },
     pointermove: (ratioPointer) => {},
