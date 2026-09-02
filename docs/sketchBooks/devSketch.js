@@ -25,7 +25,6 @@ const sketch = (p) => {
   let masterCh;
   let kickTone;
   let kickFrqEnv;
-  let kickFilter;
 
   // --- Sketch
   let cnvs;
@@ -84,10 +83,27 @@ const sketch = (p) => {
       baseFrequency: 'A0', // 下限
       octaves: 1.5, // 上限 = baseFrequency * 2^octaves
       //attackCurve: 'exponential',
-      decayCurve: 'exponential',
+      //decayCurve: 'exponential',
     });
     //console.log(kickTone)
     kickFrqEnv.connect(kickTone.oscillator.frequency);
+
+    // ---sequence
+    new Tone.Sequence(
+      (time, note) => {
+        //note.triggerAttackRelease(0, '1i', time);
+        //kickFrqEnv.triggerAttackRelease('1i', time);
+        note.triggerAttack(0, time);
+        kickFrqEnv.triggerAttack(time);
+      },
+      // prettier-ignore
+      [
+        kickTone, kickTone, kickTone, kickTone,kickTone, kickTone, kickTone, [kickTone,kickTone],
+        [null,null, kickTone,null], kickTone, [null, kickTone], [null,[null,kickTone],kickTone],
+      ],
+      '4n',
+    ).start(0);
+    transport.start();
 
     // --- mixer
     masterCh = new Tone.Channel().toDestination();
@@ -101,18 +117,23 @@ const sketch = (p) => {
   };
 
   /* tone 操作 */
-
   const toneOperation = {
     pointerdown: (ratioPointer) => {
-      kickTone.triggerAttack('A0');
-      kickFrqEnv.triggerAttack();
+      //kickTone.triggerAttack('A0');
+      //kickFrqEnv.triggerAttack();
     },
-    pointermove: (ratioPointer) => {},
+    pointermove: (ratioPointer) => {
+      const ed = p.map(ratioPointer.x, 0, 1, 1e-3, 600e-3);
+      kickFrqEnv.decay = ed;
+
+      const q = p.map(ratioPointer.y, 0, 1, 20, 0);
+      kickTone.filter.Q.value = q;
+    },
     pointerup: () => {
-      kickTone.triggerRelease();
+      //kickTone.triggerRelease();
     },
     pointercancel: () => {
-      kickTone?.triggerRelease();
+      //kickTone?.triggerRelease();
     },
   };
 
