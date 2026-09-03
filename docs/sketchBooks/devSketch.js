@@ -1,4 +1,4 @@
-// --- # example: kick
+// --- # example: kick cmp ?
 
 import * as Tone from 'tone';
 
@@ -20,12 +20,13 @@ const sketch = (p) => {
   const transport = Tone.getTransport();
   const BPM = transport.bpm;
 
-  let bpm = 105;
+  let bpm = 125;
 
   let masterCh;
   let kick;
   let kickTone;
   let kickFrqEnv;
+  let kickCh;
 
   // --- Sketch
   let cnvs;
@@ -46,9 +47,6 @@ const sketch = (p) => {
 
     BPM.value = bpm;
 
-
-    //kickTone = new Tone.Synth({ oscillator: { type: 'pulse', width: 0 } });
-    
     kick = new Tone.MembraneSynth({
       pitchDecay: 0.02,
       octaves: 5,
@@ -61,7 +59,7 @@ const sketch = (p) => {
         attackCurve: 'exponential',
       },
     });
-    
+
     kickTone = new Tone.MonoSynth({
       oscillator: { type: 'pulse', width: 0 },
       envelope: {
@@ -122,10 +120,22 @@ const sketch = (p) => {
     ).start(0);
     transport.start();
 
+    kickCh = new Tone.Channel(8);
+    kickTone.chain(kickCh);
+    kick.chain(kickCh);
+
+    // --- effect
+    const kickComp = new Tone.Compressor({
+      threshold: -20, // -20dB以上の音を圧縮
+      ratio: 6, // 6:1で圧縮
+      attack: 0.001, // 非常に速いアタック(トランジェントを抑える)
+      release: 0.1, // 速めのリリース(次のキックに素早く回復)
+      knee: 5, // ハードニー寄り(圧縮の切り替わりが明確)
+    });
+
     // --- mixer
     masterCh = new Tone.Channel().toDestination();
-    kickTone.chain(masterCh);
-    kick.chain(masterCh);
+    kickCh.chain(kickComp, masterCh);
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
