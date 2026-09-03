@@ -20,7 +20,7 @@ const sketch = (p) => {
   const transport = Tone.getTransport();
   const BPM = transport.bpm;
 
-  let bpm = 96;
+  let bpm = 105;
 
   let masterCh;
   let kickTone;
@@ -52,7 +52,7 @@ const sketch = (p) => {
       oscillator: { type: 'pulse', width: 0 },
       envelope: {
         attack: 0.0,
-        decay: 246e-3,
+        decay: 1.35,
         sustain: 0.0,
         release: 2.5,
         // attackCurve: 'exponential',
@@ -61,7 +61,7 @@ const sketch = (p) => {
       filter: {
         type: 'lowpass',
         Q: 0,
-        rolloff: -24,
+        rolloff: -12,
         frequency: 0, // filterEnvelope の値がそのまま反映されるように
       },
       filterEnvelope: {
@@ -69,8 +69,8 @@ const sketch = (p) => {
         decay: 140e-3,
         sustain: 0.0,
         release: 80e-3,
-        baseFrequency: 120, // 下限
-        octaves: 4, // 上限 = baseFrequency * 2^octaves
+        baseFrequency: 105, // 下限
+        octaves: 3, // 上限 = baseFrequency * 2^octaves
         // attackCurve: 'exponential',
         decayCurve: 'exponential',
       },
@@ -78,13 +78,13 @@ const sketch = (p) => {
 
     kickFrqEnv = new Tone.FrequencyEnvelope({
       attack: 0.0,
-      decay: 135e-3,
+      decay: 240e-3,
       sustain: 0.0,
       release: 75e-3,
       baseFrequency: 'A0', // 下限
-      octaves: 2.8, // 上限 = baseFrequency * 2^octaves
-      //attackCurve: 'exponential',
-      //decayCurve: 'exponential',
+      octaves: 2.5, // 上限 = baseFrequency * 2^octaves
+      // attackCurve: 'exponential',
+      // decayCurve: 'exponential',
     });
     //console.log(kickTone)
     kickFrqEnv.connect(kickTone.oscillator.frequency);
@@ -92,15 +92,16 @@ const sketch = (p) => {
     // ---sequence
     new Tone.Sequence(
       (time, note) => {
-        note.triggerAttackRelease('A0', '1i', time);
+        // note.triggerAttackRelease('A0', '1i', time);
         kickFrqEnv.triggerAttackRelease('1i', time);
-        // note.triggerAttack('A0', time);
+        note.triggerAttack('A0', time);
         // kickFrqEnv.triggerAttack(time);
       },
       // prettier-ignore
       [
-        kickTone, kickTone, kickTone, kickTone,kickTone, kickTone, kickTone, [kickTone,kickTone],
-        [null,null, kickTone,null], kickTone, [null, kickTone], [null,[null,kickTone],kickTone],
+        kickTone, kickTone, kickTone, kickTone,
+        kickTone, kickTone, kickTone, [kickTone,kickTone],
+        //[null,null, kickTone,null], kickTone, [null, kickTone], [null,[null,kickTone],kickTone],
       ],
       '4n',
     ).start(0);
@@ -124,7 +125,7 @@ const sketch = (p) => {
       //kickFrqEnv.triggerAttack();
     },
     pointermove: (ratioPointer) => {
-      const ed = p.map(ratioPointer.x, 0, 1, 55e-3, 1.2);
+      const ed = p.map(ratioPointer.x, 0, 1, 55e-3, 2);
       kickTone.envelope.decay = ed;
 
       const q = p.map(ratioPointer.y, 0, 1, 20, 0);
