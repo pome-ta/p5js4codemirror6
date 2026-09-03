@@ -23,6 +23,7 @@ const sketch = (p) => {
   let bpm = 105;
 
   let masterCh;
+  let kick;
   let kickTone;
   let kickFrqEnv;
 
@@ -47,6 +48,19 @@ const sketch = (p) => {
 
 
     //kickTone = new Tone.Synth({ oscillator: { type: 'pulse', width: 0 } });
+    
+    kick = new Tone.MembraneSynth({
+      pitchDecay: 0.02,
+      octaves: 5,
+      oscillator: { type: 'sine' },
+      envelope: {
+        attack: 0.001,
+        decay: 0.8,
+        sustain: 0.1,
+        release: 1.4,
+        attackCurve: 'exponential',
+      },
+    });
     
     kickTone = new Tone.MonoSynth({
       oscillator: { type: 'pulse', width: 0 },
@@ -92,9 +106,10 @@ const sketch = (p) => {
     // ---sequence
     new Tone.Sequence(
       (time, note) => {
-        // note.triggerAttackRelease('A0', '1i', time);
+        note.triggerAttackRelease('A0', '1i', time);
         kickFrqEnv.triggerAttackRelease('1i', time);
-        note.triggerAttack('A0', time);
+        // note.triggerAttack('A0', time);
+        kick.triggerAttackRelease('A1', '1i', time);
         // kickFrqEnv.triggerAttack(time);
       },
       // prettier-ignore
@@ -110,6 +125,7 @@ const sketch = (p) => {
     // --- mixer
     masterCh = new Tone.Channel().toDestination();
     kickTone.chain(masterCh);
+    kick.chain(masterCh);
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
