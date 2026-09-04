@@ -100,14 +100,14 @@ const sketch = (p) => {
       [
         kickTone, kickTone, kickTone, kickTone,
         kickTone, kickTone, kickTone, [kickTone,kickTone],
-        //[null,null, kickTone,null], kickTone, [null, kickTone], [null,[null,kickTone],kickTone],
+        [null,null, kickTone,null], kickTone, [null, kickTone], [null,[null,kickTone],kickTone],
       ],
       '4n',
     ).start(0);
     transport.start();
 
 
-    kickCh = new Tone.Channel(1);
+    kickCh = new Tone.Channel(6);
     kickTone.chain(kickCh);
 
 
