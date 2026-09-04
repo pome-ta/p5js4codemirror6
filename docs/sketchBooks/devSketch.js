@@ -1,4 +1,4 @@
-// --- # example: kick
+// --- # example: kick, hh
 
 import * as Tone from 'tone';
 
@@ -20,13 +20,14 @@ const sketch = (p) => {
   const transport = Tone.getTransport();
   const BPM = transport.bpm;
 
-  let bpm = 125;
+  let bpm = 118;
 
   let masterCh;
   let kickCh;
   let kickTone;
   let kickFrqEnv;
-
+  let hihatCh;
+  let hihatTone;
 
   // --- Sketch
   let cnvs;
@@ -51,69 +52,86 @@ const sketch = (p) => {
       oscillator: { type: 'pulse', width: 0 },
       envelope: {
         attack: 0.0,
-        decay: 1.35,
+        decay: 1.9,
         sustain: 0.0,
         release: 2.5,
-        // attackCurve: 'exponential',
-        //attackCurve: 'linear',
       },
       filter: {
         type: 'lowpass',
-        Q: 0,
+        Q: 2,
         rolloff: -12,
-        frequency: 0, // filterEnvelope の値がそのまま反映されるように
+        frequency: 0,
       },
       filterEnvelope: {
         attack: 0.0,
-        decay: 0.145,
+        decay: 0.545,
         sustain: 0.0,
-        release: 0.075,
-        baseFrequency: 110, // 下限
-        octaves: 2.7, // 上限 = baseFrequency * 2^octaves
-        // attackCurve: 'exponential',
-        decayCurve: 'exponential',
+        release: 0.08,
+        baseFrequency: 105,
+        octaves: 2.3,
       },
     });
 
     kickFrqEnv = new Tone.FrequencyEnvelope({
       attack: 0.0,
-      decay: 0.145,
+      decay: 0.245,
       sustain: 0.0,
       release: 0.075,
-      baseFrequency: 'A0', // 下限
-      octaves: 2.7, // 上限 = baseFrequency * 2^octaves
-      // attackCurve: 'exponential',
+      baseFrequency: 'A0',
+      octaves: 1.9,
       decayCurve: 'exponential',
     });
-    //console.log(kickTone)
+
     kickFrqEnv.connect(kickTone.oscillator.frequency);
+
+    hihatTone = new Tone.MetalSynth({
+      envelope: { attack: 0.0, decay: 0.9, sustain: 0.0, release: 0.04 },
+      harmonicity: 4.1,
+      modulationIndex: 48,
+      octaves: 1.7,
+      resonance: 900,
+    });
 
     // ---sequence
     new Tone.Sequence(
-      (time, note) => {
-        note.triggerAttackRelease(0, '1i', time);
-        kickFrqEnv.triggerAttackRelease('1i', time);
-        //note.triggerAttack(0, time);
-        //kickFrqEnv.triggerAttack(time);
+      (time, _signal) => {
+        kickTone.triggerAttackRelease(0, '1i', time);
+        kickFrqEnv.triggerAttack(time);
       },
       // prettier-ignore
       [
-        kickTone, kickTone, kickTone, kickTone,
-        kickTone, kickTone, kickTone, [kickTone,kickTone],
-        [null,null, kickTone,null], kickTone, [null, kickTone], [null,[null,kickTone],kickTone],
+        1, 1, 1, 1,
+        1, 1, 1, 1,
+        1, 1, 1, 1,
+        1, 1, 1, [1, 1]
       ],
       '4n',
     ).start(0);
+    
+    new Tone.Sequence(
+      (time, _signal) => {
+        hihatTone.triggerAttackRelease('D5', '1i', time);
+      },
+      // prettier-ignore
+      [
+        null, 1, null, 1,
+      ],
+      '8n',
+    ).start(0);
+    
+    
     transport.start();
-
 
     kickCh = new Tone.Channel(6);
     kickTone.chain(kickCh);
-
+    
+    hihatCh = new Tone.Channel(-8);
+    hihatTone.chain(hihatCh);
 
     // --- mixer
     masterCh = new Tone.Channel().toDestination();
     kickCh.chain(masterCh);
+    hihatCh.chain(masterCh);
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
@@ -129,13 +147,11 @@ const sketch = (p) => {
       //kickFrqEnv.triggerAttack();
     },
     pointermove: (ratioPointer) => {
-      
       const ed = p.map(ratioPointer.x, 0, 1, 0.05, 2);
       kickTone.envelope.decay = ed;
 
       const q = p.map(ratioPointer.y, 0, 1, 20, 0);
       kickTone.filter.Q.value = q;
-      
     },
     pointerup: () => {
       kickTone.triggerRelease();
@@ -148,7 +164,6 @@ const sketch = (p) => {
   p.draw = () => {
     // put drawing code here
     p.background(80);
-    //p.rect(0, 0, w / 2, h / 2);
     spectrumAnalyzer.drawGraph();
   };
 
