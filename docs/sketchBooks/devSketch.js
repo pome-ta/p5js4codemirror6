@@ -26,6 +26,10 @@ const sketch = (p) => {
   let kickCh;
   let kickTone;
   let kickFrqEnv;
+  
+  let snareCh;
+  let snareTone;
+  
   let hihatCh;
   let hihatTone;
 
@@ -48,13 +52,14 @@ const sketch = (p) => {
 
     BPM.value = bpm;
 
+    // --- kick
     kickTone = new Tone.MonoSynth({
       oscillator: { type: 'pulse', width: 0 },
       envelope: {
         attack: 0.0,
         decay: 1.9,
         sustain: 0.0,
-        release: 2.5,
+        release: 0.6,
       },
       filter: {
         type: 'lowpass',
@@ -84,6 +89,13 @@ const sketch = (p) => {
 
     kickFrqEnv.connect(kickTone.oscillator.frequency);
 
+    // --- snare
+    snareTone = new Tone.NoiseSynth({
+      noise: { type: 'white' },
+      envelope: { attack: 0.0, decay: 0.2, sustain: 0, release: 0.35 },
+    });
+    // --- hihat
+
     hihatTone = new Tone.MetalSynth({
       envelope: { attack: 0.0, decay: 0.9, sustain: 0.0, release: 0.04 },
       harmonicity: 4.1,
@@ -107,10 +119,21 @@ const sketch = (p) => {
       ],
       '4n',
     ).start(0);
-    
+
     new Tone.Sequence(
       (time, _signal) => {
-        hihatTone.triggerAttackRelease('D5', '1i', time);
+        snareTone.triggerAttackRelease('1i', time);
+      },
+      // prettier-ignore
+      [
+        null, 1,
+      ],
+      '4n',
+    ).start(0);
+
+    new Tone.Sequence(
+      (time, _signal) => {
+        hihatTone.triggerAttackRelease('D6', '1i', time);
       },
       // prettier-ignore
       [
@@ -118,19 +141,22 @@ const sketch = (p) => {
       ],
       '8n',
     ).start(0);
-    
-    
+
     transport.start();
 
     kickCh = new Tone.Channel(6);
     kickTone.chain(kickCh);
-    
+
+    snareCh = new Tone.Channel();
+    snareTone.chain(snareCh);
+
     hihatCh = new Tone.Channel(-8);
     hihatTone.chain(hihatCh);
 
     // --- mixer
     masterCh = new Tone.Channel().toDestination();
     kickCh.chain(masterCh);
+    snareCh.chain(masterCh);
     hihatCh.chain(masterCh);
 
     tapIndicator.setup();
