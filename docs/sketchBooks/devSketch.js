@@ -1,4 +1,4 @@
-// --- # example: kick, hh
+// --- # example:
 
 import * as Tone from 'tone';
 
@@ -9,29 +9,6 @@ const sketch = (p) => {
   // --- Plugins
   const tapIndicator = new TapIndicator(p);
   const spectrumAnalyzer = new SpectrumAnalyzer(p, 2048);
-
-  // --- Tone.js
-  const ctx = p.getAudioContext();
-  Tone.setContext(ctx);
-  /* Starting Audio */
-  document.addEventListener('pointerup', async () => await Tone.start(), {
-    once: true,
-  });
-  const transport = Tone.getTransport();
-  const BPM = transport.bpm;
-
-  let bpm = 0;
-
-  let masterCh;
-  let kickCh;
-  let kickTone;
-  let kickFrqEnv;
-
-  let snareCh;
-  let snareTone;
-
-  let hihatCh;
-  let hihatTone;
 
   // --- Sketch
   let cnvs;
@@ -46,119 +23,178 @@ const sketch = (p) => {
   const idleAlpha = 0.12;
   const idleBg = (a) => `rgba(0, 0, 128, ${a})`;
 
+  // --- Tone.js
+  const ctx = p.getAudioContext();
+  Tone.setContext(ctx);
+  /* Starting Audio */
+  document.addEventListener('pointerup', async () => await Tone.start(), {
+    once: true,
+  });
+  const transport = Tone.getTransport();
+  const BPM = transport.bpm;
+
+  let bpm = 0;
+
+  let masterCh;
+
+  let kick;
+  class Kick {
+    ch;
+    coreTone;
+    frqEnv;
+
+    constructor(volume = null) {
+      this.ch = volume ? new Tone.Channel(volume) : new Tone.Channel();
+      this.coreTone = new Tone.MonoSynth({
+        oscillator: { type: 'pulse', width: 0 },
+        envelope: {
+          attack: 0.0,
+          decay: 1.9,
+          sustain: 0.0,
+          release: 0.55,
+          releaseCurve: 'exponential',
+        },
+        filter: {
+          type: 'lowpass',
+          Q: 1,
+          rolloff: -12,
+          frequency: 0,
+        },
+        filterEnvelope: {
+          attack: 0.0,
+          decay: 0.545,
+          sustain: 0.0,
+          release: 0.08,
+          releaseCurve: 'exponential',
+          baseFrequency: 95,
+          octaves: 1.1,
+        },
+      });
+
+      this.frqEnv = new Tone.FrequencyEnvelope({
+        attack: 0.0,
+        decay: 0.145,
+        sustain: 0.0,
+        release: 0.55,
+        baseFrequency: 'A0',
+        octaves: 1.9,
+        decayCurve: 'exponential',
+        releaseCurve: 'exponential',
+      });
+
+      this.frqEnv.connect(this.coreTone.oscillator.frequency);
+      this.coreTone.chain(this.ch);
+      this.#sequenceCall();
+    }
+
+    #sequenceSignal = (time) => {
+      this.coreTone.triggerAttackRelease(0, '1i', time);
+      this.frqEnv.triggerAttack(time);
+    };
+
+    #sequenceCall() {
+      new Tone.Sequence(
+        (time, _signal) => {
+          this.#sequenceSignal(time);
+        },
+        // prettier-ignore
+        [
+          1, 1, 1, 1,
+          1, 1, 1, 1,
+          1, 1, 1, 1,
+          1, 1, 1, [1, 1],
+        ],
+        '4n',
+      ).start(0);
+    }
+  }
+
+  let snare;
+  class Snare {
+    ch;
+    coreTone;
+
+    constructor(volume = null) {
+      this.ch = volume ? new Tone.Channel(volume) : new Tone.Channel();
+      this.coreTone = new Tone.NoiseSynth({
+        noise: { type: 'white' },
+        envelope: { attack: 0.0, decay: 0.2, sustain: 0, release: 0.35, releaseCurve: 'exponential' },
+      });
+
+      this.coreTone.chain(this.ch);
+      this.#sequenceCall();
+    }
+
+    #sequenceSignal = (time) => {
+      this.coreTone.triggerAttackRelease('1i', time);
+    };
+
+    #sequenceCall() {
+      new Tone.Sequence(
+        (time, _signal) => {
+          this.#sequenceSignal(time);
+        },
+        // prettier-ignore
+        [
+          null, 1,
+        ],
+        '4n',
+      ).start(0);
+    }
+  }
+
+  let hihat;
+  class Hihat {
+    ch;
+    coreTone;
+    constructor(volume = null) {
+      this.ch = volume ? new Tone.Channel(volume) : new Tone.Channel();
+      this.coreTone = new Tone.MetalSynth({
+        envelope: { attack: 0.0, decay: 0.9, sustain: 0.0, release: 0.04, releaseCurve: 'exponential' },
+        harmonicity: 4.1,
+        modulationIndex: 48,
+        octaves: 1.7,
+        resonance: 900,
+      });
+      this.coreTone.chain(this.ch);
+      this.#sequenceCall();
+    }
+
+    #sequenceSignal = (time) => {
+      this.coreTone.triggerAttackRelease('D6', '1i', time);
+    };
+
+    #sequenceCall() {
+      new Tone.Sequence(
+        (time, _signal) => {
+          this.#sequenceSignal(time);
+        },
+        // prettier-ignore
+        [
+          null, 1, null, 1
+        ],
+        '8n',
+      ).start(0);
+    }
+  }
+
   p.setup = () => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
 
-    bpm = 110;
+    bpm = 109;
     BPM.value = bpm;
-    // --- mixer
-    masterCh = new Tone.Channel().toDestination();
 
-    // --- kick
-    kickTone = new Tone.MonoSynth({
-      oscillator: { type: 'pulse', width: 0 },
-      envelope: {
-        attack: 0.0,
-        decay: 1.9,
-        sustain: 0.0,
-        release: 0.6,
-      },
-      filter: {
-        type: 'lowpass',
-        Q: 2,
-        rolloff: -12,
-        frequency: 0,
-      },
-      filterEnvelope: {
-        attack: 0.0,
-        decay: 0.545,
-        sustain: 0.0,
-        release: 0.08,
-        baseFrequency: 105,
-        octaves: 2.3,
-      },
-    });
-
-    kickFrqEnv = new Tone.FrequencyEnvelope({
-      attack: 0.0,
-      decay: 0.245,
-      sustain: 0.0,
-      release: 0.075,
-      baseFrequency: 'A0',
-      octaves: 1.9,
-      decayCurve: 'exponential',
-    });
-
-    kickFrqEnv.connect(kickTone.oscillator.frequency);
-
-    // --- snare
-    snareTone = new Tone.NoiseSynth({
-      noise: { type: 'white' },
-      envelope: { attack: 0.0, decay: 0.2, sustain: 0, release: 0.35 },
-    });
-    // --- hihat
-
-    hihatTone = new Tone.MetalSynth({
-      envelope: { attack: 0.0, decay: 0.9, sustain: 0.0, release: 0.04 },
-      harmonicity: 4.1,
-      modulationIndex: 48,
-      octaves: 1.7,
-      resonance: 900,
-    });
-
-    // ---sequence
-    new Tone.Sequence(
-      (time, _signal) => {
-        kickTone.triggerAttackRelease(0, '1i', time);
-        kickFrqEnv.triggerAttack(time);
-      },
-      // prettier-ignore
-      [
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        1, 1, 1, [1, 1]
-      ],
-      '4n',
-    ).start(0);
-
-    new Tone.Sequence(
-      (time, _signal) => {
-        snareTone.triggerAttackRelease('1i', time);
-      },
-      // prettier-ignore
-      [
-        null, 1,
-      ],
-      '4n',
-    ).start(0);
-
-    new Tone.Sequence(
-      (time, _signal) => {
-        hihatTone.triggerAttackRelease('D6', '1i', time);
-      },
-      // prettier-ignore
-      [
-        null, 1, null, 1,
-      ],
-      '8n',
-    ).start(0);
-
+    kick = new Kick(6);
+    snare = new Snare(-2);
+    hihat = new Hihat(-8);
     transport.start();
 
-    kickCh = new Tone.Channel(6);
-    kickTone.chain(kickCh);
-
-    snareCh = new Tone.Channel(-2);
-    snareTone.chain(snareCh);
-
-    hihatCh = new Tone.Channel(-8);
-    hihatTone.chain(hihatCh);
-
-    kickCh.chain(masterCh);
-    snareCh.chain(masterCh);
-    hihatCh.chain(masterCh);
+    // --- mixer
+    masterCh = new Tone.Channel().toDestination();
+    kick.ch.chain(masterCh);
+    snare.ch.chain(masterCh);
+    hihat.ch.chain(masterCh);
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
@@ -169,23 +205,10 @@ const sketch = (p) => {
 
   /* tone 操作 */
   const toneOperation = {
-    pointerdown: (ratioPointer) => {
-      //kickTone.triggerAttack('A4');
-      //kickFrqEnv.triggerAttack();
-    },
-    pointermove: (ratioPointer) => {
-      const ed = p.map(ratioPointer.x, 0, 1, 0.05, 2);
-      kickTone.envelope.decay = ed;
-
-      const q = p.map(ratioPointer.y, 0, 1, 20, 0);
-      kickTone.filter.Q.value = q;
-    },
-    pointerup: () => {
-      kickTone.triggerRelease();
-    },
-    pointercancel: () => {
-      kickTone?.triggerRelease();
-    },
+    pointerdown: (ratioPointer) => {},
+    pointermove: (ratioPointer) => {},
+    pointerup: () => {},
+    pointercancel: () => {},
   };
 
   p.draw = () => {
@@ -210,7 +233,7 @@ const sketch = (p) => {
       height: rectHeight,
     } = event.currentTarget.getBoundingClientRect();
 
-    // xxx: 外の要素まで拾わなくていいと思うのだけど・・・
+    // xxx: 外の要素まで拾わなくていいと思うのだけど・・・
     const absPointer = {
       x: p.map(event.clientX - rectLeft, 0, rectWidth, 0, rectWidth, true),
       y: p.map(event.clientY - rectTop, 0, rectHeight, 0, rectHeight, true),
