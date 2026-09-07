@@ -36,7 +36,7 @@ const sketch = (p) => {
   let bpm = 0;
 
   let masterCh;
-
+  // === START_TARGET_FUNC ===
   let kick;
   class Kick {
     ch;
@@ -108,6 +108,7 @@ const sketch = (p) => {
       ).start(0);
     }
   }
+  // === END_TARGET_FUNC ===
 
   let snare;
   class Snare {
@@ -205,9 +206,13 @@ const sketch = (p) => {
 
   /* tone 操作 */
   const toneOperation = {
-    pointerdown: (ratioPointer) => {},
+    pointerdown: (ratioPointer) => {
+      console.log('pointerdown');
+    },
     pointermove: (ratioPointer) => {},
-    pointerup: () => {},
+    pointerup: () => {
+      console.log('pointerup');
+    },
     pointercancel: () => {},
   };
 
@@ -330,6 +335,36 @@ const sketch = (p) => {
     xyPad.mousePressed(signalEvent);
     xyPad.mouseMoved(signalEvent);
     xyPad.mouseReleased(signalEvent);
+
+    const myScriptUrl = import.meta.url;
+
+    //suffix
+    /* suffix */
+    const markerSuffix = 'TARGET_FUNC ===';
+    const startMarker = `// === START_${markerSuffix}`;
+    const endMarker = `// === END_${markerSuffix}`;
+    console.log(startMarker);
+    xyPad.elt.addEventListener('pointerup', async (event) => {
+      try {
+        const response = await fetch(myScriptUrl);
+        const sourceCode = await response.text();
+        console.log(sourceCode);
+
+        const startIndex = sourceCode.indexOf(startMarker);
+        const endIndex = sourceCode.indexOf(endMarker);
+
+        if (startIndex === -1 || endIndex === -1) {
+          console.warn('対象のマーカーが見つかりませんでした。');
+          return;
+        }
+
+        const extractedCode = sourceCode.substring(startIndex + startMarker.length, endIndex).trim();
+
+        console.log('■ 抜き出し成功:\n', extractedCode);
+      } catch (error) {
+        console.error('ファイルの取得に失敗しました:', error);
+      }
+    });
 
     domLayout();
   };
