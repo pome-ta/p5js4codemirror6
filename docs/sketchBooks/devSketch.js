@@ -88,7 +88,7 @@ const sketch = (p) => {
     }
 
     #sequenceSignal = (time) => {
-      this.coreTone.triggerAttackRelease(0, '1i', time);
+      this.coreTone.triggerAttackRelease('A0', '1i', time);
       this.frqEnv.triggerAttack(time);
     };
 
@@ -182,11 +182,11 @@ const sketch = (p) => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
 
-    bpm = 109;
+    bpm = 125;
     BPM.value = bpm;
 
     kick = new Kick(6);
-    snare = new Snare(-2);
+    snare = new Snare(-6);
     hihat = new Hihat(-8);
     transport.start();
 
