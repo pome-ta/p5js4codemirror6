@@ -36,148 +36,6 @@ const sketch = (p) => {
   let bpm = 0;
 
   let masterCh;
-  // === START_TARGET_FUNC ===
-  let kick;
-  class Kick {
-    ch;
-    coreTone;
-    frqEnv;
-
-    constructor(volume = null) {
-      this.ch = volume ? new Tone.Channel(volume) : new Tone.Channel();
-      this.coreTone = new Tone.MonoSynth({
-        oscillator: { type: 'pulse', width: 0 },
-        envelope: {
-          attack: 0.0,
-          decay: 1.9,
-          sustain: 0.0,
-          release: 0.55,
-          releaseCurve: 'exponential',
-        },
-        filter: {
-          type: 'lowpass',
-          Q: 1,
-          rolloff: -12,
-          frequency: 0,
-        },
-        filterEnvelope: {
-          attack: 0.0,
-          decay: 0.545,
-          sustain: 0.0,
-          release: 0.08,
-          releaseCurve: 'exponential',
-          baseFrequency: 95,
-          octaves: 1.1,
-        },
-      });
-
-      this.frqEnv = new Tone.FrequencyEnvelope({
-        attack: 0.0,
-        decay: 0.145,
-        sustain: 0.0,
-        release: 0.55,
-        baseFrequency: 'A0',
-        octaves: 1.9,
-        decayCurve: 'exponential',
-        releaseCurve: 'exponential',
-      });
-
-      this.frqEnv.connect(this.coreTone.oscillator.frequency);
-      this.coreTone.chain(this.ch);
-      this.#sequenceCall();
-    }
-
-    #sequenceSignal = (time) => {
-      this.coreTone.triggerAttackRelease('A0', '1i', time);
-      this.frqEnv.triggerAttack(time);
-    };
-
-    #sequenceCall() {
-      new Tone.Sequence(
-        (time, _signal) => {
-          this.#sequenceSignal(time);
-        },
-        // prettier-ignore
-        [
-          1, 1, 1, 1,
-          1, 1, 1, 1,
-          1, 1, 1, 1,
-          1, 1, 1, [1, 1],
-        ],
-        '4n',
-      ).start(0);
-    }
-  }
-  // === END_TARGET_FUNC ===
-
-  let snare;
-  class Snare {
-    ch;
-    coreTone;
-
-    constructor(volume = null) {
-      this.ch = volume ? new Tone.Channel(volume) : new Tone.Channel();
-      this.coreTone = new Tone.NoiseSynth({
-        noise: { type: 'white' },
-        envelope: { attack: 0.0, decay: 0.2, sustain: 0, release: 0.35, releaseCurve: 'exponential' },
-      });
-
-      this.coreTone.chain(this.ch);
-      this.#sequenceCall();
-    }
-
-    #sequenceSignal = (time) => {
-      this.coreTone.triggerAttackRelease('1i', time);
-    };
-
-    #sequenceCall() {
-      new Tone.Sequence(
-        (time, _signal) => {
-          this.#sequenceSignal(time);
-        },
-        // prettier-ignore
-        [
-          null, 1,
-        ],
-        '4n',
-      ).start(0);
-    }
-  }
-
-  let hihat;
-  class Hihat {
-    ch;
-    coreTone;
-    constructor(volume = null) {
-      this.ch = volume ? new Tone.Channel(volume) : new Tone.Channel();
-      this.coreTone = new Tone.MetalSynth({
-        envelope: { attack: 0.0, decay: 0.9, sustain: 0.0, release: 0.04, releaseCurve: 'exponential' },
-        harmonicity: 4.1,
-        modulationIndex: 48,
-        octaves: 1.7,
-        resonance: 900,
-      });
-      this.coreTone.chain(this.ch);
-      this.#sequenceCall();
-    }
-
-    #sequenceSignal = (time) => {
-      this.coreTone.triggerAttackRelease('D6', '1i', time);
-    };
-
-    #sequenceCall() {
-      new Tone.Sequence(
-        (time, _signal) => {
-          this.#sequenceSignal(time);
-        },
-        // prettier-ignore
-        [
-          null, 1, null, 1
-        ],
-        '8n',
-      ).start(0);
-    }
-  }
 
   p.setup = () => {
     // put setup code here
@@ -186,16 +44,8 @@ const sketch = (p) => {
     bpm = 125;
     BPM.value = bpm;
 
-    kick = new Kick(6);
-    snare = new Snare(-12);
-    hihat = new Hihat(-8);
-    transport.start();
-
     // --- mixer
     masterCh = new Tone.Channel().toDestination();
-    kick.ch.chain(masterCh);
-    snare.ch.chain(masterCh);
-    hihat.ch.chain(masterCh);
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
@@ -338,31 +188,28 @@ const sketch = (p) => {
 
     const myScriptUrl = import.meta.url;
 
-    //suffix
     /* suffix */
     const markerSuffix = 'TARGET_FUNC ===';
     const startMarker = `// === START_${markerSuffix}`;
     const endMarker = `// === END_${markerSuffix}`;
-    console.log(startMarker);
     xyPad.elt.addEventListener('pointerup', async (event) => {
       try {
         const response = await fetch(myScriptUrl);
         const sourceCode = await response.text();
-        console.log(sourceCode);
 
         const startIndex = sourceCode.indexOf(startMarker);
         const endIndex = sourceCode.indexOf(endMarker);
 
         if (startIndex === -1 || endIndex === -1) {
-          console.warn('対象のマーカーが見つかりませんでした。');
+          console.warn('対象マーカーが見つかりません');
           return;
         }
 
         const extractedCode = sourceCode.substring(startIndex + startMarker.length, endIndex).trim();
 
-        console.log('■ 抜き出し成功:\n', extractedCode);
+        console.log('■ コード取得成功:\n', extractedCode);
       } catch (error) {
-        console.error('ファイルの取得に失敗しました:', error);
+        console.error('ファイル取得失敗:', error);
       }
     });
 
