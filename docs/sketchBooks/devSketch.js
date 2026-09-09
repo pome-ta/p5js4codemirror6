@@ -30,12 +30,17 @@ const sketch = (p) => {
   document.addEventListener('pointerup', async () => await Tone.start(), {
     once: true,
   });
+  
+  
+  const $ = {};
   const transport = Tone.getTransport();
   const BPM = transport.bpm;
 
   let bpm = 0;
 
   let masterCh;
+  // === START_TARGET_MARK ===
+  // === END_TARGET_MARK ===
 
   p.setup = () => {
     // put setup code here
@@ -189,7 +194,7 @@ const sketch = (p) => {
     const myScriptUrl = import.meta.url;
 
     /* suffix */
-    const markerSuffix = 'TARGET_FUNC ===';
+    const markerSuffix = 'TARGET_MARK ===';
     const startMarker = `// === START_${markerSuffix}`;
     const endMarker = `// === END_${markerSuffix}`;
     xyPad.elt.addEventListener('pointerup', async (event) => {
