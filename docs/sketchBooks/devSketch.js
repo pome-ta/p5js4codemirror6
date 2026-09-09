@@ -30,30 +30,42 @@ const sketch = (p) => {
   document.addEventListener('pointerup', async () => await Tone.start(), {
     once: true,
   });
-  
-  
-  const $ = {};
-  const transport = Tone.getTransport();
-  const BPM = transport.bpm;
 
-  let bpm = 0;
+  const _masterCh = new Tone.Channel().toDestination();
+  const _bus = new Tone.Emitter();
+  const $ = {
+    transport: Tone.getTransport(),
+    BPM: Tone.getTransport().bpm,
+    bpm: 0,
+    masterCh: _masterCh,
+    bus: _bus,
+  };
 
-  let masterCh;
+  $.bus.on('codeSubmit', (code) => {
+    const swapCodeSource = new Function(`return ${code}`)();
+    $.transport.schedule((time) => {
+      swapCodeSource(time, $);
+    }, '@1m');
+  });
+
   // === START_TARGET_MARK ===
+  (time, $) => {
+    console.log($);
+  };
   // === END_TARGET_MARK ===
 
   p.setup = () => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
 
-    bpm = 125;
-    BPM.value = bpm;
+    $.bpm = 125;
 
     // --- mixer
-    masterCh = new Tone.Channel().toDestination();
+    //masterCh = new Tone.Channel().toDestination();
+    $.transport.start(0);
 
     tapIndicator.setup();
-    spectrumAnalyzer.targetNodes(masterCh);
+    spectrumAnalyzer.targetNodes($.masterCh);
     domSetup();
 
     //p.noLoop();
@@ -212,7 +224,8 @@ const sketch = (p) => {
 
         const extractedCode = sourceCode.substring(startIndex + startMarker.length, endIndex).trim();
 
-        console.log('■ コード取得成功:\n', extractedCode);
+        //console.log('■ コード取得成功:\n', extractedCode);
+        $.bus.emit('codeSubmit', extractedCode);
       } catch (error) {
         console.error('ファイル取得失敗:', error);
       }
