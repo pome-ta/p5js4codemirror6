@@ -44,12 +44,12 @@ const sketch = (p) => {
   $.bus.on('codeSubmit', (code) => {
     const swapCodeSource = new Function(`return ${code}`)();
     $.transport.schedule((time) => {
-      swapCodeSource(time, $);
+      swapCodeSource(time, $, Tone);
     }, '@1m');
   });
 
   // === START_TARGET_MARK ===
-  (time, $) => {
+  (time, $, Tone) => {
     console.log($);
   };
   // === END_TARGET_MARK ===
