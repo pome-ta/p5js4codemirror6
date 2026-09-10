@@ -36,21 +36,21 @@ const sketch = (p) => {
   const $ = {
     transport: Tone.getTransport(),
     BPM: Tone.getTransport().bpm,
-    bpm: 0,
     masterCh: _masterCh,
     bus: _bus,
   };
 
   $.bus.on('codeSubmit', (code) => {
     const swapCodeSource = new Function(`return ${code}`)();
-    $.transport.schedule((time) => {
-      swapCodeSource(time, $, Tone);
-    }, '@1m');
+    swapCodeSource($, Tone);
   });
 
   // === START_TARGET_MARK ===
-  (time, $, Tone) => {
+  ($, Tone) => {
     console.log($);
+    $.transport.schedule((time) => {
+      $.BPM.value = 120;
+    }, '@1m');
   };
   // === END_TARGET_MARK ===
 
@@ -58,10 +58,19 @@ const sketch = (p) => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
 
-    $.bpm = 125;
+    $.BPM.value = 250;
 
-    // --- mixer
-    //masterCh = new Tone.Channel().toDestination();
+    const synth = new Tone.Synth({ oscillator: { type: 'sine' } });
+    const seq = new Tone.Sequence(
+      (time, note) => {
+        synth.triggerAttackRelease(note, '8n', time);
+      },
+      ['A5', 'A4', 'A4', 'A4'],
+      '4n',
+    ).start(0);
+
+    synth.chain($.masterCh);
+
     $.transport.start(0);
 
     tapIndicator.setup();
