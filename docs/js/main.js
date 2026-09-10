@@ -154,6 +154,20 @@ const sandbox = DomFactory.create('iframe', {
   },
 });
 
+// editor 上のバッファやりとり
+window.addEventListener('message', (event) => {
+  if (event.data?.type !== 'editorCodeBuffer') {
+    return;
+  }
+  event.source.postMessage(
+    {
+      type: 'message',
+      text: editor.state.doc.toString(),
+    },
+    event.origin,
+  );
+});
+
 /* --- accessory */
 const callButton = DomFactory.create('button', {
   textContent: '🔄',

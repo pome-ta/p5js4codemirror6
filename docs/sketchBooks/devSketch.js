@@ -48,7 +48,7 @@ const sketch = (p) => {
   // === START_TARGET_MARK ===
   ($, Tone) => {
     console.log($);
-    $.transport.schedule((time) => {
+    $.transport.scheduleOnce((time) => {
       $.BPM.value = 120;
     }, '@1m');
   };
@@ -218,6 +218,44 @@ const sketch = (p) => {
     const markerSuffix = 'TARGET_MARK ===';
     const startMarker = `// === START_${markerSuffix}`;
     const endMarker = `// === END_${markerSuffix}`;
+
+    const codeSubmit = (sourceCode) => {
+      const startIndex = sourceCode.indexOf(startMarker);
+      const endIndex = sourceCode.indexOf(endMarker);
+
+      if (startIndex === -1 || endIndex === -1) {
+        console.warn('対象マーカーが見つかりません');
+        return;
+      }
+
+      const extractedCode = sourceCode.substring(startIndex + startMarker.length, endIndex).trim();
+
+      console.log(extractedCode);
+
+      //console.log('■ コード取得成功:\n', extractedCode);
+      $.bus.emit('codeSubmit', extractedCode);
+    };
+
+    window.addEventListener('message', (event) => {
+      if (event.data?.type !== 'message') {
+        return;
+      }
+
+      //console.log('親から:', event.data.text);
+      const codeBuffer = event.data.text;
+      codeSubmit(codeBuffer);
+    });
+
+    xyPad.elt.addEventListener('pointerup', (event) => {
+      window.parent.postMessage(
+        {
+          type: 'editorCodeBuffer',
+        },
+        '*',
+      );
+    });
+
+    /*
     xyPad.elt.addEventListener('pointerup', async (event) => {
       try {
         const response = await fetch(myScriptUrl);
@@ -239,6 +277,7 @@ const sketch = (p) => {
         console.error('ファイル取得失敗:', error);
       }
     });
+    */
 
     domLayout();
   };
