@@ -34,6 +34,7 @@ const sketch = (p) => {
   const _masterCh = new Tone.Channel().toDestination();
   const _bus = new Tone.Emitter();
   const $ = {
+    ctx: ctx,
     transport: Tone.getTransport(),
     BPM: Tone.getTransport().bpm,
     masterCh: _masterCh,
@@ -47,10 +48,19 @@ const sketch = (p) => {
 
   // === START_TARGET_MARK ===
   ($, Tone) => {
-    console.log($);
+    // console.log($.transport.ticks, $.transport.nextSubdivision('1m') - $.transport.now());
+    // console.log( $.transport.getTicksAtTime())
+    // const switchTime = Tone.getTransport().nextSubdivision('1m');
+    const switchTime = $.transport.nextSubdivision('1m');
+    // console.log(switchTime)
     $.transport.scheduleOnce((time) => {
-      $.BPM.value = 120;
-    }, '@1m');
+      $.seq.events = ['C5', 'D5', 'E5', 'F5'];
+      // $.BPM.value = 80;
+      // console.log(time)
+      // $.BPM.setValueAtTime(80, switchTime);
+
+      // }, '@1m');
+    }, switchTime);
   };
   // === END_TARGET_MARK ===
 
@@ -58,18 +68,18 @@ const sketch = (p) => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
 
-    $.BPM.value = 250;
+    $.BPM.value = 150;
 
-    const synth = new Tone.Synth({ oscillator: { type: 'sine' } });
-    const seq = new Tone.Sequence(
+    $.synth = new Tone.Synth({ oscillator: { type: 'sine' } });
+    $.seq = new Tone.Sequence(
       (time, note) => {
-        synth.triggerAttackRelease(note, '8n', time);
+        $.synth.triggerAttackRelease(note, '8n', time);
       },
       ['A5', 'A4', 'A4', 'A4'],
       '4n',
     ).start(0);
 
-    synth.chain($.masterCh);
+    $.synth.chain($.masterCh);
 
     $.transport.start(0);
 
@@ -78,6 +88,7 @@ const sketch = (p) => {
     domSetup();
 
     //p.noLoop();
+    // p.frameRate(1);
   };
 
   /* tone 操作 */
@@ -114,7 +125,7 @@ const sketch = (p) => {
       height: rectHeight,
     } = event.currentTarget.getBoundingClientRect();
 
-    // xxx: 外の要素まで拾わなくていいと思うのだけど・・・
+    // xxx: 外の要素まで拾わなくていいと思うのだけど・・・
     const absPointer = {
       x: p.map(event.clientX - rectLeft, 0, rectWidth, 0, rectWidth, true),
       y: p.map(event.clientY - rectTop, 0, rectHeight, 0, rectHeight, true),
@@ -229,9 +240,7 @@ const sketch = (p) => {
       }
 
       const extractedCode = sourceCode.substring(startIndex + startMarker.length, endIndex).trim();
-
-      console.log(extractedCode);
-
+      // console.log(extractedCode);
       //console.log('■ コード取得成功:\n', extractedCode);
       $.bus.emit('codeSubmit', extractedCode);
     };
@@ -271,7 +280,7 @@ const sketch = (p) => {
 
         const extractedCode = sourceCode.substring(startIndex + startMarker.length, endIndex).trim();
 
-        //console.log('■ コード取得成功:\n', extractedCode);
+        //console.log('■ コード取得成功:\n', extractedCode);
         $.bus.emit('codeSubmit', extractedCode);
       } catch (error) {
         console.error('ファイル取得失敗:', error);
