@@ -41,39 +41,31 @@ const sketch = (p) => {
     bus: _bus,
   };
 
-  $.bus.on('codeSubmit', (code) => {
-    const swapCodeSource = new Function(`return ${code}`)();
-    swapCodeSource($, Tone);
-  });
-
   // === START_TARGET_MARK ===
   ($, Tone) => {
-    // console.log($.transport.ticks, $.transport.nextSubdivision('1m') - $.transport.now());
-    // console.log( $.transport.getTicksAtTime())
-    // const switchTime = Tone.getTransport().nextSubdivision('1m');
     const switchTime = $.transport.nextSubdivision('1m');
-    // console.log(switchTime)
+
     $.transport.scheduleOnce((time) => {
       $.seq.events = ['C5', 'D5', 'E5', 'F5'];
-      // $.BPM.value = 80;
-      // console.log(time)
-      // $.BPM.setValueAtTime(80, switchTime);
-
-      // }, '@1m');
     }, switchTime);
   };
   // === END_TARGET_MARK ===
 
+
+  $.bus.on('codeSubmit', (code) => {
+    const swapCodeSource = new Function(`return ${code}`)();
+    swapCodeSource($, Tone);
+  });
   p.setup = () => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
 
     $.BPM.value = 150;
 
-    $.synth = new Tone.Synth({ oscillator: { type: 'sine' } });
+    $.synth = new Tone.Synth({ oscillator: { type: 'pulse', width: 0 } });
     $.seq = new Tone.Sequence(
       (time, note) => {
-        $.synth.triggerAttackRelease(note, '8n', time);
+        $.synth.triggerAttackRelease(note, '16n', time);
       },
       ['A5', 'A4', 'A4', 'A4'],
       '4n',
@@ -238,10 +230,8 @@ const sketch = (p) => {
         console.warn('対象マーカーが見つかりません');
         return;
       }
-
       const extractedCode = sourceCode.substring(startIndex + startMarker.length, endIndex).trim();
-      // console.log(extractedCode);
-      //console.log('■ コード取得成功:\n', extractedCode);
+
       $.bus.emit('codeSubmit', extractedCode);
     };
 
@@ -249,8 +239,6 @@ const sketch = (p) => {
       if (event.data?.type !== 'message') {
         return;
       }
-
-      //console.log('親から:', event.data.text);
       const codeBuffer = event.data.text;
       codeSubmit(codeBuffer);
     });
@@ -263,30 +251,6 @@ const sketch = (p) => {
         '*',
       );
     });
-
-    /*
-    xyPad.elt.addEventListener('pointerup', async (event) => {
-      try {
-        const response = await fetch(myScriptUrl);
-        const sourceCode = await response.text();
-
-        const startIndex = sourceCode.indexOf(startMarker);
-        const endIndex = sourceCode.indexOf(endMarker);
-
-        if (startIndex === -1 || endIndex === -1) {
-          console.warn('対象マーカーが見つかりません');
-          return;
-        }
-
-        const extractedCode = sourceCode.substring(startIndex + startMarker.length, endIndex).trim();
-
-        //console.log('■ コード取得成功:\n', extractedCode);
-        $.bus.emit('codeSubmit', extractedCode);
-      } catch (error) {
-        console.error('ファイル取得失敗:', error);
-      }
-    });
-    */
 
     domLayout();
   };
