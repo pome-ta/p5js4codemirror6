@@ -10,19 +10,6 @@ const sketch = (p) => {
   const tapIndicator = new TapIndicator(p);
   const spectrumAnalyzer = new SpectrumAnalyzer(p, 2048);
 
-  // --- Sketch
-  let cnvs;
-  let w = p.windowWidth;
-  let h = p.windowHeight;
-
-  let pointerId = null;
-  let xyPad;
-
-  const holdColor = 'rgba(128, 0, 0, 0.64)';
-  const holdAlpha = 0.4;
-  const idleAlpha = 0.12;
-  const idleBg = (a) => `rgba(0, 0, 128, ${a})`;
-
   // --- Tone.js
   const ctx = p.getAudioContext();
   Tone.setContext(ctx);
@@ -46,32 +33,189 @@ const sketch = (p) => {
     const switchTime = $.transport.nextSubdivision('1m');
 
     $.transport.scheduleOnce((time) => {
-      $.seq.events = ['C5', 'D5', 'E5', 'F5'];
+      $.snare.seq.events = [null, 1];
+      // $.hihat.seq.events = [null, 1,];
+      //$.hihat.seq.events = [null, [null,1], null, 1, null, [1, 1]];
     }, switchTime);
   };
   // === END_TARGET_MARK ===
-
 
   $.bus.on('codeSubmit', (code) => {
     const swapCodeSource = new Function(`return ${code}`)();
     swapCodeSource($, Tone);
   });
+
+  class Kick {
+    ch;
+    coreTone;
+    frqEnv;
+    seq;
+
+    constructor(volume = null) {
+      this.ch = volume ? new Tone.Channel(volume) : new Tone.Channel();
+      this.coreTone = new Tone.MonoSynth({
+        oscillator: { type: 'pulse', width: 0 },
+        envelope: {
+          attack: 0.0,
+          decay: 1.9,
+          sustain: 0.0,
+          release: 0.64,
+          releaseCurve: 'exponential',
+        },
+        filter: {
+          type: 'lowpass',
+          Q: 1,
+          rolloff: -12,
+          frequency: 0,
+        },
+        filterEnvelope: {
+          attack: 0.0,
+          decay: 0.545,
+          sustain: 0.0,
+          release: 0.08,
+          releaseCurve: 'exponential',
+          baseFrequency: 95,
+          octaves: 1.5,
+        },
+      });
+
+      this.frqEnv = new Tone.FrequencyEnvelope({
+        attack: 0.0,
+        decay: 0.145,
+        sustain: 0.0,
+        release: 0.55,
+        baseFrequency: 'A0',
+        octaves: 1.9,
+        decayCurve: 'exponential',
+        releaseCurve: 'exponential',
+      });
+
+      this.frqEnv.connect(this.coreTone.oscillator.frequency);
+      this.coreTone.chain(this.ch);
+      this.#sequenceCall();
+    }
+
+    #sequenceSignal = (time) => {
+      this.coreTone.triggerAttackRelease('A0', '1i', time);
+      this.frqEnv.triggerAttack(time);
+    };
+
+    #sequenceCall() {
+      this.seq = new Tone.Sequence(
+        (time, _signal) => {
+          this.#sequenceSignal(time);
+        },
+        // prettier-ignore
+        [
+          1, 1, 1, 1,
+          1, 1, 1, 1,
+          1, 1, 1, 1,
+          1, 1, 1, [1, 1],
+        ],
+        '4n',
+      ).start(0);
+    }
+  }
+  // === END_TARGET_FUNC ===
+
+  class Snare {
+    ch;
+    coreTone;
+    seq;
+
+    constructor(volume = null) {
+      this.ch = volume ? new Tone.Channel(volume) : new Tone.Channel();
+      this.coreTone = new Tone.NoiseSynth({
+        noise: { type: 'white' },
+        envelope: { attack: 0.0, decay: 0.2, sustain: 0, release: 0.35, releaseCurve: 'exponential' },
+      });
+
+      this.coreTone.chain(this.ch);
+      this.#sequenceCall();
+    }
+
+    #sequenceSignal = (time) => {
+      this.coreTone.triggerAttackRelease('1i', time);
+    };
+
+    #sequenceCall() {
+      this.seq = new Tone.Sequence(
+        (time, _signal) => {
+          this.#sequenceSignal(time);
+        },
+        // prettier-ignore
+        [
+          null, null,
+        ],
+        '4n',
+      ).start(0);
+    }
+  }
+
+  class Hihat {
+    ch;
+    coreTone;
+    seq;
+
+    constructor(volume = null) {
+      this.ch = volume ? new Tone.Channel(volume) : new Tone.Channel();
+      this.coreTone = new Tone.MetalSynth({
+        envelope: { attack: 0.0, decay: 0.9, sustain: 0.0, release: 0.04, releaseCurve: 'exponential' },
+        harmonicity: 4.1,
+        modulationIndex: 48,
+        octaves: 1.7,
+        resonance: 900,
+      });
+      this.coreTone.chain(this.ch);
+      this.#sequenceCall();
+    }
+
+    #sequenceSignal = (time) => {
+      this.coreTone.triggerAttackRelease('D6', '1i', time);
+    };
+
+    #sequenceCall() {
+      this.seq = new Tone.Sequence(
+        (time, _signal) => {
+          this.#sequenceSignal(time);
+        },
+        // prettier-ignore
+        [
+          null, null, null, null,
+        ],
+        '8n',
+      ).start(0);
+    }
+  }
+
+  // --- Sketch
+  let cnvs;
+  let w = p.windowWidth;
+  let h = p.windowHeight;
+
+  let pointerId = null;
+  let xyPad;
+
+  const holdColor = 'rgba(128, 0, 0, 0.64)';
+  const holdAlpha = 0.4;
+  const idleAlpha = 0.12;
+  const idleBg = (a) => `rgba(0, 0, 128, ${a})`;
+
   p.setup = () => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
 
-    $.BPM.value = 150;
+    $.BPM.value = 130;
 
-    $.synth = new Tone.Synth({ oscillator: { type: 'pulse', width: 0 } });
-    $.seq = new Tone.Sequence(
-      (time, note) => {
-        $.synth.triggerAttackRelease(note, '16n', time);
-      },
-      ['A5', 'A4', 'A4', 'A4'],
-      '4n',
-    ).start(0);
+    $.kick = new Kick(8);
+    $.snare = new Snare(-6);
+    $.hihat = new Hihat(-4);
 
-    $.synth.chain($.masterCh);
+    // --- mixer
+
+    $.kick.ch.chain($.masterCh);
+    $.snare.ch.chain($.masterCh);
+    $.hihat.ch.chain($.masterCh);
 
     $.transport.start(0);
 
