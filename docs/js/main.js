@@ -16,8 +16,8 @@ import {
 
 const IS_TOUCH_DEVICE = window.matchMedia('(hover: none)').matches;
 
-//const initDetailsOpen = false;
-const initDetailsOpen = true;
+const initDetailsOpen = false;
+//const initDetailsOpen = true;
 
 let isInstanceMode = true;
 

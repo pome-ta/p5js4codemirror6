@@ -18,175 +18,44 @@ const sketch = (p) => {
     once: true,
   });
 
-  const _masterCh = new Tone.Channel().toDestination();
-  const _bus = new Tone.Emitter();
-  const $ = {
-    ctx: ctx,
-    transport: Tone.getTransport(),
-    BPM: Tone.getTransport().bpm,
-    masterCh: _masterCh,
-    bus: _bus,
-  };
+  const transport = Tone.getTransport();
+  const BPM = transport.bpm;
+  const masterCh = new Tone.Channel().toDestination();
 
-  // === START_TARGET_MARK ===
-  ($, Tone) => {
-    const switchTime = $.transport.nextSubdivision('1m');
-
-    $.transport.scheduleOnce((time) => {
-      $.snare.seq.events = [null, 1];
-      // $.hihat.seq.events = [null, 1,];
-      //$.hihat.seq.events = [null, [null,1], null, 1, null, [1, 1]];
-    }, switchTime);
-  };
-  // === END_TARGET_MARK ===
-
-  $.bus.on('codeSubmit', (code) => {
-    const swapCodeSource = new Function(`return ${code}`)();
-    swapCodeSource($, Tone);
+  const wnCh = new Tone.Channel();
+  const wn = new Tone.NoiseSynth({
+    noise: { type: 'white' },
+    envelope: { attack: 0.0, decay: 0.5, sustain: 0.0, release: 0.0 },
   });
 
-  class Kick {
-    ch;
-    coreTone;
-    frqEnv;
-    seq;
+  const dst = new Tone.Distortion(36.0);
+  const boost1k = new Tone.Filter({
+    type: 'peaking',
+    frequency: 1000,
+    Q: 8,
+    gain: 6, // 1kHz付近を+6dB
+  });
 
-    constructor(volume = null) {
-      this.ch = volume ? new Tone.Channel(volume) : new Tone.Channel();
-      this.coreTone = new Tone.MonoSynth({
-        oscillator: { type: 'pulse', width: 0 },
-        envelope: {
-          attack: 0.0,
-          decay: 1.9,
-          sustain: 0.0,
-          release: 0.64,
-          releaseCurve: 'exponential',
-        },
-        filter: {
-          type: 'lowpass',
-          Q: 1,
-          rolloff: -12,
-          frequency: 0,
-        },
-        filterEnvelope: {
-          attack: 0.0,
-          decay: 0.545,
-          sustain: 0.0,
-          release: 0.08,
-          releaseCurve: 'exponential',
-          baseFrequency: 95,
-          octaves: 1.5,
-        },
-      });
+  const cutLow = new Tone.Filter({
+    type: 'lowshelf',
+    frequency: 800,
+    gain: -6,
+  });
 
-      this.frqEnv = new Tone.FrequencyEnvelope({
-        attack: 0.0,
-        decay: 0.145,
-        sustain: 0.0,
-        release: 0.55,
-        baseFrequency: 'A0',
-        octaves: 1.9,
-        decayCurve: 'exponential',
-        releaseCurve: 'exponential',
-      });
+  const cutHigh = new Tone.Filter({
+    type: 'highshelf',
+    frequency: 1200,
+    gain: -6,
+  });
 
-      this.frqEnv.connect(this.coreTone.oscillator.frequency);
-      this.coreTone.chain(this.ch);
-      this.#sequenceCall();
-    }
+  //source.chain(cutLow, boost1k, cutHigh, Tone.Destination);
+  wn.connect(dst);
+  dst.connect(cutLow);
+  cutLow.connect(boost1k);
+  boost1k.connect(cutHigh);
 
-    #sequenceSignal = (time) => {
-      this.coreTone.triggerAttackRelease('A0', '1i', time);
-      this.frqEnv.triggerAttack(time);
-    };
-
-    #sequenceCall() {
-      this.seq = new Tone.Sequence(
-        (time, _signal) => {
-          this.#sequenceSignal(time);
-        },
-        // prettier-ignore
-        [
-          1, 1, 1, 1,
-          1, 1, 1, 1,
-          1, 1, 1, 1,
-          1, 1, 1, [1, 1],
-        ],
-        '4n',
-      ).start(0);
-    }
-  }
-  // === END_TARGET_FUNC ===
-
-  class Snare {
-    ch;
-    coreTone;
-    seq;
-
-    constructor(volume = null) {
-      this.ch = volume ? new Tone.Channel(volume) : new Tone.Channel();
-      this.coreTone = new Tone.NoiseSynth({
-        noise: { type: 'white' },
-        envelope: { attack: 0.0, decay: 0.2, sustain: 0, release: 0.35, releaseCurve: 'exponential' },
-      });
-
-      this.coreTone.chain(this.ch);
-      this.#sequenceCall();
-    }
-
-    #sequenceSignal = (time) => {
-      this.coreTone.triggerAttackRelease('1i', time);
-    };
-
-    #sequenceCall() {
-      this.seq = new Tone.Sequence(
-        (time, _signal) => {
-          this.#sequenceSignal(time);
-        },
-        // prettier-ignore
-        [
-          null, null,
-        ],
-        '4n',
-      ).start(0);
-    }
-  }
-
-  class Hihat {
-    ch;
-    coreTone;
-    seq;
-
-    constructor(volume = null) {
-      this.ch = volume ? new Tone.Channel(volume) : new Tone.Channel();
-      this.coreTone = new Tone.MetalSynth({
-        envelope: { attack: 0.0, decay: 0.9, sustain: 0.0, release: 0.04, releaseCurve: 'exponential' },
-        harmonicity: 4.1,
-        modulationIndex: 48,
-        octaves: 1.7,
-        resonance: 900,
-      });
-      this.coreTone.chain(this.ch);
-      this.#sequenceCall();
-    }
-
-    #sequenceSignal = (time) => {
-      this.coreTone.triggerAttackRelease('D6', '1i', time);
-    };
-
-    #sequenceCall() {
-      this.seq = new Tone.Sequence(
-        (time, _signal) => {
-          this.#sequenceSignal(time);
-        },
-        // prettier-ignore
-        [
-          null, null, null, null,
-        ],
-        '8n',
-      ).start(0);
-    }
-  }
+  cutHigh.chain(wnCh);
+  wnCh.chain(masterCh);
 
   // --- Sketch
   let cnvs;
@@ -205,22 +74,12 @@ const sketch = (p) => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
 
-    $.BPM.value = 130;
+    BPM.value = 130;
 
-    $.kick = new Kick(8);
-    $.snare = new Snare(-6);
-    $.hihat = new Hihat(-4);
-
-    // --- mixer
-
-    $.kick.ch.chain($.masterCh);
-    $.snare.ch.chain($.masterCh);
-    $.hihat.ch.chain($.masterCh);
-
-    $.transport.start(0);
+    //transport.start(0);
 
     tapIndicator.setup();
-    spectrumAnalyzer.targetNodes($.masterCh);
+    spectrumAnalyzer.targetNodes(masterCh);
     domSetup();
 
     //p.noLoop();
@@ -230,11 +89,12 @@ const sketch = (p) => {
   /* tone 操作 */
   const toneOperation = {
     pointerdown: (ratioPointer) => {
-      console.log('pointerdown');
+      //console.log('pointerdown');
+      wn.triggerAttack();
     },
     pointermove: (ratioPointer) => {},
     pointerup: () => {
-      console.log('pointerup');
+      //console.log('pointerup');
     },
     pointercancel: () => {},
   };
@@ -384,7 +244,7 @@ const sketch = (p) => {
         return;
       }
       const codeBuffer = event.data.text;
-      codeSubmit(codeBuffer);
+      //codeSubmit(codeBuffer);
     });
 
     xyPad.elt.addEventListener('pointerup', (event) => {
