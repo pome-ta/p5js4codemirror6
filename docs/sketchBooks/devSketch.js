@@ -29,7 +29,7 @@ const sketch = (p) => {
   });
 
   const crusher = new Tone.BitCrusher(8);
-  const distn = new Tone.Distortion(32.0);
+  const distn = new Tone.Distortion({ distortion: 32.0, oversample: '2x' });
 
   const boost1k = new Tone.Filter({
     type: 'peaking',
@@ -43,7 +43,7 @@ const sketch = (p) => {
     //type: 'peaking',
     frequency: 1000,
     Q: 2,
-    rolloff: -24, // -12, -24, -48, -96
+    rolloff: -48, // -12, -24, -48, -96
     gain: 64,
   });
 
@@ -62,8 +62,8 @@ const sketch = (p) => {
   //wn.chain(distn, cutLow, boost1k, cutHigh,crusher,wnCh);
   //wn.chain(distn, boost, wnCh);
   const wnChainAry = [
-    //crusher,
     boost,
+    //crusher,
     distn,
     //boost,
     wnCh,
