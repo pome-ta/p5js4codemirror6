@@ -25,36 +25,34 @@ const sketch = (p) => {
   const wnCh = new Tone.Channel();
   const wn = new Tone.NoiseSynth({
     noise: { type: 'white' },
-    envelope: { attack: 0.0, decay: 0.5, sustain: 0.0, release: 0.0 },
+    envelope: { attack: 0.0, decay: 0.5, sustain: 1.0, release: 0.0 },
   });
 
-  const dst = new Tone.Distortion(36.0);
+  const crusher = new Tone.BitCrusher(8);
+  const dist = new Tone.Distortion(16.0);
+
   const boost1k = new Tone.Filter({
     type: 'peaking',
     frequency: 1000,
     Q: 8,
-    gain: 6, // 1kHz付近を+6dB
+    gain: 32, // 1kHz付近を+6dB
   });
 
   const cutLow = new Tone.Filter({
     type: 'lowshelf',
-    frequency: 800,
-    gain: -6,
+    frequency: 300,
+    gain: -32,
   });
 
   const cutHigh = new Tone.Filter({
     type: 'highshelf',
-    frequency: 1200,
-    gain: -6,
+    frequency: 4000,
+    gain: -16,
   });
 
-  //source.chain(cutLow, boost1k, cutHigh, Tone.Destination);
-  wn.connect(dst);
-  dst.connect(cutLow);
-  cutLow.connect(boost1k);
-  boost1k.connect(cutHigh);
+  wn.chain(dist, cutLow, boost1k, cutHigh,crusher,wnCh);
 
-  cutHigh.chain(wnCh);
+
   wnCh.chain(masterCh);
 
   // --- Sketch
@@ -92,9 +90,12 @@ const sketch = (p) => {
       //console.log('pointerdown');
       wn.triggerAttack();
     },
-    pointermove: (ratioPointer) => {},
+    pointermove: (ratioPointer) => {
+      boost1k.frequency.value = 1000 * p.map(ratioPointer.x, 0, 1, 0.5, 1.5);
+    },
     pointerup: () => {
       //console.log('pointerup');
+      wn.triggerRelease();
     },
     pointercancel: () => {},
   };
