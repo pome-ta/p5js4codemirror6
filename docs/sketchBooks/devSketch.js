@@ -28,8 +28,8 @@ const sketch = (p) => {
     envelope: { attack: 0.0, decay: 1.0, sustain: 0.0, release: 0.0 },
   });
 
-  const crusher = new Tone.BitCrusher(8);
-  const distn = new Tone.Distortion({ distortion: 32.0, oversample: '2x' });
+  const crusher = new Tone.BitCrusher(16);
+  const distn = new Tone.Distortion({ distortion: 64.0, oversample: '2x' });
 
   const boost1k = new Tone.Filter({
     type: 'peaking',
@@ -41,9 +41,9 @@ const sketch = (p) => {
   const boost = new Tone.Filter({
     type: 'bandpass',
     //type: 'peaking',
-    frequency: 1000,
-    Q: 2,
-    rolloff: -48, // -12, -24, -48, -96
+    frequency: 1400,
+    Q: 1.4,
+    rolloff: -12, // -12, -24, -48, -96
     gain: 64,
   });
 
@@ -62,10 +62,12 @@ const sketch = (p) => {
   //wn.chain(distn, cutLow, boost1k, cutHigh,crusher,wnCh);
   //wn.chain(distn, boost, wnCh);
   const wnChainAry = [
-    boost,
-    //crusher,
+    // cutLow,
+    // boost,
+    // cutHigh,
+    // crusher,
     distn,
-    //boost,
+    boost,
     wnCh,
   ];
   wn.chain(...wnChainAry.filter((n) => n));
@@ -94,7 +96,7 @@ const sketch = (p) => {
     new Tone.Sequence(
       (time, _) => {
         //wn.triggerAttack();
-        wn.triggerAttackRelease('8n', time);
+        wn.triggerAttackRelease('16n', time);
       },
       // prettier-ignore
       [
