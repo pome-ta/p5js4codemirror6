@@ -25,17 +25,26 @@ const sketch = (p) => {
   const wnCh = new Tone.Channel();
   const wn = new Tone.NoiseSynth({
     noise: { type: 'white' },
-    envelope: { attack: 0.0, decay: 0.5, sustain: 1.0, release: 0.0 },
+    envelope: { attack: 0.0, decay: 1.0, sustain: 0.0, release: 0.0 },
   });
 
   const crusher = new Tone.BitCrusher(8);
-  const dist = new Tone.Distortion(16.0);
+  const distn = new Tone.Distortion(32.0);
 
   const boost1k = new Tone.Filter({
     type: 'peaking',
     frequency: 1000,
     Q: 8,
     gain: 32, // 1kHz付近を+6dB
+  });
+
+  const boost = new Tone.Filter({
+    type: 'bandpass',
+    //type: 'peaking',
+    frequency: 1000,
+    Q: 2,
+    rolloff: -24, // -12, -24, -48, -96
+    gain: 64,
   });
 
   const cutLow = new Tone.Filter({
@@ -50,8 +59,16 @@ const sketch = (p) => {
     gain: -16,
   });
 
-  wn.chain(dist, cutLow, boost1k, cutHigh,crusher,wnCh);
-
+  //wn.chain(distn, cutLow, boost1k, cutHigh,crusher,wnCh);
+  //wn.chain(distn, boost, wnCh);
+  const wnChainAry = [
+    //crusher,
+    boost,
+    distn,
+    //boost,
+    wnCh,
+  ];
+  wn.chain(...wnChainAry.filter((n) => n));
 
   wnCh.chain(masterCh);
 
@@ -74,7 +91,19 @@ const sketch = (p) => {
 
     BPM.value = 130;
 
-    //transport.start(0);
+    new Tone.Sequence(
+      (time, _) => {
+        //wn.triggerAttack();
+        wn.triggerAttackRelease('8n', time);
+      },
+      // prettier-ignore
+      [
+        1,
+      ],
+      '4n',
+    ).start(0);
+
+    transport.start(0);
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
@@ -88,14 +117,15 @@ const sketch = (p) => {
   const toneOperation = {
     pointerdown: (ratioPointer) => {
       //console.log('pointerdown');
-      wn.triggerAttack();
+      //wn.triggerAttack();
     },
     pointermove: (ratioPointer) => {
-      boost1k.frequency.value = 1000 * p.map(ratioPointer.x, 0, 1, 0.5, 1.5);
+      boost.frequency.value = 1000 * p.map(ratioPointer.x, 0, 1, 0.5, 1.5);
+      boost.Q.value = p.map(ratioPointer.y, 0, 1, 10, 0);
     },
     pointerup: () => {
       //console.log('pointerup');
-      wn.triggerRelease();
+      //wn.triggerRelease();
     },
     pointercancel: () => {},
   };
