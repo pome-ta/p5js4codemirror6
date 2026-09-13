@@ -34,7 +34,7 @@ const sketch = (p) => {
   const boost1k = new Tone.Filter({
     type: 'peaking',
     frequency: 1000,
-    Q: 8,
+    Q: 2.2,
     gain: 32, // 1kHz付近を+6dB
   });
 
@@ -42,8 +42,8 @@ const sketch = (p) => {
     type: 'bandpass',
     //type: 'peaking',
     frequency: 1400,
-    Q: 1.4,
-    rolloff: -12, // -12, -24, -48, -96
+    Q: 2.4,
+    rolloff: -24, // -12, -24, -48, -96
     gain: 64,
   });
 
@@ -63,10 +63,11 @@ const sketch = (p) => {
   //wn.chain(distn, boost, wnCh);
   const wnChainAry = [
     // cutLow,
+    distn,
     // boost,
     // cutHigh,
     // crusher,
-    distn,
+    boost1k,
     boost,
     wnCh,
   ];
