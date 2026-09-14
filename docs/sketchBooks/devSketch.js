@@ -23,14 +23,15 @@ const sketch = (p) => {
     oscillator: { type: 'pulse', width: 0 },
     envelope: {
       attack: 0.0,
-      decay: 1.9,
+      decay: 1.0,
       sustain: 0.0,
-      release: 0.6,
+      release: 0.9,
+      decayCurve: 'exponential',
     },
     filter: {
       type: 'lowpass',
-      Q: 2,
-      rolloff: -24, // -12, -24, -48, -96
+      Q: 8,
+      rolloff: -48, // -12, -24, -48, -96
       frequency: 0,
     },
     filterEnvelope: {
@@ -38,16 +39,16 @@ const sketch = (p) => {
       decay: 0.545,
       sustain: 0.0,
       release: 0.08,
-      baseFrequency: 105,
-      octaves: 2.3,
+      baseFrequency: 88,
+      octaves: 1.3,
     },
   });
 
   const kickFrqEnv = new Tone.FrequencyEnvelope({
     attack: 0.0,
-    decay: 0.245,
+    decay: 0.84,
     sustain: 0.0,
-    release: 0.075,
+    release: 0.75,
     baseFrequency: 'A0',
     octaves: 1.9,
     decayCurve: 'exponential',
@@ -66,8 +67,9 @@ const sketch = (p) => {
 
   const kickSeq = new Tone.Sequence(
     (time, _signal) => {
-      kickTone.triggerAttackRelease(0, '4i', time);
-      kickFrqEnv.triggerAttack(time);
+      kickTone.triggerAttackRelease(0, '32i', time);
+      // kickFrqEnv.triggerAttack(time);
+      kickFrqEnv.triggerAttackRelease('3i', time);
     },
     // prettier-ignore
     [
@@ -93,7 +95,7 @@ const sketch = (p) => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
 
-    BPM.value = 130;
+    BPM.value = 110;
 
     kickSeq.start(0);
     transport.start(0);
