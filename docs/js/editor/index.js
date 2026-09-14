@@ -207,7 +207,7 @@ const updateCallback = EditorView.updateListener.of((update) => update.docChange
 
 const initTheme = EditorView.theme({
   '&': {
-    fontSize: '0.72rem', //fontSize: '1rem',
+    fontSize: '0.64rem', //'0.72rem', //fontSize: '1rem',
     backgroundColor: background,
   },
   '.cm-scroller': {
