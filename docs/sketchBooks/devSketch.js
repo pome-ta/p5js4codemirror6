@@ -30,6 +30,8 @@ const sketch = (p) => {
 
   const crusher = new Tone.BitCrusher(16);
   const distn = new Tone.Distortion({ distortion: 64.0, oversample: '2x' });
+  const distn2 = new Tone.Distortion({ distortion: 64.0, oversample: '2x' });
+  const distn3 = new Tone.Distortion({ distortion: 64.0, oversample: '2x' });
 
   const boost1k = new Tone.Filter({
     type: 'peaking',
@@ -64,11 +66,14 @@ const sketch = (p) => {
   const wnChainAry = [
     // cutLow,
     distn,
+    crusher,
+    distn2,
+    distn3,
     // boost,
     // cutHigh,
-    // crusher,
-    boost1k,
-    boost,
+    //crusher,
+    //boost1k,
+    //boost,
     wnCh,
   ];
   wn.chain(...wnChainAry.filter((n) => n));
@@ -123,7 +128,9 @@ const sketch = (p) => {
       //wn.triggerAttack();
     },
     pointermove: (ratioPointer) => {
-      boost.frequency.value = 1000 * p.map(ratioPointer.x, 0, 1, 0.5, 1.5);
+      //boost.frequency.value = 1000 * p.map(ratioPointer.x, 0, 1, 0.5, 1.5);
+      //console.log()
+      distn.distortion = p.map(ratioPointer.x, 0, 1, 0.0, 32);
       boost.Q.value = p.map(ratioPointer.y, 0, 1, 10, 0);
     },
     pointerup: () => {
