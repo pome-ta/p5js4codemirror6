@@ -18,62 +18,80 @@ const sketch = (p) => {
   const BPM = transport.bpm;
   const masterCh = new Tone.Channel().toDestination();
 
-  const kickSynth = new Tone.Synth({
-    oscillator: { type: 'pulse', width: 0 },
-    envelope: {
-      attack: 0.0,
-      decay: 2.5,
-      sustain: 0.0,
-      release: 2.5,
-      // decayCurve: 'exponential',
-    },
-  });
-
   const kickADSR = {
     attack: 0.0,
     decay: 0.075,
     sustain: 0.0,
     release: 0.075,
+    // attackCurve: 'linear',
+    // attackCurve: 'cosine',
+    // decayCurve: 'linear',
+    // releaseCurve: 'linear',
+    // releaseCurve: 'exponential',
+    // releaseCurve: 'bounce',
+    // decayCurve: 'exponential',
+    // decayCurve: 'cosine',
+    // decayCurve: 'sine',
+    // decayCurve: 'step',
+    // decayCurve: 'ripple',
+    // decayCurve: 'bounce',
   };
+
+  const kickSynth = new Tone.MonoSynth({
+    oscillator: { type: 'pulse', width: 0 },
+    envelope: {
+      attack: 0.0,
+      decay: 0.75,
+      sustain: 0.0,
+      release: 2.5,
+    },
+    filter: {
+      type: 'lowpass',
+      rolloff: -12, // -12, -24, -48, -96
+      gain: 2,
+      Q: 1.2,
+      frequency: 0,
+    },
+    filterEnvelope: {
+      ...kickADSR,
+      baseFrequency: 125, // 下限
+      octaves: 2.1,
+    },
+  });
 
   const kickPitchFrq = new Tone.FrequencyEnvelope({
     ...kickADSR,
     baseFrequency: 'A0', // 下限
-    octaves: 2.5, // 上限 = baseFrequency * 2^octaves
-    // attackCurve: 'exponential',
-    // decayCurve: 'exponential',
+    octaves: 1.8, // 上限 = baseFrequency * 2^octaves
+    decayCurve: 'linear',
+    // releaseCurve: 'linear',
   });
 
   kickPitchFrq.connect(kickSynth.oscillator.frequency);
 
   const kickCh = new Tone.Channel();
   const kickChainAry = [
-    ,
     //
     kickCh,
   ];
   kickSynth.chain(...kickChainAry.filter((n) => n));
   kickCh.chain(masterCh);
 
-  const kickSeq = new Tone.Sequence(
-    (time, _signal) => {
-      // kickTone.triggerAttackRelease(0, '32i', time);
-      //kickTone.triggerAttack('A0', time);
-      //kickFrqEnv.triggerAttack(time);
-      kickSynth.triggerAttack('A0', time);
+  const kickSeq = new Tone.Sequence({
+    callback: (time, _signal) => {
+      kickSynth.triggerAttack(0, time);
       kickPitchFrq.triggerAttack(time);
-      // kickFrqEnv.triggerAttackRelease('3i', time);
     },
     // prettier-ignore
-    [
-      1, 1, 1, 1,
-      1, 1, 1, 1,
-      1, 1, 1, 1,
-      // 4
-      1, 1, 1, [1, 1,],
+    events: [
+      // 1, 1, null, 1,
+      1, [null, 1, 1, null], 1, [1, 1],
+      [null, 1, 1, null], 1, 1, [1, 1],
+      // 1,
     ],
-    '4n',
-  );
+    subdivision: '4n',
+    // humanize: 0.001,
+  });
 
   // --- Sketch
   let cnvs;
@@ -88,10 +106,10 @@ const sketch = (p) => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
 
-    BPM.value = 110;
+    BPM.value = 135;
 
-    kickSeq.start(0);
     transport.start(0);
+    kickSeq.start();
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
@@ -111,7 +129,6 @@ const sketch = (p) => {
     w = p.windowWidth;
     h = p.windowHeight;
     cnvs = p.resizeCanvas(w, h);
-    domLayout();
   };
 };
 
