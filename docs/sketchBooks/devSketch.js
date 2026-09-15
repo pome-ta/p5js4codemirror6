@@ -21,19 +21,23 @@ const sketch = (p) => {
   const kickSynth = new Tone.Synth({
     oscillator: { type: 'pulse', width: 0 },
     envelope: {
-      //
       attack: 0.0,
       decay: 2.5,
       sustain: 0.0,
       release: 2.5,
+      // decayCurve: 'exponential',
     },
   });
 
-  const kickPitchFrq = new Tone.FrequencyEnvelope({
+  const kickADSR = {
     attack: 0.0,
     decay: 0.075,
     sustain: 0.0,
     release: 0.075,
+  };
+
+  const kickPitchFrq = new Tone.FrequencyEnvelope({
+    ...kickADSR,
     baseFrequency: 'A0', // 下限
     octaves: 2.5, // 上限 = baseFrequency * 2^octaves
     // attackCurve: 'exponential',
