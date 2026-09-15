@@ -38,7 +38,8 @@ const sketch = (p) => {
   };
 
   const kickSynth = new Tone.MonoSynth({
-    oscillator: { type: 'pulse', width: 0 },
+    //oscillator: { type: 'pulse', width: 0 },
+    oscillator: { type: 'sine' },
     envelope: {
       attack: 0.0,
       decay: 0.75,
@@ -69,8 +70,17 @@ const sketch = (p) => {
 
   kickPitchFrq.connect(kickSynth.oscillator.frequency);
 
+  const kickComp = new Tone.Compressor({
+    attack: 1,
+    knee: 20,
+    ratio: 2,
+    release: 0.1,
+    threshold: -30,
+  });
+
   const kickCh = new Tone.Channel();
   const kickChainAry = [
+    kickComp,
     //
     kickCh,
   ];
