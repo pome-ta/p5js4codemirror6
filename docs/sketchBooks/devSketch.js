@@ -18,43 +18,29 @@ const sketch = (p) => {
   const BPM = transport.bpm;
   const masterCh = new Tone.Channel().toDestination();
 
-  // --- kick
-  const kickTone = new Tone.MonoSynth({
+  const kickSynth = new Tone.Synth({
     oscillator: { type: 'pulse', width: 0 },
     envelope: {
+      //
       attack: 0.0,
-      decay: 1.0,
+      decay: 2.5,
       sustain: 0.0,
-      release: 0.9,
-      decayCurve: 'exponential',
-    },
-    filter: {
-      type: 'lowpass',
-      Q: 8,
-      rolloff: -48, // -12, -24, -48, -96
-      frequency: 0,
-    },
-    filterEnvelope: {
-      attack: 0.0,
-      decay: 0.545,
-      sustain: 0.0,
-      release: 0.08,
-      baseFrequency: 88,
-      octaves: 1.3,
+      release: 2.5,
     },
   });
 
-  const kickFrqEnv = new Tone.FrequencyEnvelope({
+  const kickPitchFrq = new Tone.FrequencyEnvelope({
     attack: 0.0,
-    decay: 0.84,
+    decay: 0.075,
     sustain: 0.0,
-    release: 0.75,
-    baseFrequency: 'A0',
-    octaves: 1.9,
-    decayCurve: 'exponential',
+    release: 0.075,
+    baseFrequency: 'A0', // 下限
+    octaves: 2.5, // 上限 = baseFrequency * 2^octaves
+    // attackCurve: 'exponential',
+    // decayCurve: 'exponential',
   });
 
-  kickFrqEnv.connect(kickTone.oscillator.frequency);
+  kickPitchFrq.connect(kickSynth.oscillator.frequency);
 
   const kickCh = new Tone.Channel();
   const kickChainAry = [
@@ -62,23 +48,26 @@ const sketch = (p) => {
     //
     kickCh,
   ];
-  kickTone.chain(...kickChainAry.filter((n) => n));
+  kickSynth.chain(...kickChainAry.filter((n) => n));
   kickCh.chain(masterCh);
 
   const kickSeq = new Tone.Sequence(
     (time, _signal) => {
-      kickTone.triggerAttackRelease(0, '32i', time);
-      // kickFrqEnv.triggerAttack(time);
-      kickFrqEnv.triggerAttackRelease('3i', time);
+      // kickTone.triggerAttackRelease(0, '32i', time);
+      //kickTone.triggerAttack('A0', time);
+      //kickFrqEnv.triggerAttack(time);
+      kickSynth.triggerAttack('A0', time);
+      kickPitchFrq.triggerAttack(time);
+      // kickFrqEnv.triggerAttackRelease('3i', time);
     },
     // prettier-ignore
     [
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        // 4
-        1, 1, 1, [1, 1, ],
-      ],
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      // 4
+      1, 1, 1, [1, 1,],
+    ],
     '4n',
   );
 
