@@ -5,6 +5,31 @@ import * as Tone from 'tone';
 import TapIndicator from 'modules/TapIndicator.js';
 import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
 
+const buffer = await Tone.Offline(() => {
+  const synth = new Tone.Synth({
+    // oscillator: { type: 'sine', phase: -80 },
+    oscillator: { type: 'sine' },
+    // oscillator: { type: 'sine', phase: -72 },
+
+    // oscillator: { type: 'pulse', width: 0 },
+    envelope: {
+      attack: 0.0,
+      decay: 12.5,
+      sustain: 1.0,
+      release: 2.5,
+      attackCurve: 'exponential',
+      // releaseCurve: 'exponential',
+    },
+    portamento: 0.225,
+  }).toDestination();
+  const nowTime = Tone.now();
+  synth.triggerAttack('C1', nowTime);
+  synth.triggerAttack('A0', nowTime + 0.001);
+  // synth.triggerAttackRelease('A4', nowTime + 0.001, nowTime + 1.5);
+
+  synth.triggerRelease(nowTime + 1.5);
+}, 2.5); // レンダリングする長さ(秒)
+
 const sketch = (p) => {
   // --- Tone.js
   const ctx = p.getAudioContext();
@@ -13,51 +38,54 @@ const sketch = (p) => {
   document.addEventListener('pointerup', async () => await Tone.start(), {
     once: true,
   });
-
   const transport = Tone.getTransport();
   const BPM = transport.bpm;
+  BPM.value = 120;
+
   const toTime = (t) => Tone.Time(t).toSeconds();
+
   const masterCh = new Tone.Channel().toDestination();
 
   const kickCh = new Tone.Channel();
 
-  const kickSynth = new Tone.Synth({
-    // oscillator: { type: 'pulse', width: 0 },
-    oscillator: { type: 'sine' ,phase: -80 },
-    envelope: {
-      attack: 0,
-      decay: 2.5,
-      sustain: 0.0,
-      release: 0.0,
-      attackCurve: 'exponential',
-      // decayCurve: 'cosine',
-      // releaseCurve: 'sine',
-    },
-    portamento: toTime('64n'),
-  });
-  
-  
+  const kickSynth = new Tone.Player(buffer);
+  // console.log(buffer)
 
-
+  // const kickSynth = new Tone.Synth({
+  //   // oscillator: { type: 'pulse', width: 0},
+  //   // oscillator: { type: 'pulse', width: 0, phase: -20 },
+  //   oscillator: { type: 'sine', phase: -80 },
+  //   // oscillator: { type: 'sine' },
+  //   envelope: {
+  //     attack: 0,
+  //     decay: 2.5,
+  //     sustain: 0.0,
+  //     release: 0,
+  //     // attackCurve: 'exponential',
+  //     // releaseCurve: 'exponential',
+  //   },
+  //   portamento: toTime('16i'),
+  // });
 
   const kickSeq = new Tone.Sequence({
     callback: (time, _signal) => {
-      kickSynth.triggerAttack('C2', time);
-      kickSynth.triggerAttack('A0', time+toTime('2i'));
+      // kickSynth.triggerAttackRelease('A2', '64i', time);
+      // kickSynth.triggerAttack('C3', time + toTime('32i'));
+      kickSynth.start(time);
     },
     // prettier-ignore
     events: [
       // 1, 1, null, 1,
       // 1, [null, 1, 1, null], 1, [1, 1],
-      // [null, 1, 1, null], 1, 1, [1, 1],
-      1,
+      [null, 1, 1, null], 1, 1, [1, 1],
+      // 1,
     ],
     subdivision: '4n',
     // humanize: 0.001,
   });
 
   const kickChainAry = [
-    //kickComp,
+    // kickComp,
     //
     kickCh,
   ];
@@ -76,8 +104,6 @@ const sketch = (p) => {
   p.setup = () => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
-
-    BPM.value = 98;
 
     transport.start(0);
     kickSeq.start();
