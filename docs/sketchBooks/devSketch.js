@@ -4,71 +4,6 @@ import * as Tone from 'tone';
 
 import TapIndicator from 'modules/TapIndicator.js';
 import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
-/*
-const buffer = await Tone.Offline(() => {
-  const synth = new Tone.Synth({
-    oscillator: { type: 'sine', phase: -80 },
-    // oscillator: { type: 'sine' },
-    // oscillator: { type: 'sine', phase: -72 },
-
-    // oscillator: { type: 'pulse', width: 0 },
-    envelope: {
-      attack: 1e-3,
-      decay: 12.5,
-      sustain: 0.0,
-      release: 0.075,
-      attackCurve: 'exponential',
-      // releaseCurve: 'exponential',
-    },
-    //portamento: 0.125,
-  }).toDestination();
-  // const nowTime = Tone.now();
-
-  synth.triggerAttack('A5', 0);
-  // synth.frequency.rampTo('A2', 0.1);
-  // synth.triggerAttackRelease('A5', nowTime, nowTime+1.5);
-  synth.frequency.rampTo('A2', 0.1);
-  // synth.triggerAttack('A0', nowTime + 0.001);
-  // synth.triggerAttackRelease('A4', 0, 1.5);
-
-  synth.triggerRelease(0.5);
-}, 2.5); // レンダリングする長さ(秒)
-*/
-
-/*
-これエラー出ないけど、音も出ないの。。。
-
-
-```js
-const player = new Tone.Player().toDestination();
-Tone.Offline(() => {
-	const synth = new Tone.Synth().toDestination();
-	const nowTime = Tone.now();
-	synth.triggerAttack('A4', nowTime);
-	synth.triggerRelease(nowTime + 1.0);
-}, 2).then((buffer) => {  
-	player.buffer = buffer;
-});
-
-new Tone.Sequence({
-  callback: (time, _signal) => {
-    player.start(time);
-  },
-  events: [
-    1,
-  ],
-    subdivision: '4n',
-}).start(0);
-Tone.getTransport().start(0);
-```
-
-
-`Tone.start()` 処理は完了してる。
-`async` / `await` 処理は、回避したくて、`.then` で取り回したい。
-
-
-*/
-
 
 const sketch = (p) => {
   // --- Tone.js
@@ -78,75 +13,83 @@ const sketch = (p) => {
   document.addEventListener('pointerup', async () => await Tone.start(), {
     once: true,
   });
+
   const transport = Tone.getTransport();
   const BPM = transport.bpm;
-  BPM.value = 80;
-
-  const toTime = (t) => Tone.Time(t).toSeconds();
+  BPM.value = 105;
 
   const masterCh = new Tone.Channel().toDestination();
 
   const kickCh = new Tone.Channel();
+  const player = new Tone.Player();
 
-  const kickSynth = new Tone.Player();
-  //console.log(kickSynth)
+  const kickADSR = {
+    attack: '1i',
+    decay: 0.75,
+    sustain: 0.0,
+    release: 0.075,
+    attackCurve: 'exponential',
+    // attackCurve: 'linear',
+    // attackCurve: 'cosine',
+    // decayCurve: 'linear',
+    // releaseCurve: 'linear',
+    // releaseCurve: 'exponential',
+    // releaseCurve: 'bounce',
+    // decayCurve: 'exponential',
+    // decayCurve: 'cosine',
+    // decayCurve: 'sine',
+    // decayCurve: 'step',
+    // decayCurve: 'ripple',
+    // decayCurve: 'bounce',
+  };
 
-  // xxx: top-level await
-  Tone.Offline(() => {
-    const synth = new Tone.Synth({
-      oscillator: { type: 'sine', phase: -80 },
-      // oscillator: { type: 'sine' },
-      // oscillator: { type: 'sine', phase: -72 },
-
-      // oscillator: { type: 'pulse', width: 0 },
-      envelope: {
-        attack: 1e-3,
-        decay: 12.5,
-        sustain: 0.0,
-        release: 0.075,
-        attackCurve: 'exponential',
-        // releaseCurve: 'exponential',
-      },
-      //portamento: 0.125,
-    }).toDestination();
-    const nowTime = Tone.now();
-
-    synth.triggerAttack('A5', nowTime);
-    // synth.frequency.rampTo('A2', 0.1);
-    // synth.triggerAttackRelease('A5', nowTime, nowTime+1.5);
-    synth.frequency.rampTo('A2', nowTime + 0.1);
-    // synth.triggerAttack('A0', nowTime + 0.001);
-    // synth.triggerAttackRelease('A4', 0, 1.5);
-
-    synth.triggerRelease(nowTime + 0.5);
-  }, 2.5).then((buffer) => {
-    console.log(buffer)
-    kickSynth.buffer=buffer;
+  const kickSynth = new Tone.MonoSynth({
+    // oscillator: { type: 'pulse', width: 0},
+    oscillator: { type: 'pulse', width: 0, phase: -20 },
+    // oscillator: { type: 'sine' , phase: -80 },
+    // oscillator: { type: 'sine' },
+    envelope: {
+      attack: '1i',
+      decay: 2.5,
+      sustain: 0.0,
+      release: 2.5,
+      attackCurve: 'exponential',
+    },
+    filter: {
+      type: 'lowpass',
+      rolloff: -24, // -12, -24, -48, -96
+      gain: 2,
+      Q: 3.2,
+      frequency: 0,
+    },
+    filterEnvelope: {
+      ...kickADSR,
+      baseFrequency: 145,
+      octaves: 1.2,
+    },
   });
 
-  // console.log(buffer)
+  const kickPitchFrq = new Tone.FrequencyEnvelope({
+    ...kickADSR,
+    baseFrequency: 'A0',
+    octaves: 2.7,
+    releaseCurve: 'linear',
+  });
 
-  // const kickSynth = new Tone.Synth({
-  //   // oscillator: { type: 'pulse', width: 0},
-  //   // oscillator: { type: 'pulse', width: 0, phase: -20 },
-  //   oscillator: { type: 'sine', phase: -80 },
-  //   // oscillator: { type: 'sine' },
-  //   envelope: {
-  //     attack: 0,
-  //     decay: 2.5,
-  //     sustain: 0.0,
-  //     release: 0,
-  //     // attackCurve: 'exponential',
-  //     // releaseCurve: 'exponential',
-  //   },
-  //   portamento: toTime('16i'),
-  // });
+  kickPitchFrq.connect(kickSynth.oscillator.frequency);
+
+  const kickComp = new Tone.Compressor({
+    threshold: -24,
+    ratio: 5,
+    attack: 0.05,
+    release: 0.125,
+    knee: 30,
+  });
 
   const kickSeq = new Tone.Sequence({
     callback: (time, _signal) => {
-      // kickSynth.triggerAttackRelease('A2', '64i', time);
-      // kickSynth.triggerAttack('C3', time + toTime('32i'));
-      kickSynth.start(time);
+      kickSynth.triggerAttack(0, time);
+      kickPitchFrq.triggerAttack(time);
     },
     // prettier-ignore
     events: [
@@ -158,9 +101,25 @@ const sketch = (p) => {
     subdivision: '4n',
     // humanize: 0.001,
   });
+  const playSeq = new Tone.Sequence({
+    callback: (time, _signal) => {
+      player.start(time);
+    },
+    // prettier-ignore
+    events: [
+      // 1, 1, null, 1,
+      //1, [null, 1, 1, null], 1, [1, 1],
+      [null, 1, 1, null], 1, 1, [1, 1],
+      // 1,
+    ],
+    subdivision: '4n',
+    humanize: 0.001,
+  });
+
+  player.chain(masterCh);
 
   const kickChainAry = [
-    // kickComp,
+    kickComp,
     //
     kickCh,
   ];
@@ -176,12 +135,64 @@ const sketch = (p) => {
   const tapIndicator = new TapIndicator(p);
   const spectrumAnalyzer = new SpectrumAnalyzer(p, 2048);
 
-  p.setup = () => {
+  p.setup = async () => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
 
+    // BPM.value = 135;
+
+    const buf = await Tone.Offline(() => {
+      const synth = new Tone.Synth({
+        // oscillator: { type: 'sine', phase: -80 },
+        // oscillator: { type: 'sine' },
+        // oscillator: { type: 'sine', phase: -72 },
+
+        oscillator: { type: 'pulse', width: 0 },
+        envelope: {
+          attack: 1e-3,
+          decay: 12.5,
+          sustain: 0.0,
+          release: 0.075,
+          attackCurve: 'exponential',
+          // releaseCurve: 'exponential',
+        },
+        //portamento: 0.125,
+      }).toDestination();
+      const nowTime = Tone.now();
+      // console.log(nowTime);
+
+      synth.triggerAttack('A6', 0);
+      // synth.frequency.rampTo('A2', 0.1);
+      // synth.triggerAttackRelease('A5', nowTime, nowTime+1.5);
+      synth.frequency.rampTo('A3', 0.1);
+      // synth.triggerAttack('A0', nowTime + 0.001);
+      // synth.triggerAttackRelease('A4', 0, 1.5);
+
+      synth.triggerRelease(0.5);
+    }, 2.5);
+
+    // const player = new Tone.Player();
+    player.buffer = buf;
+    // const playSeq = new Tone.Sequence({
+    //   callback: (time, _signal) => {
+    //     player.start(time);
+    //   },
+    //   // prettier-ignore
+    //   events: [
+    //   // 1, 1, null, 1,
+    //   1, [null, 1, 1, null], 1, [1, 1],
+    //   // [null, 1, 1, null], 1, 1, [1, 1],
+    //   // 1,
+    // ],
+    //   subdivision: '2n',
+    //   humanize: 0.001,
+    // });
+
+    // player.chain(masterCh);
+
     transport.start(0);
     kickSeq.start();
+    playSeq.start();
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
