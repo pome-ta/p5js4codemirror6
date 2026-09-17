@@ -26,10 +26,13 @@ const sketch = (p) => {
   const transport = Tone.getTransport();
   transport.bpm.value = 120;
 
+  const toTime = (t) => Tone.Time(t).toSeconds();
+
   const masterCh = new Tone.Channel().toDestination();
 
   const kick = 'kick',
-    snare = 'snare';
+    snare = 'snare',
+    hihta = 'hihta';
   const drumKit = new Tone.Players();
   drumKit.fadeIn = '1i';
   drumKit.fadeOut = '1i';
@@ -42,7 +45,8 @@ const sketch = (p) => {
     },
     // prettier-ignore
     events: [
-      {kick},
+      {kick}, {kick}, {kick}, {kick},
+      {kick}, {kick}, {kick}, [{kick},{kick},],
     ],
     subdivision: '4n',
     // humanize: 0.001,
@@ -55,7 +59,21 @@ const sketch = (p) => {
   ];
   drumKit.chain(...drumChainAry.filter((n) => n));
 
+  // メトロノーム
+  const clickSynth = new Tone.MembraneSynth();
+  const clickSeq = new Tone.Sequence({
+    callback: (time, note) => {
+      clickSynth.triggerAttackRelease(note, '1i', time);
+    },
+    events: ['A5', 'A4', 'A4', 'A4',],
+    subdivision: '4n',
+  });
+
+  const clickCh = new Tone.Channel();
+  clickSynth.chain(clickCh);
+
   drumCh.chain(masterCh);
+  clickCh.chain(masterCh);
 
   p.setup = async () => {
     // put setup code here
@@ -65,36 +83,27 @@ const sketch = (p) => {
       const synth = new Tone.Synth({
         oscillator: { type: 'sine', phase: -80 },
         // oscillator: { type: 'sine' },
-        // oscillator: { type: 'sine', phase: -72 },
-
-        oscillator: { type: 'pulse', width: 0 },
+        // oscillator: { type: 'pulse', width: 0 },
         envelope: {
           // attack: 1e-3,
           attack: 0,
-
           decay: 12.5,
           sustain: 0.0,
           release: '1i',
           attackCurve: 'exponential',
-          // releaseCurve: 'exponential',
         },
-        //portamento: 0.125,
       }).toDestination();
 
-      synth.triggerAttack('A3', 0);
-      // synth.frequency.rampTo('A2', 0.1);
-      // synth.triggerAttackRelease('A5', nowTime, nowTime+1.5);
-      synth.frequency.rampTo('A0', `32i`);
-      // synth.triggerAttack('A0', nowTime + 0.001);
-      // synth.triggerAttackRelease('A4', 0, 1.5);
-
-      synth.triggerRelease('128i');
-    }, 2);
+      synth.triggerAttack(320, 0);
+      synth.frequency.rampTo(45, '16i');
+      synth.triggerRelease('64i');
+    }, toTime('4n'));
 
     drumKit.add(kick, kickBuffer);
 
     transport.start(0);
     drumSeq.start();
+    clickSeq.start();
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
