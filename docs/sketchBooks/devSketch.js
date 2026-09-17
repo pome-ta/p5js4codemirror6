@@ -4,7 +4,7 @@ import * as Tone from 'tone';
 
 import TapIndicator from 'modules/TapIndicator.js';
 import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
-
+/*
 const buffer = await Tone.Offline(() => {
   const synth = new Tone.Synth({
     oscillator: { type: 'sine', phase: -80 },
@@ -33,6 +33,42 @@ const buffer = await Tone.Offline(() => {
 
   synth.triggerRelease(0.5);
 }, 2.5); // レンダリングする長さ(秒)
+*/
+
+/*
+これエラー出ないけど、音も出ないの。。。
+
+
+```js
+const player = new Tone.Player().toDestination();
+Tone.Offline(() => {
+	const synth = new Tone.Synth().toDestination();
+	const nowTime = Tone.now();
+	synth.triggerAttack('A4', nowTime);
+	synth.triggerRelease(nowTime + 1.0);
+}, 2).then((buffer) => {  
+	player.buffer = buffer;
+});
+
+new Tone.Sequence({
+  callback: (time, _signal) => {
+    player.start(time);
+  },
+  events: [
+    1,
+  ],
+    subdivision: '4n',
+}).start(0);
+Tone.getTransport().start(0);
+```
+
+
+`Tone.start()` 処理は完了してる。
+`async` / `await` 処理は、回避したくて、`.then` で取り回したい。
+
+
+*/
+
 
 const sketch = (p) => {
   // --- Tone.js
@@ -52,7 +88,42 @@ const sketch = (p) => {
 
   const kickCh = new Tone.Channel();
 
-  const kickSynth = new Tone.Player(buffer);
+  const kickSynth = new Tone.Player();
+  //console.log(kickSynth)
+
+  // xxx: top-level await
+  Tone.Offline(() => {
+    const synth = new Tone.Synth({
+      oscillator: { type: 'sine', phase: -80 },
+      // oscillator: { type: 'sine' },
+      // oscillator: { type: 'sine', phase: -72 },
+
+      // oscillator: { type: 'pulse', width: 0 },
+      envelope: {
+        attack: 1e-3,
+        decay: 12.5,
+        sustain: 0.0,
+        release: 0.075,
+        attackCurve: 'exponential',
+        // releaseCurve: 'exponential',
+      },
+      //portamento: 0.125,
+    }).toDestination();
+    const nowTime = Tone.now();
+
+    synth.triggerAttack('A5', nowTime);
+    // synth.frequency.rampTo('A2', 0.1);
+    // synth.triggerAttackRelease('A5', nowTime, nowTime+1.5);
+    synth.frequency.rampTo('A2', nowTime + 0.1);
+    // synth.triggerAttack('A0', nowTime + 0.001);
+    // synth.triggerAttackRelease('A4', 0, 1.5);
+
+    synth.triggerRelease(nowTime + 0.5);
+  }, 2.5).then((buffer) => {
+    console.log(buffer)
+    kickSynth.buffer=buffer;
+  });
+
   // console.log(buffer)
 
   // const kickSynth = new Tone.Synth({
