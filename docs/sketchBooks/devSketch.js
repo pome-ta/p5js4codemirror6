@@ -71,6 +71,10 @@ const sketch = (p) => {
 
   bus.on('startCall', (nowTime) => {
     transport.start(nowTime);
+    console.log(nowTime);
+    console.log(Tone.now());
+    console.log(transport.context.now());
+
     transport.schedule((time) => {
       drumSeq.start(time);
       clickSeq.start(time);
@@ -126,7 +130,8 @@ const sketch = (p) => {
     //drumSeq.start();
     //clickSeq.start();
     //bus.emit('startCall', transport.start());
-    bus.emit('startCall', Tone.now());
+    //bus.emit('startCall', Tone.now());
+    bus.emit('startCall', transport.context.now());
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
