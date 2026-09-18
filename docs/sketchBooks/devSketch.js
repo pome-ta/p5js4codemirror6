@@ -82,8 +82,8 @@ const sketch = (p) => {
     const kickBuffer = await Tone.Offline(() => {
       const synth = new Tone.Synth({
         // oscillator: { type: 'sine', phase: -80 },
-        // oscillator: { type: 'sine' },
-        oscillator: { type: 'pulse', width: 0 },
+        oscillator: { type: 'sine', },
+        // oscillator: { type: 'pulse', width: 0 },
         envelope: {
           // attack: 1e-3,
           attack: 0,
@@ -94,38 +94,15 @@ const sketch = (p) => {
         },
       });
 
-      const kickFilter = new Tone.Filter({
-        type: 'lowpass',
-        frequency: 1200,
-        Q: 0.2,
-        rolloff: -12, // -12, -24, -48, -96
-        gain: 2,
-      });
-
-      const kickFltrFrq = new Tone.FrequencyEnvelope({
-        envelope: {
-          attack: 0,
-          decay: 0.75,
-          sustain: 0.0,
-          release: '1i',
-        },
-        baseFrequency: 320, // 下限
-        octaves: 3.1, // 上限 = baseFrequency * 2^octaves
-        // releaseCurve: 'linear',
-      });
-      kickFltrFrq.connect(kickFilter.frequency);
-      const outCh = new Tone.Channel().toDestination();
-
+      const outCh = new Tone.Channel(6).toDestination();
       const outChainAry = [
         //
-        kickFilter,
         outCh,
       ];
       synth.chain(...outChainAry.filter((n) => n));
 
-      synth.triggerAttack('A2', 0);
-      kickFltrFrq.triggerAttackRelease('32n', 0);
-      synth.frequency.rampTo('A1', '1i');
+      synth.triggerAttack('A4', 0);
+      synth.frequency.rampTo('A2', '4i');
       synth.triggerRelease('128i');
     }, toTime('4n'));
 
