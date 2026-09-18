@@ -17,7 +17,7 @@ const sketch = (p) => {
 
   // --- Tone.js
   const ctx = p.getAudioContext();
-  Tone.setContext(ctx);
+  Tone.setContext(ctx, true);
   /* Starting Audio */
   document.addEventListener('pointerup', async () => await Tone.start(), {
     once: true,
@@ -26,7 +26,7 @@ const sketch = (p) => {
   const transport = Tone.getTransport();
   transport.bpm.value = 135;
 
-  const toTime = (t) => Tone.Time(t).toSeconds();
+  const toTime = (t) => new Tone.TimeClass(transport.context, t).toSeconds();
 
   const masterCh = new Tone.Channel().toDestination();
   const bus = new Tone.Emitter();
@@ -69,12 +69,12 @@ const sketch = (p) => {
     subdivision: '4n',
   });
 
-  bus.on('startCall', () => {
-    transport.start();
+  bus.on('startCall', (nowTime) => {
+    transport.start(nowTime);
     transport.schedule((time) => {
-      drumSeq.start();
-      clickSeq.start();
-    }, Tone.now()); // 前回説明したクオンタイズ記法
+      drumSeq.start(time);
+      clickSeq.start(time);
+    }, nowTime);
   });
 
   // --- mixer
@@ -118,7 +118,6 @@ const sketch = (p) => {
 
       synth.triggerAttackRelease('A3', '512i');
       synth.frequency.rampTo('A1', '24i');
-
     }, toTime('4n'));
 
     drumKit.add(kick, kickBuffer);
@@ -126,7 +125,8 @@ const sketch = (p) => {
     //transport.start(0);
     //drumSeq.start();
     //clickSeq.start();
-    bus.emit('startCall');
+    //bus.emit('startCall', transport.start());
+    bus.emit('startCall', Tone.now());
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
