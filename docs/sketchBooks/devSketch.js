@@ -29,7 +29,7 @@ const sketch = (p) => {
   const toTime = (t) => new Tone.TimeClass(transport.context, t).toSeconds();
 
   const masterCh = new Tone.Channel().toDestination();
-  const bus = new Tone.Emitter();
+  const emitter = new Tone.Emitter();
 
   const kick = 'kick',
     snare = 'snare',
@@ -44,8 +44,15 @@ const sketch = (p) => {
         drumKit.player(trigger).start(time);
       });
     },
-
     events: [
+      // prettier-ignore
+      [  // 
+        { kick }, { kick }, { kick }, { kick },
+      ],
+      // prettier-ignore
+      [  // 
+        { kick }, { kick }, { kick }, { kick },
+      ],
       // prettier-ignore
       [  // 
         { kick }, { kick }, { kick }, { kick },
@@ -69,16 +76,12 @@ const sketch = (p) => {
     subdivision: '4n',
   });
 
-  bus.on('startCall', (nowTime) => {
+  emitter.once('startCall', (nowTime) => {
     transport.start(nowTime);
-    console.log(nowTime);
-    console.log(Tone.now());
-    console.log(transport.context.now());
-
-    transport.schedule((time) => {
+    transport.scheduleOnce((time) => {
       drumSeq.start(time);
-      clickSeq.start(time);
-    }, nowTime);
+      //clickSeq.start(time);
+    }, 0);
   });
 
   // --- mixer
@@ -92,8 +95,12 @@ const sketch = (p) => {
   const clickCh = new Tone.Channel();
   clickSynth.chain(clickCh);
 
-  drumCh.chain(masterCh);
-  clickCh.chain(masterCh);
+  const fanInNodes = [
+    //
+    drumCh,
+    clickCh,
+  ];
+  Tone.fanIn(...fanInNodes.filter((n) => n), masterCh);
 
   p.setup = async () => {
     // put setup code here
@@ -106,7 +113,7 @@ const sketch = (p) => {
         // oscillator: { type: 'pulse', width: 0 },
         envelope: {
           attack: 0,
-          decay: 1.5,
+          decay: 10.5,
           sustain: 0.0,
           release: '1i',
           attackCurve: 'exponential',
@@ -118,10 +125,15 @@ const sketch = (p) => {
         //
         outCh,
       ];
+      //synth.chain(...outChainAry.filter((n) => n));
       synth.chain(...outChainAry.filter((n) => n));
 
       synth.triggerAttackRelease('A3', '512i');
       synth.frequency.rampTo('A1', '24i');
+      
+      
+      
+      
     }, toTime('4n'));
 
     drumKit.add(kick, kickBuffer);
@@ -130,8 +142,8 @@ const sketch = (p) => {
     //drumSeq.start();
     //clickSeq.start();
     //bus.emit('startCall', transport.start());
-    //bus.emit('startCall', Tone.now());
-    bus.emit('startCall', transport.context.now());
+    //emitter.emit('startCall', Tone.now());
+    emitter.emit('startCall', transport.context.now());
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
