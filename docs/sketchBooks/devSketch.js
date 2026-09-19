@@ -24,7 +24,7 @@ const sketch = (p) => {
   });
 
   const transport = Tone.getTransport();
-  transport.bpm.value = 135;
+  transport.bpm.value = 90;
 
   const toTime = (t) => new Tone.TimeClass(transport.context, t).toSeconds();
 
@@ -46,21 +46,22 @@ const sketch = (p) => {
     },
     events: [
       // prettier-ignore
-      [  // 
-        { kick }, { kick }, { kick }, { kick },
-      ],
-      // prettier-ignore
-      [  // 
-        { kick }, { kick }, { kick }, { kick },
-      ],
-      // prettier-ignore
-      [  // 
-        { kick }, { kick }, { kick }, { kick },
-      ],
-      // prettier-ignore
-      [
-        { kick }, { kick }, { kick }, [{ kick }, { kick }],
-      ],
+      // [  // 
+      //   { kick }, { kick }, { kick }, { kick },
+      // ],
+      // // prettier-ignore
+      // [  // 
+      //   { kick }, { kick }, { kick }, { kick },
+      // ],
+      // // prettier-ignore
+      // [  // 
+      //   { kick }, { kick }, { kick }, { kick },
+      // ],
+      // // prettier-ignore
+      // [
+      //   { kick }, { kick }, { kick }, [{ kick }, { kick }],
+      {kick}
+      // ],
     ],
     subdivision: '1n',
     // humanize: 0.001,
@@ -80,7 +81,7 @@ const sketch = (p) => {
     transport.start(nowTime);
     transport.scheduleOnce((time) => {
       drumSeq.start(time);
-      //clickSeq.start(time);
+      // clickSeq.start(time);
     }, 0);
   });
 
@@ -129,13 +130,13 @@ const sketch = (p) => {
       //synth.chain(...outChainAry.filter((n) => n));
       synth.chain(...outChainAry.filter((n) => n));
 
-      synth.triggerAttackRelease('A3', '32n');
-      synth.frequency.rampTo('A1', '64i');
+      synth.triggerAttackRelease('A3', '4t');
+      synth.frequency.rampTo('A2', '32n.');
       
       
       
       
-    }, toTime('2n'));
+    }, toTime('1n.'));
 
     drumKit.add(kick, kickBuffer);
 
