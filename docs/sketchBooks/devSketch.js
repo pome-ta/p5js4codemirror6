@@ -106,7 +106,8 @@ const sketch = (p) => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
 
-    const kickBuffer = await Tone.Offline(() => {
+    const kickBuffer = await Tone.Offline((context) => {
+      context.transport.bpm.value = transport.bpm.value;
       const synth = new Tone.Synth({
         oscillator: { type: 'sine', phase: 270 },
         // oscillator: { type: 'sine', },
@@ -128,13 +129,13 @@ const sketch = (p) => {
       //synth.chain(...outChainAry.filter((n) => n));
       synth.chain(...outChainAry.filter((n) => n));
 
-      synth.triggerAttackRelease('A3', '512i');
-      synth.frequency.rampTo('A1', '24i');
+      synth.triggerAttackRelease('A3', '32n');
+      synth.frequency.rampTo('A1', '64i');
       
       
       
       
-    }, toTime('4n'));
+    }, toTime('2n'));
 
     drumKit.add(kick, kickBuffer);
 
@@ -167,3 +168,5 @@ const sketch = (p) => {
 };
 
 new p5(sketch);
+
+
