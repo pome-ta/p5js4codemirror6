@@ -24,7 +24,7 @@ const sketch = (p) => {
   });
 
   const transport = Tone.getTransport();
-  transport.bpm.value = 125;
+  transport.bpm.value = 135;
 
   const toTime = (t) => new Tone.TimeClass(transport.context, t).toSeconds();
 
@@ -33,6 +33,7 @@ const sketch = (p) => {
 
   const kick = 'kick',
     crap = 'crap',
+    rim = 'rim',
     snare = 'snare',
     hihta = 'hihta';
   const drumKit = new Tone.Players();
@@ -48,19 +49,21 @@ const sketch = (p) => {
     events: [
       // prettier-ignore
       [  // 
-        { kick }, { kick, crap }, { kick }, { kick, crap },
+        { kick }, { kick, crap, rim }, { kick }, { kick, crap, rim },
+      ],
+      // prettier-ignore
+      /*
+      [  // 
+        { kick }, { kick, crap, rim }, { kick }, { kick, crap, rim },
       ],
       // prettier-ignore
       [  // 
         { kick }, { kick, crap }, { kick }, { kick, crap },
       ],
-      // prettier-ignore
-      [  // 
-        { kick }, { kick, crap }, { kick }, { kick, crap },
-      ],
+      */
       // prettier-ignore
       [
-        { kick }, { kick, crap }, { kick }, [{ kick, crap }, { kick }],
+        { kick }, { kick, crap, rim }, { kick }, [[{ kick, crap }, {rim}], { kick }],
       ],
     ],
     subdivision: '1n',
@@ -110,9 +113,9 @@ const sketch = (p) => {
     const kickBuffer = await Tone.Offline((context) => {
       context.transport.bpm.value = transport.bpm.value;
       const synth = new Tone.Synth({
-        oscillator: { type: 'sine', phase: 270 },
+        //oscillator: { type: 'sine', phase: 270 },
         // oscillator: { type: 'sine', },
-        //oscillator: { type: 'pulse', width: 0 },
+        oscillator: { type: 'pulse', width: 0 },
         envelope: {
           attack: 0,
           decay: 2.75,
@@ -121,7 +124,7 @@ const sketch = (p) => {
           attackCurve: 'exponential',
         },
       });
-      const channel = new Tone.Channel(12).toDestination();
+      const channel = new Tone.Channel(0).toDestination();
 
       Tone.fanIn(synth, channel);
 
@@ -150,13 +153,13 @@ const sketch = (p) => {
 
       const bandpass = new Tone.Filter({
         type: 'bandpass',
-        frequency: 1100,
+        frequency: 1075,
         Q: 3.4,
         rolloff: -12, // -12, -24, -48, -96
         gain: 64,
       });
 
-      const channel = new Tone.Channel(36).toDestination();
+      const channel = new Tone.Channel(24).toDestination();
       whiteNoise.chain(
         ...[
           bitCrusher,
@@ -171,9 +174,66 @@ const sketch = (p) => {
       whiteNoise.triggerAttack();
     }, 1.5);
 
+    const rimBuffer = await Tone.Offline((context) => {
+      context.transport.bpm.value = transport.bpm.value;
+
+      const whiteNoise = new Tone.NoiseSynth({
+        noise: { type: 'white' },
+        envelope: {
+          attack: 0.0,
+          decay: 1.0,
+          sustain: 0.0,
+          release: 0.0,
+        },
+      });
+      const bitCrusher = new Tone.BitCrusher(16);
+
+      const chebyshev = new Tone.Chebyshev({
+        order: 32,
+        oversample: 'none',
+      });
+
+      const bandpass = new Tone.Filter({
+        type: 'bandpass',
+        frequency: 1000,
+        Q: 9.4,
+        rolloff: -12, // -12, -24, -48, -96
+        gain: 64,
+      });
+      const peaking = new Tone.Filter({
+        type: 'peaking',
+        frequency: 1400,
+        Q: 0.2,
+        rolloff: -48, // -12, -24, -48, -96
+        gain: 8, // 1kHz付近を+6dB
+      });
+      const channel = new Tone.Channel(16).toDestination();
+      whiteNoise.chain(
+        ...[
+          //bitCrusher,
+          chebyshev,
+          bandpass,
+          peaking,
+          //,
+          channel,
+        ].filter((n) => n),
+      );
+
+      whiteNoise.triggerAttack();
+    }, 1.5);
+
     drumKit.add(kick, kickBuffer);
     drumKit.add(crap, crapBuffer);
-    // drumKit.player(kick).mute = true;
+    drumKit.add(rim, rimBuffer);
+
+    const mutePlayerNames = [
+      //
+      //kick,
+      //crap,
+    ];
+    mutePlayerNames.forEach((pName) => {
+      drumKit.player(pName).mute = true;
+    });
 
     emitter.emit('startCall', transport.context.now());
 
