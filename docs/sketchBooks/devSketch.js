@@ -24,7 +24,7 @@ const sketch = (p) => {
   });
 
   const transport = Tone.getTransport();
-  transport.bpm.value = 90;
+  transport.bpm.value = 132;
 
   const toTime = (t) => new Tone.TimeClass(transport.context, t).toSeconds();
 
@@ -35,36 +35,21 @@ const sketch = (p) => {
     crap = 'crap',
     rim = 'rim',
     snare = 'snare',
-    hihta = 'hihta';
+    hihat = 'hihat';
   const drumKit = new Tone.Players();
   drumKit.fadeIn = '1i';
   drumKit.fadeOut = '2i';
 
-  const drumSeq = new Tone.Sequence({
-    callback: (time, nameTrigger) => {
-      Object.values(nameTrigger).forEach((trigger) => {
-        drumKit.player(trigger).start(time);
-      });
+  // --- kick
+  const kickSeq = new Tone.Sequence({
+    callback: (time, _signal) => {
+      drumKit.player(kick).start(time);
     },
     events: [
-      // prettier-ignore
-      [  // 
-        { kick }, { kick, crap, rim }, { kick }, { kick, crap, rim },
-      ],
-      // prettier-ignore
-      /*
-      [  // 
-        { kick }, { kick, crap, rim }, { kick }, { kick, crap, rim },
-      ],
-      // prettier-ignore
-      [  // 
-        { kick }, { kick, crap }, { kick }, { kick, crap },
-      ],
-      */
-      // prettier-ignore
-      [
-        { kick }, { kick, crap, rim }, { kick }, [[{ kick, crap }, {rim}], { kick }],
-      ],
+      [1, 1, 1, 1],
+      // [1, 1, 1, 1],
+      // [1, 1, 1, 1],
+      [1, 1, 1, [1, 1]],
     ],
     subdivision: '1n',
     // humanize: 0.001,
@@ -80,21 +65,30 @@ const sketch = (p) => {
     subdivision: '4n',
   });
 
+
+  const drumSeqs = [
+    //
+    kickSeq,
+  ];
+
   emitter.once('startCall', (nowTime) => {
     transport.start(nowTime);
     transport.scheduleOnce((time) => {
-      drumSeq.start(time);
-      //clickSeq.start(time);
+      drumSeqs.forEach((seq) => {
+        seq.start(time);
+      })
+      // clickSeq.start(time);
     }, 0);
   });
 
   // --- mixer
   const drumCh = new Tone.Channel();
-  const drumChainAry = [
-    //
-    drumCh,
-  ];
-  drumKit.chain(...drumChainAry.filter((n) => n));
+  drumKit.chain(
+    ...[
+      //
+      drumCh,
+    ].filter((n) => n),
+  );
 
   const clickCh = new Tone.Channel(-4);
   clickSynth.chain(clickCh);
@@ -110,26 +104,31 @@ const sketch = (p) => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
 
+    // --- kick
     const kickBuffer = await Tone.Offline((context) => {
       context.transport.bpm.value = transport.bpm.value;
       const synth = new Tone.Synth({
         oscillator: { type: 'sine', phase: 270 },
         // oscillator: { type: 'sine', },
-        //oscillator: { type: 'pulse', width: 0 },
+        // oscillator: { type: 'pulse', width: 0 },
         envelope: {
           attack: 0,
-          decay: 2.75,
+          decay: 1.75,
           sustain: 0.0,
           release: '1i',
           attackCurve: 'exponential',
         },
       });
-      const channel = new Tone.Channel(8).toDestination();
 
-      Tone.fanIn(synth, channel);
+      synth.triggerAttackRelease('A3', 0.975);
+      synth.frequency.rampTo('A0', 0.145);
 
-      synth.triggerAttackRelease('A3', 0.275);
-      synth.frequency.rampTo('C1', 0.185);
+      synth.chain(
+        ...[
+          //,
+          new Tone.Channel(8).toDestination(),
+        ].filter((n) => n),
+      );
     }, 1.5);
 
     const crapBuffer = await Tone.Offline((context) => {
@@ -226,15 +225,6 @@ const sketch = (p) => {
     drumKit.player(kick).fadeIn = 0;
     drumKit.add(crap, crapBuffer);
     drumKit.add(rim, rimBuffer);
-
-    const mutePlayerNames = [
-      //
-      //kick,
-      //crap,
-    ];
-    mutePlayerNames.forEach((pName) => {
-      drumKit.player(pName).mute = true;
-    });
 
     emitter.emit('startCall', transport.context.now());
 
