@@ -55,6 +55,19 @@ const sketch = (p) => {
     // humanize: 0.001,
   });
 
+  // --- hihat
+  const hihatSeq = new Tone.Sequence({
+    callback: (time, _signal) => {
+      drumKit.player(hihat).start(time);
+    },
+    events: [
+      null, [1,1],
+      // null, 1
+    ],
+    subdivision: '8n',
+    humanize: 0.001,
+  });
+
   // メトロノーム
   const clickSynth = new Tone.MembraneSynth();
   const clickSeq = new Tone.Sequence({
@@ -65,10 +78,10 @@ const sketch = (p) => {
     subdivision: '4n',
   });
 
-
   const drumSeqs = [
     //
     kickSeq,
+    hihatSeq,
   ];
 
   emitter.once('startCall', (nowTime) => {
@@ -76,7 +89,7 @@ const sketch = (p) => {
     transport.scheduleOnce((time) => {
       drumSeqs.forEach((seq) => {
         seq.start(time);
-      })
+      });
       // clickSeq.start(time);
     }, 0);
   });
@@ -120,8 +133,8 @@ const sketch = (p) => {
         },
       });
 
-      synth.triggerAttackRelease('A3', 0.975);
-      synth.frequency.rampTo('A0', 0.145);
+      synth.triggerAttackRelease('A3', 0.775);
+      synth.frequency.rampTo('C0', 0.125);
 
       synth.chain(
         ...[
@@ -131,48 +144,35 @@ const sketch = (p) => {
       );
     }, 1.5);
 
-    const crapBuffer = await Tone.Offline((context) => {
+    // --- hihat
+    const hihatBuffer = await Tone.Offline((context) => {
       context.transport.bpm.value = transport.bpm.value;
 
-      const whiteNoise = new Tone.NoiseSynth({
-        noise: { type: 'white' },
+      const metalSynth = new Tone.MetalSynth({
         envelope: {
           attack: 0.0,
-          decay: 0.75,
+          decay: 1.9,
           sustain: 0.0,
-          release: 0.0,
+          release: 0.01,
+          attackCurve: 'exponential',
+          decayCurve: 'exponential',
         },
+        harmonicity: 5.1,
+        modulationIndex: 32,
+        octaves: 1.5,
+        resonance: 3000,
       });
-      const bitCrusher = new Tone.BitCrusher(16);
+      metalSynth.triggerAttackRelease(745, '64t');
 
-      const chebyshev = new Tone.Chebyshev({
-        order: 33,
-        oversample: 'none',
-      });
-
-      const bandpass = new Tone.Filter({
-        type: 'bandpass',
-        frequency: 1075,
-        Q: 3.4,
-        rolloff: -12, // -12, -24, -48, -96
-        gain: 64,
-      });
-
-      const channel = new Tone.Channel(24).toDestination();
-      whiteNoise.chain(
+      metalSynth.chain(
         ...[
-          bitCrusher,
-          chebyshev,
-          bandpass,
-          // bitCrusher,
           //,
-          channel,
+          new Tone.Channel(8).toDestination(),
         ].filter((n) => n),
       );
-
-      whiteNoise.triggerAttack();
     }, 1.5);
 
+    // --- rim
     const rimBuffer = await Tone.Offline((context) => {
       context.transport.bpm.value = transport.bpm.value;
 
@@ -223,7 +223,7 @@ const sketch = (p) => {
 
     drumKit.add(kick, kickBuffer);
     drumKit.player(kick).fadeIn = 0;
-    drumKit.add(crap, crapBuffer);
+    drumKit.add(hihat, hihatBuffer);
     drumKit.add(rim, rimBuffer);
 
     emitter.emit('startCall', transport.context.now());
