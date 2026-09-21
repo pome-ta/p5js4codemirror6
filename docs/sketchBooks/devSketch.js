@@ -76,6 +76,26 @@ const sketch = (p) => {
     // probability: 0.88,
   });
 
+  // --- bass
+  const bassSynth = new Tone.Synth({
+    oscillator: { type: 'pulse', width: 0 },
+    envelope: {
+      attack: '1i',
+      decay: 0.0,
+      sustain: 1.0,
+      release: '1i',
+      attackCurve: 'exponential',
+    },
+  });
+
+  const bassSeq = new Tone.Sequence({
+    callback: (time, note) => {
+      bassSynth.triggerAttack(note, time);
+    },
+    events: ['A1', , , 'G1'],
+    subdivision: '4n',
+  });
+
   // メトロノーム
   const clickSynth = new Tone.MembraneSynth();
   const clickSeq = new Tone.Sequence({
@@ -99,7 +119,8 @@ const sketch = (p) => {
       drumSeqs.forEach((seq) => {
         seq.start(time);
       });
-      // clickSeq.start(time);
+      //clickSeq.start(time);
+      bassSeq.start(time);
     }, 0);
   });
 
@@ -112,12 +133,21 @@ const sketch = (p) => {
     ].filter((n) => n),
   );
 
+  const bassCh = new Tone.Channel(-2);
+  bassSynth.chain(
+    ...[
+      //
+      bassCh,
+    ].filter((n) => n),
+  );
+
   const clickCh = new Tone.Channel(-4);
   clickSynth.chain(clickCh);
 
   const fanInNodes = [
     //
     drumCh,
+    bassCh,
     clickCh,
   ];
   Tone.fanIn(...fanInNodes.filter((n) => n), masterCh);
@@ -208,10 +238,10 @@ const sketch = (p) => {
       });
       const peaking = new Tone.Filter({
         type: 'peaking',
-        frequency: 2140,
+        frequency: 1980,
         Q: 0.2,
         rolloff: -48, // -12, -24, -48, -96
-        gain: 8,
+        gain: 10,
       });
 
       whiteNoise.chain(
@@ -225,7 +255,7 @@ const sketch = (p) => {
         ].filter((n) => n),
       );
 
-      whiteNoise.triggerAttackRelease('36i');
+      whiteNoise.triggerAttackRelease('24i');
     }, 1.5);
 
     drumKit.add(kick, kickBuffer);
