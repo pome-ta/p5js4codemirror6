@@ -1,4 +1,4 @@
-// --- # example: kick hh snare
+// --- # example: side chain
 
 import * as Tone from 'tone';
 
@@ -88,6 +88,7 @@ const sketch = (p) => {
       attackCurve: 'exponential',
     },
   });
+  const bassGain = new Tone.Gain(1);
 
   const bassSeq = new Tone.Sequence({
     callback: (time, note) => {
@@ -96,6 +97,7 @@ const sketch = (p) => {
     events: ['A1', , , 'G1'],
     subdivision: '4n',
   });
+  //console.log(bassSynth)
 
   // メトロノーム
   const clickSynth = new Tone.MembraneSynth();
@@ -120,6 +122,7 @@ const sketch = (p) => {
   bassSynth.chain(
     ...[
       //
+      bassGain,
       bassCh,
     ].filter((n) => n),
   );
