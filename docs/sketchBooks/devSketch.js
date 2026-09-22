@@ -77,6 +77,7 @@ const sketch = (p) => {
   });
 
   // --- bass
+  // const bassSynth = new Tone.MonoSynth({
   const bassSynth = new Tone.Synth({
     oscillator: { type: 'pulse', width: 0 },
     envelope: {
@@ -106,24 +107,6 @@ const sketch = (p) => {
     subdivision: '4n',
   });
 
-  const drumSeqs = [
-    //
-    kickSeq,
-    hihatSeq,
-    rimSeq,
-  ];
-
-  emitter.once('startCall', (nowTime) => {
-    transport.start(nowTime);
-    transport.scheduleOnce((time) => {
-      drumSeqs.forEach((seq) => {
-        seq.start(time);
-      });
-      //clickSeq.start(time);
-      bassSeq.start(time);
-    }, 0);
-  });
-
   // --- mixer
   const drumCh = new Tone.Channel();
   drumKit.chain(
@@ -133,7 +116,7 @@ const sketch = (p) => {
     ].filter((n) => n),
   );
 
-  const bassCh = new Tone.Channel(-2);
+  const bassCh = new Tone.Channel(-4);
   bassSynth.chain(
     ...[
       //
@@ -151,6 +134,25 @@ const sketch = (p) => {
     clickCh,
   ];
   Tone.fanIn(...fanInNodes.filter((n) => n), masterCh);
+
+  // --- emitter
+  const drumSeqs = [
+    //
+    kickSeq,
+    hihatSeq,
+    rimSeq,
+  ];
+
+  emitter.once('startCall', (nowTime) => {
+    transport.start(nowTime);
+    transport.scheduleOnce((time) => {
+      drumSeqs.forEach((seq) => {
+        seq.start(time);
+      });
+      //clickSeq.start(time);
+      bassSeq.start(time);
+    }, 0);
+  });
 
   p.setup = async () => {
     // put setup code here
