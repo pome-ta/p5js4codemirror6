@@ -6,6 +6,100 @@ import SpectrumAnalyzer from 'modules/SpectrumAnalyzer.js';
 
 const BPM = 92;
 
+// --- offline buffers
+// --- kick
+const kickBuffer = await Tone.Offline((context) => {
+  context.transport.bpm.value = BPM;
+  const synth = new Tone.Synth({
+    oscillator: { type: 'sine', phase: 270 },
+    // oscillator: { type: 'sine', },
+    // oscillator: { type: 'pulse', width: 0 },
+    envelope: {
+      attack: 0,
+      decay: 1.75,
+      sustain: 0.0,
+      release: '1i',
+      attackCurve: 'exponential',
+    },
+  });
+  synth.triggerAttackRelease('A3', 0.775);
+  synth.frequency.rampTo('C0', 0.125);
+  synth.chain(
+    ...[
+      //,
+      new Tone.Channel(8).toDestination(),
+    ].filter((n) => n),
+  );
+}, 1.5);
+
+// --- snare
+const snareBuffer = await Tone.Offline((context) => {
+  context.transport.bpm.value = BPM;
+  const whiteNoise = new Tone.NoiseSynth({
+    noise: { type: 'white' },
+    envelope: {
+      attack: 0.0,
+      decay: 1.0,
+      sustain: 0.0,
+      release: '1i',
+    },
+  });
+
+  const chebyshev = new Tone.Chebyshev({
+    order: 32,
+    oversample: 'none',
+  });
+  const bandpass = new Tone.Filter({
+    type: 'bandpass',
+    frequency: 585,
+    Q: 5.2,
+    rolloff: -12, // -12, -24, -48, -96
+    gain: 64,
+  });
+  const peaking = new Tone.Filter({
+    type: 'peaking',
+    frequency: 1980,
+    Q: 0.2,
+    rolloff: -48, // -12, -24, -48, -96
+    gain: 10,
+  });
+  whiteNoise.triggerAttackRelease('24i');
+  whiteNoise.chain(
+    ...[
+      chebyshev,
+      bandpass,
+      peaking,
+      //,
+      new Tone.Channel(2).toDestination(),
+    ].filter((n) => n),
+  );
+}, 1.5);
+
+// --- hihat
+const hihatBuffer = await Tone.Offline((context) => {
+  context.transport.bpm.value = BPM;
+  const metalSynth = new Tone.MetalSynth({
+    envelope: {
+      attack: 0.0,
+      decay: 1.9,
+      sustain: 0.0,
+      release: 0.01,
+      attackCurve: 'exponential',
+    },
+    harmonicity: 5.1,
+    modulationIndex: 32,
+    octaves: 1.25,
+    resonance: 3000,
+  });
+  metalSynth.triggerAttackRelease(980, '3i');
+  metalSynth.chain(
+    ...[
+      //,
+      new Tone.Channel(8).toDestination(),
+    ].filter((n) => n),
+  );
+}, 1.5);
+
 const sketch = (p) => {
   // --- Tone.js
   const ctx = p.getAudioContext();
@@ -24,9 +118,15 @@ const sketch = (p) => {
   const kick = 'kick',
     snare = 'snare',
     hihat = 'hihat';
-  const drumKit = new Tone.Players();
+  const drumKit = new Tone.Players({
+    //
+    kick: kickBuffer,
+    snare: snareBuffer,
+    hihat: hihatBuffer,
+  });
   drumKit.fadeIn = '1i';
   drumKit.fadeOut = '2i';
+  drumKit.player(kick).fadeIn = 0;
 
   // --- kick
   const kickSeq = new Tone.Sequence({
@@ -165,17 +265,6 @@ const sketch = (p) => {
     hihatSeq,
   ];
 
-  emitter.once('startOnceCall', () => {
-    //transport.start();
-    transport.scheduleOnce((time) => {
-      drumSeqs.forEach((seq) => {
-        seq.start(time);
-      });
-      clickSeq.start(time);
-      bassSeq.start(time);
-    }, transport.context.now());
-  });
-
   // --- Sketch
   let cnvs;
   let w = p.windowWidth;
@@ -214,116 +303,26 @@ const sketch = (p) => {
       duckScale.connect(a.gain);
       //console.log(a.gain)
     };
-
-    // --- kick
-    const kickBuffer = await Tone.Offline((context) => {
-      context.transport.bpm.value = BPM;
-      const synth = new Tone.Synth({
-        oscillator: { type: 'sine', phase: 270 },
-        // oscillator: { type: 'sine', },
-        // oscillator: { type: 'pulse', width: 0 },
-        envelope: {
-          attack: 0,
-          decay: 1.75,
-          sustain: 0.0,
-          release: '1i',
-          attackCurve: 'exponential',
-        },
-      });
-
-      synth.triggerAttackRelease('A3', 0.775);
-      synth.frequency.rampTo('C0', 0.125);
-
-      synth.chain(
-        ...[
-          //,
-          new Tone.Channel(8).toDestination(),
-        ].filter((n) => n),
-      );
-    }, 1.5);
-
-    // --- snare
-    const snareBuffer = await Tone.Offline((context) => {
-      context.transport.bpm.value = BPM;
-
-      const whiteNoise = new Tone.NoiseSynth({
-        noise: { type: 'white' },
-        envelope: {
-          attack: 0.0,
-          decay: 1.0,
-          sustain: 0.0,
-          release: '1i',
-        },
-      });
-
-      const chebyshev = new Tone.Chebyshev({
-        order: 32,
-        oversample: 'none',
-      });
-      const bandpass = new Tone.Filter({
-        type: 'bandpass',
-        frequency: 585,
-        Q: 5.2,
-        rolloff: -12, // -12, -24, -48, -96
-        gain: 64,
-      });
-      const peaking = new Tone.Filter({
-        type: 'peaking',
-        frequency: 1980,
-        Q: 0.2,
-        rolloff: -48, // -12, -24, -48, -96
-        gain: 10,
-      });
-
-      whiteNoise.chain(
-        ...[
-          // bitCrusher,
-          chebyshev,
-          bandpass,
-          peaking,
-          //,
-          new Tone.Channel(2).toDestination(),
-        ].filter((n) => n),
-      );
-
-      whiteNoise.triggerAttackRelease('24i');
-    }, 1.5);
-
-    // --- hihat
-    const hihatBuffer = await Tone.Offline((context) => {
-      context.transport.bpm.value = BPM;
-
-      const metalSynth = new Tone.MetalSynth({
-        envelope: {
-          attack: 0.0,
-          decay: 1.9,
-          sustain: 0.0,
-          release: 0.01,
-          attackCurve: 'exponential',
-          decayCurve: 'exponential',
-        },
-        harmonicity: 5.1,
-        modulationIndex: 32,
-        octaves: 1.25,
-        resonance: 3000,
-      });
-      metalSynth.triggerAttackRelease(980, '3i');
-
-      metalSynth.chain(
-        ...[
-          //,
-          new Tone.Channel(8).toDestination(),
-        ].filter((n) => n),
-      );
-    }, 1.5);
-
+    /*
     drumKit.add(kick, kickBuffer);
     drumKit.player(kick).fadeIn = 0;
     drumKit.add(snare, snareBuffer);
     drumKit.add(hihat, hihatBuffer);
+    */
 
     //sideChain(bassGain, drumKit.player(kick));
-    // xxx: インクルード要検討
+
+    emitter.once('startOnceCall', () => {
+      //transport.start();
+      transport.scheduleOnce((time) => {
+        drumSeqs.forEach((seq) => {
+          seq.start(time);
+        });
+        //clickSeq.start(time);
+        bassSeq.start(time);
+      }, transport.context.now());
+    });
+    // xxx: インクルード要検討
     transport.start();
     emitter.emit('startOnceCall');
 
