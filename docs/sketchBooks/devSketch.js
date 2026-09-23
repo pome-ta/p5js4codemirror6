@@ -125,7 +125,7 @@ const sketch = (p) => {
     callback: (time, note) => {
       bassSynth.triggerAttack(note, time);
     },
-    events: ['A1', , , 'G1'],
+    events: [, 'A5', , 'G4'],
     subdivision: '4n',
   });
   //console.log(bassSynth)
@@ -149,7 +149,7 @@ const sketch = (p) => {
     ].filter((n) => n),
   );
 
-  const bassCh = new Tone.Channel(-4);
+  const bassCh = new Tone.Channel(-8);
   bassSynth.chain(
     ...[
       //
@@ -181,10 +181,10 @@ const sketch = (p) => {
     transport.start(nowTime);
     transport.scheduleOnce((time) => {
       drumSeqs.forEach((seq) => {
-        seq.start(time);
+        //seq.start(time);
       });
-      //clickSeq.start(time);
-      bassSeq.start(time);
+      clickSeq.start(time);
+      //bassSeq.start(time);
     }, 0);
   });
 
@@ -325,7 +325,7 @@ const sketch = (p) => {
     drumKit.add(hihat, hihatBuffer);
     drumKit.add(rim, rimBuffer);
 
-    sideChain(bassGain, drumKit.player(kick));
+    //sideChain(bassGain, drumKit.player(kick));
 
     emitter.emit('startCall', transport.context.now());
 
