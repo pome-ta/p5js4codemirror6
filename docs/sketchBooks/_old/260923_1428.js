@@ -176,21 +176,25 @@ const sketch = (p) => {
     hihatSeq,
     rimSeq,
   ];
-
+  /*
   emitter.once('startCall', (nowTime) => {
-    //transport.start(nowTime);
+    transport.start(nowTime);
     transport.scheduleOnce((time) => {
       drumSeqs.forEach((seq) => {
         //seq.start(time);
       });
       clickSeq.start(time);
-      //bassSeq.start();
+      bassSeq.start(time);
     }, 0);
   });
+  */
 
-  p.setup = async () => {
+  //p.setup = async () => {
+  p.setup = () => {
     // put setup code here
     cnvs = p.createCanvas(w, h);
+
+    /*
 
     const sideChain = (a, b) => {
       console.log(a);
@@ -326,8 +330,41 @@ const sketch = (p) => {
     drumKit.add(rim, rimBuffer);
 
     //sideChain(bassGain, drumKit.player(kick));
+    */
+
+    /*
+    emitter.once('startCall', (nowTime) => {
+      transport.start(0);
+      transport.scheduleOnce((time) => {
+        drumSeqs.forEach((seq) => {
+          //seq.start(time);
+        });
+        clickSeq.start(time);
+        bassSeq.start(time);
+      }, 0);
+    });
+    */
+
+    //emitter.emit('startCall', transport.context.now());
     transport.start(0);
-    emitter.emit('startCall', transport.context.now());
+    //schedule
+    
+    //transport.scheduleOnce((time) => {
+    transport.schedule((time) => {
+      drumSeqs.forEach((seq) => {
+        //seq.start(time);
+      });
+      clickSeq.start();
+      bassSeq.start();
+    //}, transport.context.now());
+    }, 0);
+    /*
+    drumSeqs.forEach((seq) => {
+      //seq.start(time);
+    });
+    clickSeq.start();
+    bassSeq.start();
+    */
 
     tapIndicator.setup();
     spectrumAnalyzer.targetNodes(masterCh);
@@ -351,3 +388,4 @@ const sketch = (p) => {
 };
 
 new p5(sketch);
+
